@@ -6,8 +6,6 @@ We are looking for major changes in relationships. Could be the form of acquisit
 
 Time frame would be last five years shorter is also fine. Just giving the wish list. 
 
-Time frame would be last five years shorter is also fine. Just giving the wish list. 
-
 What I need to do for the agent you are making is figure out how to give it a goal once it finds something. 
 
 Right now, I’m thinking, define geographic regions impacted, size the entities involved economically, and perhaps do research on alternatives.
