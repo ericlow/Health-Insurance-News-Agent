@@ -1,0 +1,10 @@
+psycopg2-binary
+requests
+beautifulsoup4
+feedparser
+playwright
+python-dateutil
+python-dotenv
+apscheduler
+responses
+pytest
