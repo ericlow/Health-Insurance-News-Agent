@@ -11,3 +11,8 @@ and research alternatives for affected parties.
 
 Examples:
 * https://www.healthaffairs.org/topic/primary-topic/pt_83
+
+## Documentation
+
+- [`docs/inputs.md`](docs/inputs.md) — dated log of domain expert inputs; the source of truth for what this system should look for and why
+- [`CLAUDE.md`](CLAUDE.md) — guidance for working in this repo with Claude Code
