@@ -1,5 +1,4 @@
 import time
-import xml.etree.ElementTree as ET
 import feedparser
 import requests
 from bs4 import BeautifulSoup
@@ -8,12 +7,11 @@ from time import mktime
 
 from playwright.sync_api import sync_playwright
 
-from config import BECKERS_PAYER_FEED_URL, BECKERS_PAYER_SITEMAP_INDEX
+from config import BECKERS_PAYER_FEED_URL
 from db.connection import get_connection, release_connection
 
 SOURCE = 'beckerspayer.com'
 HEADERS = {'User-Agent': 'Mozilla/5.0 (compatible; HealthInsuranceNewsAgent/1.0)'}
-BACKFILL_YEARS = 5
 BACKFILL_DELAY_SECONDS = 1
 
 
@@ -48,70 +46,11 @@ CDP_LAUNCH_HINT = (
 
 
 def run_backfill():
-    """Backfill using sitemap + Chrome CDP. Fetches all articles from the last 5 years.
-
-    Requires Chrome running with --remote-debugging-port=9222.
-    """
-    import urllib.request
-    try:
-        urllib.request.urlopen(f'{CDP_URL}/json/version', timeout=3)
-    except Exception:
-        print(f'[backfill] ERROR: cannot reach Chrome CDP at {CDP_URL}.')
-        print(CDP_LAUNCH_HINT)
-        return
-
-    cutoff = datetime.now(timezone.utc) - timedelta(days=365 * BACKFILL_YEARS)
-    sitemap_urls = _get_post_sitemap_urls()
-
-    article_urls = []
-    for sitemap_url in sitemap_urls:
-        article_urls.extend(_get_urls_from_sitemap(sitemap_url, cutoff))
-
-    conn = get_connection()
-    run_id = _open_run(conn, datetime.now(timezone.utc), label='backfill')
-    try:
-        new_urls = [u for u in article_urls if not _already_seen(conn, u)]
-        print(f'[backfill] {len(article_urls)} in sitemap (last {BACKFILL_YEARS}y), {len(new_urls)} new.')
-
-        new_count = 0
-        with sync_playwright() as p:
-            browser = p.chromium.connect_over_cdp(CDP_URL)
-            context = browser.contexts[0]
-            page = context.new_page()
-            for i, url in enumerate(new_urls, 1):
-                try:
-                    entry = _fetch_article_playwright(page, url)
-                    if entry and _insert_article(conn, entry, run_id):
-                        new_count += 1
-                        print(f'  [{i}/{len(new_urls)}] + {url}')
-                    else:
-                        print(f'  [{i}/{len(new_urls)}] skip (no body): {url}')
-                except Exception as exc:
-                    print(f'  [{i}/{len(new_urls)}] failed: {url} — {exc}')
-                time.sleep(BACKFILL_DELAY_SECONDS)
-            page.close()
-
-        _close_run(conn, run_id, 'completed', len(article_urls), new_count)
-        print(f'[backfill] done. {new_count} new articles added.')
-    except Exception as exc:
-        _fail_run(conn, run_id, str(exc))
-        raise
-    finally:
-        release_connection(conn)
+    """Backfill stub — not yet implemented. See docs/specs/scraper.md."""
+    raise NotImplementedError("Backfill not yet implemented. See docs/specs/scraper.md")
 
 
 # --- RSS feed (monitor) ---
-
-def _extract_category(url: str) -> str | None:
-    """Extract category from first URL path segment.
-
-    /contracting/article-slug/         → 'contracting'
-    /payer/medicaid/article-slug/      → 'payer'
-    """
-    from urllib.parse import urlparse
-    segments = [s for s in urlparse(url).path.split('/') if s]
-    return segments[0] if segments else None
-
 
 def _fetch_feed() -> list[dict]:
     resp = requests.get(BECKERS_PAYER_FEED_URL, headers=HEADERS, timeout=30)
@@ -125,7 +64,7 @@ def _fetch_feed() -> list[dict]:
             'title': e.title,
             'published_at': _parse_feed_date(e),
             'body_text': _strip_html(body_html),
-            'category': _extract_category(e.link),
+            'category': e.tags[0].term if e.get('tags') else None,
             'tags': [t.term for t in e.get('tags', [])],
         })
     return entries
@@ -135,41 +74,6 @@ def _parse_feed_date(entry) -> datetime | None:
     if entry.get('published_parsed'):
         return datetime.fromtimestamp(mktime(entry.published_parsed), tz=timezone.utc)
     return None
-
-
-# --- Sitemap (backfill) ---
-
-def _get_post_sitemap_urls() -> list[str]:
-    resp = requests.get(BECKERS_PAYER_SITEMAP_INDEX, headers=HEADERS, timeout=30)
-    resp.raise_for_status()
-    root = ET.fromstring(resp.content)
-    ns = {'sm': 'http://www.sitemaps.org/schemas/sitemap/0.9'}
-    return [
-        loc.text for loc in root.findall('.//sm:loc', ns)
-        if loc.text and 'post-sitemap' in loc.text
-    ]
-
-
-def _get_urls_from_sitemap(sitemap_url: str, cutoff: datetime) -> list[str]:
-    resp = requests.get(sitemap_url, headers=HEADERS, timeout=30)
-    resp.raise_for_status()
-    root = ET.fromstring(resp.content)
-    ns = {'sm': 'http://www.sitemaps.org/schemas/sitemap/0.9'}
-    urls = []
-    for url_el in root.findall('.//sm:url', ns):
-        loc = url_el.findtext('sm:loc', namespaces=ns)
-        lastmod = url_el.findtext('sm:lastmod', namespaces=ns)
-        if not loc:
-            continue
-        if lastmod:
-            try:
-                mod_date = datetime.fromisoformat(lastmod).replace(tzinfo=timezone.utc)
-                if mod_date < cutoff:
-                    continue
-            except ValueError:
-                pass
-        urls.append(loc)
-    return urls
 
 
 # --- Playwright article fetch (backfill) ---
@@ -200,8 +104,8 @@ def _fetch_article_playwright(page, url: str) -> dict | None:
         'title': result.get('title') or '',
         'published_at': _parse_date_str(result.get('date')),
         'body_text': result['body'],
-        'category': _extract_category(url),
-        'tags': result.get('tags'),  # from NewsArticle JSON-LD keywords field
+        'category': None,
+        'tags': result.get('tags'),
     }
 
 

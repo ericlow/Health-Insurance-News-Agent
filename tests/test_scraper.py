@@ -5,37 +5,18 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch, call
 
 from agent.scraper import (
-    _extract_category,
     _fetch_feed,
-    _get_post_sitemap_urls,
-    _get_urls_from_sitemap,
     _parse_feed_date,
     _parse_date_str,
     _already_seen,
     _insert_article,
     BECKERS_PAYER_FEED_URL,
-    BECKERS_PAYER_SITEMAP_INDEX,
 )
 
 FIXTURES = Path(__file__).parent / 'fixtures'
 FEED_XML = (FIXTURES / 'beckerspayer_feed.xml').read_bytes()
 SITEMAP_INDEX_XML = (FIXTURES / 'beckerspayer_sitemap_index.xml').read_bytes()
 POST_SITEMAP_XML = (FIXTURES / 'beckerspayer_post_sitemap.xml').read_bytes()
-
-
-# --- _extract_category ---
-
-def test_extract_category_simple():
-    assert _extract_category('https://www.beckerspayer.com/contracting/some-article/') == 'contracting'
-
-def test_extract_category_with_tag():
-    assert _extract_category('https://www.beckerspayer.com/payer/medicaid/some-article/') == 'payer'
-
-def test_extract_category_financial():
-    assert _extract_category('https://www.beckerspayer.com/financial/some-article/') == 'financial'
-
-def test_extract_category_invalid_url():
-    assert _extract_category('https://www.beckerspayer.com/') is None
 
 
 # --- _fetch_feed ---
@@ -83,43 +64,6 @@ def test_fetch_feed_multi_tag_entry():
     entries = _fetch_feed()
     multi = [e for e in entries if len(e['tags']) > 1]
     assert len(multi) > 0, "Expected at least one entry with multiple tags"
-
-
-# --- _get_post_sitemap_urls ---
-
-@responses_lib.activate
-def test_get_post_sitemap_urls_returns_only_post_sitemaps():
-    responses_lib.add(responses_lib.GET, BECKERS_PAYER_SITEMAP_INDEX, body=SITEMAP_INDEX_XML, status=200)
-    urls = _get_post_sitemap_urls()
-    assert len(urls) > 0
-    assert all('post-sitemap' in url for url in urls)
-
-@responses_lib.activate
-def test_get_post_sitemap_urls_excludes_other_sitemaps():
-    responses_lib.add(responses_lib.GET, BECKERS_PAYER_SITEMAP_INDEX, body=SITEMAP_INDEX_XML, status=200)
-    urls = _get_post_sitemap_urls()
-    assert not any('category-sitemap' in url for url in urls)
-    assert not any('author-sitemap' in url for url in urls)
-
-
-# --- _get_urls_from_sitemap ---
-
-@responses_lib.activate
-def test_get_urls_from_sitemap_filters_by_cutoff():
-    sitemap_url = 'https://www.beckerspayer.com/post-sitemap16.xml'
-    responses_lib.add(responses_lib.GET, sitemap_url, body=POST_SITEMAP_XML, status=200)
-    cutoff = datetime(2030, 1, 1, tzinfo=timezone.utc)
-    urls = _get_urls_from_sitemap(sitemap_url, cutoff)
-    assert urls == []
-
-@responses_lib.activate
-def test_get_urls_from_sitemap_includes_recent_urls():
-    sitemap_url = 'https://www.beckerspayer.com/post-sitemap16.xml'
-    responses_lib.add(responses_lib.GET, sitemap_url, body=POST_SITEMAP_XML, status=200)
-    cutoff = datetime(2020, 1, 1, tzinfo=timezone.utc)
-    urls = _get_urls_from_sitemap(sitemap_url, cutoff)
-    assert len(urls) > 0
-    assert all(url.startswith('https://www.beckerspayer.com/') for url in urls)
 
 
 # --- _parse_date_str ---
