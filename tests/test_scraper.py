@@ -15,8 +15,7 @@ from agent.scraper import (
 
 FIXTURES = Path(__file__).parent / 'fixtures'
 FEED_XML = (FIXTURES / 'beckerspayer_feed.xml').read_bytes()
-SITEMAP_INDEX_XML = (FIXTURES / 'beckerspayer_sitemap_index.xml').read_bytes()
-POST_SITEMAP_XML = (FIXTURES / 'beckerspayer_post_sitemap.xml').read_bytes()
+LISTING_HTML = (FIXTURES / 'beckerspayer_listing.html').read_bytes()
 
 
 # --- _fetch_feed ---
@@ -150,3 +149,115 @@ def test_insert_article_passes_correct_fields():
     assert args[4] == 'beckerspayer.com'
     assert args[5] == 'payer'
     assert args[6] == ['Medicaid', 'Payer']
+
+
+# =============================================================================
+# BACKFILL BEHAVIORAL SPECS (AGE-7) — all stubs, expected to fail until impl
+# =============================================================================
+
+LISTING_URL = 'https://www.beckerspayer.com/executive-moves/'
+CUTOFF_RECENT = datetime(2022, 1, 1, tzinfo=timezone.utc)
+CUTOFF_FUTURE = datetime(2030, 1, 1, tzinfo=timezone.utc)
+
+
+# --- _parse_listing_date ---
+
+def test_parse_listing_date_returns_datetime_when_given_pdt_timestamp():
+    from agent.scraper import _parse_listing_date
+    dt = _parse_listing_date('Jun 22, 2026, 12:44 PM PDT')
+    assert dt is not None
+    assert dt.year == 2026 and dt.month == 6 and dt.day == 22
+
+def test_parse_listing_date_returns_datetime_when_given_relative_hours_ago():
+    from agent.scraper import _parse_listing_date
+    dt = _parse_listing_date('2 hours ago')
+    assert dt is not None
+    assert (datetime.now(timezone.utc) - dt).total_seconds() < 3 * 3600
+
+def test_parse_listing_date_returns_datetime_when_given_relative_days_ago():
+    from agent.scraper import _parse_listing_date
+    dt = _parse_listing_date('3 days ago')
+    assert dt is not None
+    assert (datetime.now(timezone.utc) - dt).total_seconds() < 4 * 86400
+
+
+# --- load_config ---
+
+def test_load_config_returns_rss_feeds_when_given_valid_file():
+    from agent.scraper import load_config
+    config = load_config(str(FIXTURES / 'config.json'))
+    assert isinstance(config['rss_feeds'], list)
+    assert len(config['rss_feeds']) > 0
+
+def test_load_config_returns_backfill_urls_when_given_valid_file():
+    from agent.scraper import load_config
+    config = load_config(str(FIXTURES / 'config.json'))
+    assert isinstance(config['backfill_urls'], list)
+    assert len(config['backfill_urls']) > 0
+
+def test_load_config_returns_min_articles_when_given_valid_file():
+    from agent.scraper import load_config
+    config = load_config(str(FIXTURES / 'config.json'))
+    assert isinstance(config['min_articles'], int)
+
+def test_load_config_returns_cutoff_date_when_given_valid_file():
+    from agent.scraper import load_config
+    config = load_config(str(FIXTURES / 'config.json'))
+    assert isinstance(config['cutoff_date'], datetime)
+
+def test_load_config_raises_when_config_file_not_found():
+    from agent.scraper import load_config
+    with pytest.raises(Exception):
+        load_config(str(FIXTURES / 'nonexistent.json'))
+
+def test_load_config_raises_when_required_field_is_missing():
+    from agent.scraper import load_config
+    with pytest.raises(Exception):
+        load_config(str(FIXTURES / 'config_missing_field.json'))
+
+def test_load_config_raises_when_backfill_url_list_is_empty():
+    from agent.scraper import load_config
+    with pytest.raises(Exception):
+        load_config(str(FIXTURES / 'config_empty_backfill.json'))
+
+
+# --- _fetch_listing_page ---
+
+@responses_lib.activate
+def test_fetch_listing_page_returns_articles_with_url_title_and_date():
+    from agent.scraper import _fetch_listing_page
+    responses_lib.add(responses_lib.GET, LISTING_URL, body=LISTING_HTML, status=200)
+    articles, _ = _fetch_listing_page(LISTING_URL, cutoff=CUTOFF_RECENT)
+    assert len(articles) > 0
+    for a in articles:
+        assert 'url' in a and 'title' in a and 'date' in a
+
+@responses_lib.activate
+def test_fetch_listing_page_excludes_articles_older_than_cutoff():
+    from agent.scraper import _fetch_listing_page
+    responses_lib.add(responses_lib.GET, LISTING_URL, body=LISTING_HTML, status=200)
+    articles, _ = _fetch_listing_page(LISTING_URL, cutoff=CUTOFF_FUTURE)
+    assert articles == []
+
+@responses_lib.activate
+def test_fetch_listing_page_returns_next_page_url_when_recent_articles_exist():
+    from agent.scraper import _fetch_listing_page
+    responses_lib.add(responses_lib.GET, LISTING_URL, body=LISTING_HTML, status=200)
+    _, next_url = _fetch_listing_page(LISTING_URL, cutoff=CUTOFF_RECENT)
+    assert next_url == 'https://www.beckerspayer.com/executive-moves/page/2/'
+
+@responses_lib.activate
+def test_fetch_listing_page_returns_no_next_page_url_when_cutoff_reached():
+    from agent.scraper import _fetch_listing_page
+    responses_lib.add(responses_lib.GET, LISTING_URL, body=LISTING_HTML, status=200)
+    _, next_url = _fetch_listing_page(LISTING_URL, cutoff=CUTOFF_FUTURE)
+    assert next_url is None
+
+@responses_lib.activate
+def test_fetch_listing_page_skips_urls_already_in_database():
+    from agent.scraper import _fetch_listing_page
+    responses_lib.add(responses_lib.GET, LISTING_URL, body=LISTING_HTML, status=200)
+    conn = MagicMock()
+    conn.cursor.return_value.__enter__.return_value.fetchone.return_value = (1,)
+    articles, _ = _fetch_listing_page(LISTING_URL, cutoff=CUTOFF_RECENT, conn=conn)
+    assert articles == []

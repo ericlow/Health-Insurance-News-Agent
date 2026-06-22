@@ -1,0 +1,6 @@
+{
+  "rss_feeds": ["https://www.beckerspayer.com/feed/"],
+  "backfill_urls": [],
+  "min_articles": 10,
+  "cutoff_date": "2021-01-01"
+}
