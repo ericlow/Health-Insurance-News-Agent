@@ -51,12 +51,14 @@ Logs every scheduled execution.
 ```sql
 CREATE TABLE scrape_runs (
     id              SERIAL PRIMARY KEY,
-    source          TEXT NOT NULL,           -- e.g. 'newsroom.cigna.com'
+    source          TEXT NOT NULL,           -- RSS feed URL or backfill category listing URL
     started_at      TIMESTAMPTZ NOT NULL,
     completed_at    TIMESTAMPTZ,
     status          TEXT NOT NULL,           -- 'running' | 'completed' | 'failed'
-    articles_found  INTEGER,                 -- total articles seen on the page
+    articles_found  INTEGER,                 -- total articles seen
     articles_new    INTEGER,                 -- articles not previously seen
+    end_time        TIMESTAMPTZ,             -- timestamp when run reached completed or failed
+    duration_secs   INTEGER,                 -- wall-clock seconds from started_at to end_time
     error_message   TEXT
 );
 ```
@@ -72,7 +74,7 @@ CREATE TABLE articles (
     published_at    TIMESTAMPTZ,
     body_text       TEXT,
     source          TEXT NOT NULL,
-    category        TEXT,                        -- first URL path segment (e.g. 'contracting', 'payer', 'financial')
+    category        TEXT,                        -- RSS category tag; null for backfilled articles
     tags            TEXT[],                      -- all WordPress taxonomy terms from RSS feed (e.g. ['Payer', 'Medicare Advantage']); null for backfilled articles
     first_seen_at   TIMESTAMPTZ NOT NULL,
     scrape_run_id   INTEGER REFERENCES scrape_runs(id)
@@ -175,11 +177,15 @@ Deliverables:
 - No backfill support: `?paged=N` is blocked (403), so only the current feed window (~10 items) is available. Ongoing monitoring is fine since the 8-hour schedule catches new articles before they scroll off.
 - Article body is extracted from the `content:encoded` field directly — no second HTTP request needed per article; strip HTML tags before storing
 
-**Backfill (Playwright):**
-- Fetches `sitemap_index.xml` with `requests` — lists 16 `post-sitemap{N}.xml` files covering 2013–present
-- Walks each post sitemap to collect article URLs + `lastmod` dates; filters to the last 5 years and skips URLs already in `articles`
-- Loads each new URL in a Playwright chromium browser, extracts title, date, and body from `.entry-content`
-- Reuses a single browser instance across all articles for efficiency; adds a short delay between page loads to avoid rate-limiting
+**Backfill (category listing pages + CDP):**
+- Category listing page URLs (e.g. `https://www.beckerspayer.com/executive-moves/`) are loaded from config
+- Each listing page is fetched with plain `requests` (not Cloudflare-blocked) and parsed for article URLs + publish dates
+- Articles older than the configured cutoff date are skipped before any browser session is opened
+- Pagination follows `/page/2/`, `/page/3/`, etc.; stops when all articles on a page are older than the cutoff
+- URLs already in `articles` are skipped on the listing page — no CDP fetch for known URLs
+- New article pages are loaded via Chrome CDP (headed Chrome required — headless Playwright is Cloudflare-blocked)
+- Extracts title from `article h1`, date from `<time datetime>`, body from `.entry-content`, tags from `NewsArticle` JSON-LD `keywords`
+- Reuses a single browser session across all fetches; adds a short delay between page loads
 
 **Dedup logic:** Before processing an article, check `SELECT 1 FROM articles WHERE url = $1`. If it exists, skip it entirely — no LLM call, no re-processing.
 
@@ -296,6 +302,10 @@ health-insurance-news-agent/
 
 Unit tests cover Phase 1 scraper code. Prompt quality is evaluated separately via Braintrust (Phase 2) — these are distinct concerns and should not be conflated. No unit test should hit a live HTTP endpoint or a live database. HTTP is mocked with fixture files and the `responses` library; the DB layer is mocked with `unittest.mock`.
 
+**Test names are behavioral specs.** A test name should state the expected outcome and the condition under which it holds — not describe the test setup. Pattern: `test_<function>_<expected outcome>_<when condition>`. Example: `test_already_seen_returns_true_when_url_exists_in_db`. Reading the full test suite by name should read like a specification of the system.
+
+**Write tests before code.** Specs are written as plain English behavioral statements first, then translated into declaratively-named tests, then code is written to make them pass. Tests written after code are observations, not specs.
+
 ---
 
 ## 9. Configuration (Environment Variables)
@@ -388,11 +398,19 @@ Post sitemap files are accessible via plain `requests`. Each contains `<loc>` an
 
 ### A.5 Backfill
 
-Pagination on the RSS feed is blocked (see A.2), so the only backfill path is:
+Pagination on the RSS feed is blocked (see A.2). The backfill path uses category listing pages instead:
 
-1. Walk post sitemaps to collect article URLs + `lastmod` dates (plain `requests`)
-2. Filter to URLs not already in `articles` table and within the 5-year scope window
-3. Fetch each article page using **Chrome CDP** — headless Playwright/Chromium is detected and blocked by Cloudflare; only a real Chrome session passes
+1. Load category listing page URLs from config (e.g. `/executive-moves/`, `/contracting/`)
+2. Fetch each listing page with plain `requests` — not Cloudflare-blocked
+3. Parse article URLs and publish dates from each listing entry
+4. Skip articles older than the cutoff date and URLs already in `articles` — no CDP fetch needed
+5. Paginate through `/page/N/` until cutoff is reached or no more pages exist
+6. Fetch qualifying article pages using **Chrome CDP** — headless Playwright/Chromium is detected and blocked by Cloudflare; only a real Chrome session passes
+
+**Listing page date formats** (three formats observed in the wild):
+- Recent: `Jun 22, 2026, 12:44 PM PDT`
+- Older: `Tuesday, June 9th, 2026`
+- Very recent: `2 hours ago`
 
 **CDP setup (required for backfill):** Quit Chrome, then launch with:
 ```

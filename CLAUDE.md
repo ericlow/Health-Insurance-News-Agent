@@ -44,7 +44,21 @@ This project follows **spec-driven development**: specs are written and agreed u
 1. New direction or feature idea comes in from Eric (verbally or as notes)
 2. Claude identifies which spec(s) need to be updated or created, and prompts Eric for any missing decisions
 3. Specs are updated and agreed upon before any code is written
-4. Code is written to satisfy the spec — not the other way around
+4. A feature branch is created from `main` for the implementation
+5. Code is written to satisfy the spec — not the other way around
+6. Branch is merged back to `main` within one day — if it's taking longer, the spec scope was too broad
+
+### Branch and issue strategy:
+- All implementation work happens on a feature branch, never directly on `main`
+- Before branching: create a Linear issue in the **Agents** team, **Health Insurance News Agent** project, assigned to the relevant phase milestone
+- Use Linear's auto-generated branch name to link the branch to the issue automatically
+- One story = one branch; target branch lifetime ≤ 1 day
+- Merge via PR when work is complete and tests pass; `main` must always be in a working state
+
+**Linear workspace:**
+- Team: `Agents`
+- Project: `Health Insurance News Agent`
+- Milestones: Phase 1 — Ingestion | Phase 2 — Prompt Development | Phase 3 — Analysis Pipeline
 
 ### Claude's coaching responsibilities:
 - Flag when a conversation is moving toward implementation without a completed spec
