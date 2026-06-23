@@ -213,35 +213,6 @@ CUTOFF_FUTURE = datetime(2030, 1, 1, tzinfo=timezone.utc)   # nothing passes thi
 
 
 # =============================================================================
-# _parse_listing_date
-# Parses the date text shown next to each article on a category listing page.
-# Three formats observed in the wild — all must be handled.
-# =============================================================================
-
-def test_parse_listing_date_returns_datetime_when_given_pdt_timestamp():
-    # Format used for articles published today: "Jun 22, 2026, 12:44 PM PDT"
-    from agent.scraper import _parse_listing_date
-    dt = _parse_listing_date('Jun 22, 2026, 12:44 PM PDT')
-    assert dt is not None
-    assert dt.year == 2026 and dt.month == 6 and dt.day == 22
-
-def test_parse_listing_date_returns_datetime_when_given_relative_hours_ago():
-    # Format used for very recent articles: "2 hours ago"
-    # Must resolve to an absolute time so we can compare against the cutoff date.
-    from agent.scraper import _parse_listing_date
-    dt = _parse_listing_date('2 hours ago')
-    assert dt is not None
-    assert (datetime.now(timezone.utc) - dt).total_seconds() < 3 * 3600
-
-def test_parse_listing_date_returns_datetime_when_given_relative_days_ago():
-    # Format used for slightly older articles: "3 days ago"
-    from agent.scraper import _parse_listing_date
-    dt = _parse_listing_date('3 days ago')
-    assert dt is not None
-    assert (datetime.now(timezone.utc) - dt).total_seconds() < 4 * 86400
-
-
-# =============================================================================
 # load_config
 # Reads scraper configuration from a JSON file.
 # In production this would point to SSM Parameter Store or S3 instead.

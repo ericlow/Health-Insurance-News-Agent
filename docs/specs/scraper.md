@@ -50,8 +50,8 @@ The system prints the article URL, title, and date of publication stdio with a s
 
 - The list of category listing page URLs is loaded from config — not hardcoded
 - Listing pages are fetched without a CDP session (not Cloudflare-blocked)
-- Each article entry on a listing page exposes a URL, title snippet, and publish date
-- The publish date is parsed from the listing before any article page is fetched
+- Each article entry on a listing page exposes a URL (`h3 a`), title (`h3 a` text), and publish date (`time[datetime]` attribute — always ISO 8601)
+- The publish date is read from the `datetime` attribute before any article page is fetched
 - An article whose listing date is older than the cutoff date is skipped — its page is never fetched
 - When all articles on a listing page are older than the cutoff, pagination stops for that category
 - The system paginates through `/page/2/`, `/page/3/`, etc. until the cutoff is reached or no more pages exist
@@ -91,12 +91,11 @@ Config is loaded from a configurable source (local file in development; SSM Para
 
 ## Date Parsing
 
-Listing pages show dates in three formats depending on recency. Article pages provide a structured `datetime` attribute.
+Both listing pages and article pages use a `<time datetime="...">` element with an ISO 8601 value.
+No text parsing of human-readable or relative date strings is needed.
 
-- An ISO 8601 date string (e.g. `2026-06-04T00:00:00Z`) is parsed to a UTC-aware datetime
-- A timestamp string with timezone (e.g. `Jun 22, 2026, 12:44 PM PDT`) is parsed to a datetime
-- A human-readable date string (e.g. `Thursday, June 9th, 2026`) is parsed to a datetime
-- A relative date string (e.g. `2 hours ago`, `3 days ago`) is parsed relative to the current time
+- An ISO 8601 date string (e.g. `2026-06-22T14:44:17-05:00`) is parsed to a UTC-aware datetime
+- A human-readable date string (e.g. `Thursday, June 9th, 2026`) is parsed to a datetime (article page fallback only)
 - A null input returns null
 - An empty string returns null
 - A malformed string that matches no known format returns null
