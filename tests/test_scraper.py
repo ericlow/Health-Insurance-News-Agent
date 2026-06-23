@@ -264,8 +264,10 @@ def test_load_config_raises_when_backfill_url_list_is_empty():
 
 # =============================================================================
 # _fetch_listing_page
-# Fetches one page of a category listing (e.g. /executive-moves/) using plain
-# requests (not CDP — these pages are not Cloudflare-blocked).
+# Fetches one page of a category listing (e.g. /executive-moves/).
+# Listing pages are Cloudflare-blocked — production uses CDP (page parameter).
+# Unit tests pass page=None so the function falls back to requests, which
+# responses_lib intercepts; the HTML parsing logic is identical either way.
 # Returns (articles_within_cutoff, next_page_url_or_none).
 # next_page_url is None when the cutoff is reached or there are no more pages.
 # =============================================================================

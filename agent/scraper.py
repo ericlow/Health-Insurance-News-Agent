@@ -62,21 +62,27 @@ def run_backfill(config_path: str = 'config.json'):
     conn = get_connection()
     run_id = _open_run(conn, datetime.now(timezone.utc), label='backfill')
     try:
-        candidate_urls = []
-        for listing_url in config['backfill_urls']:
-            url = listing_url
-            while url:
-                articles, url = _fetch_listing_page(url, cutoff=cutoff, conn=conn)
-                for a in articles:
-                    print(f'  found: {a["title"]} — {a["date"]} — {a["url"]}')
-                    candidate_urls.append(a['url'])
-
-        print(f'[backfill] {len(candidate_urls)} new articles to fetch via CDP.')
         new_count = 0
         with sync_playwright() as p:
             browser = p.chromium.connect_over_cdp(CDP_URL)
             context = browser.contexts[0]
             page = context.new_page()
+
+            seen_urls: set[str] = set()
+            candidate_urls = []
+            for listing_url in config['backfill_urls']:
+                url = listing_url
+                while url:
+                    articles, next_url = _fetch_listing_page(url, cutoff=cutoff, conn=conn, page=page)
+                    new_articles = [a for a in articles if a['url'] not in seen_urls]
+                    for a in new_articles:
+                        seen_urls.add(a['url'])
+                        print(f'  found: {a["title"]} — {a["date"]} — {a["url"]}')
+                        candidate_urls.append(a['url'])
+                    # Stop if no new URLs appeared — all were cross-page sticky duplicates
+                    url = next_url if new_articles else None
+
+            print(f'[backfill] {len(candidate_urls)} new articles to fetch via CDP.')
             for i, url in enumerate(candidate_urls, 1):
                 try:
                     entry = _fetch_article_playwright(page, url)
@@ -150,10 +156,14 @@ def _parse_feed_date(entry) -> datetime | None:
 
 # --- Backfill listing page crawl ---
 
-def _fetch_listing_page(url: str, cutoff: datetime, conn=None) -> tuple[list[dict], str | None]:
-    resp = requests.get(url, headers=HEADERS, timeout=30)
-    resp.raise_for_status()
-    soup = BeautifulSoup(resp.content, 'html.parser')
+def _fetch_listing_page(url: str, cutoff: datetime, conn=None, page=None) -> tuple[list[dict], str | None]:
+    if page is not None:
+        page.goto(url, timeout=30000, wait_until='domcontentloaded')
+        soup = BeautifulSoup(page.content(), 'html.parser')
+    else:
+        resp = requests.get(url, headers=HEADERS, timeout=30)
+        resp.raise_for_status()
+        soup = BeautifulSoup(resp.content, 'html.parser')
 
     articles = []
     any_within_cutoff = False

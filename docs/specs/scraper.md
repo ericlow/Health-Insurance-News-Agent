@@ -49,11 +49,12 @@ The system prints the article URL, title, and date of publication stdio with a s
 ### Category listing pages
 
 - The list of category listing page URLs is loaded from config — not hardcoded
-- Listing pages are fetched without a CDP session (not Cloudflare-blocked)
+- Listing pages are fetched via the same Chrome CDP session as article pages (Cloudflare blocks plain requests to listing pages)
 - Each article entry on a listing page exposes a URL (`h3 a`), title (`h3 a` text), and publish date (`time[datetime]` attribute — always ISO 8601)
 - The publish date is read from the `datetime` attribute before any article page is fetched
 - An article whose listing date is older than the cutoff date is skipped — its page is never fetched
 - When all articles on a listing page are older than the cutoff, pagination stops for that category
+- When a listing page returns no article URLs that haven't been seen on a previous page (cross-page sticky/featured duplicates), pagination stops
 - The system paginates through `/page/2/`, `/page/3/`, etc. until the cutoff is reached or no more pages exist
 - URLs already present in the articles table are skipped before any CDP session is opened
 
