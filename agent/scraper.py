@@ -1,3 +1,4 @@
+import json
 import time
 import feedparser
 import requests
@@ -45,9 +46,80 @@ CDP_LAUNCH_HINT = (
 )
 
 
-def run_backfill():
-    """Backfill stub — not yet implemented. See docs/specs/scraper.md."""
-    raise NotImplementedError("Backfill not yet implemented. See docs/specs/scraper.md")
+def run_backfill(config_path: str = 'config.json'):
+    """Crawls category listing pages and fetches new articles via Chrome CDP."""
+    import urllib.request
+    try:
+        urllib.request.urlopen(f'{CDP_URL}/json/version', timeout=3)
+    except Exception:
+        print(f'[backfill] ERROR: cannot reach Chrome CDP at {CDP_URL}.')
+        print(CDP_LAUNCH_HINT)
+        return
+
+    config = load_config(config_path)
+    cutoff = config['cutoff_date']
+
+    conn = get_connection()
+    run_id = _open_run(conn, datetime.now(timezone.utc), label='backfill')
+    try:
+        candidate_urls = []
+        for listing_url in config['backfill_urls']:
+            url = listing_url
+            while url:
+                articles, url = _fetch_listing_page(url, cutoff=cutoff, conn=conn)
+                for a in articles:
+                    print(f'  found: {a["title"]} — {a["date"]} — {a["url"]}')
+                    candidate_urls.append(a['url'])
+
+        print(f'[backfill] {len(candidate_urls)} new articles to fetch via CDP.')
+        new_count = 0
+        with sync_playwright() as p:
+            browser = p.chromium.connect_over_cdp(CDP_URL)
+            context = browser.contexts[0]
+            page = context.new_page()
+            for i, url in enumerate(candidate_urls, 1):
+                try:
+                    entry = _fetch_article_playwright(page, url)
+                    if entry and _insert_article(conn, entry, run_id):
+                        new_count += 1
+                        print(f'  [{i}/{len(candidate_urls)}] saved: {url}')
+                    else:
+                        print(f'  [{i}/{len(candidate_urls)}] skip: {url}')
+                except Exception as exc:
+                    print(f'  [{i}/{len(candidate_urls)}] failed: {url} — {exc}')
+                time.sleep(BACKFILL_DELAY_SECONDS)
+            page.close()
+
+        _close_run(conn, run_id, 'completed', len(candidate_urls), new_count)
+        print(f'[backfill] done. {new_count} articles saved.')
+    except Exception as exc:
+        _fail_run(conn, run_id, str(exc))
+        raise
+    finally:
+        release_connection(conn)
+
+
+# --- Config ---
+
+def load_config(source: str) -> dict:
+    try:
+        with open(source) as f:
+            data = json.load(f)
+    except FileNotFoundError:
+        raise FileNotFoundError(f"Config file not found: {source}")
+
+    for field in ('rss_feeds', 'backfill_urls', 'min_articles', 'cutoff_date'):
+        if field not in data:
+            raise ValueError(f"Missing required config field: '{field}'")
+
+    if not data['backfill_urls']:
+        raise ValueError("backfill_urls must not be empty")
+
+    data['cutoff_date'] = _parse_date_str(data['cutoff_date'])
+    if data['cutoff_date'] is None:
+        raise ValueError("cutoff_date could not be parsed")
+
+    return data
 
 
 # --- RSS feed (monitor) ---
@@ -74,6 +146,44 @@ def _parse_feed_date(entry) -> datetime | None:
     if entry.get('published_parsed'):
         return datetime.fromtimestamp(mktime(entry.published_parsed), tz=timezone.utc)
     return None
+
+
+# --- Backfill listing page crawl ---
+
+def _fetch_listing_page(url: str, cutoff: datetime, conn=None) -> tuple[list[dict], str | None]:
+    resp = requests.get(url, headers=HEADERS, timeout=30)
+    resp.raise_for_status()
+    soup = BeautifulSoup(resp.content, 'html.parser')
+
+    articles = []
+    any_within_cutoff = False
+
+    for article_el in soup.find_all('article'):
+        link_el = article_el.select_one('h3 a')
+        time_el = article_el.select_one('time[datetime]')
+        if not link_el or not time_el:
+            continue
+
+        article_url = link_el.get('href', '')
+        title = link_el.get_text(strip=True)
+        date = _parse_date_str(time_el.get('datetime'))
+        if date is None or date < cutoff:
+            continue
+
+        any_within_cutoff = True
+
+        if conn and _already_seen(conn, article_url):
+            continue
+
+        articles.append({'url': article_url, 'title': title, 'date': date})
+
+    next_url = None
+    if any_within_cutoff:
+        next_el = soup.select_one('a.next')
+        if next_el:
+            next_url = next_el.get('href')
+
+    return articles, next_url
 
 
 # --- Playwright article fetch (backfill) ---
