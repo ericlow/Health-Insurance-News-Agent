@@ -1,0 +1,6 @@
+{
+  "rss_feeds": ["https://www.beckerspayer.com/feed/"],
+  "backfill_urls": ["https://www.beckerspayer.com/contracting/"],
+  "min_articles": 3,
+  "cutoff_date": "2026-06-01"
+}

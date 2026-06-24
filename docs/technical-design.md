@@ -1,6 +1,6 @@
 # Technical Design Document — Health Insurance News Agent
 
-_Last updated: 2026-06-20_
+_Last updated: 2026-06-24_
 
 ---
 
@@ -8,13 +8,13 @@ _Last updated: 2026-06-20_
 
 A Python-based hierarchical multi-agent pipeline built in two phases:
 
-- **Phase 1 — Ingestion:** Scrapes `newsroom.cigna.com` every 8 hours and saves raw articles to PostgreSQL.
+- **Phase 1 — Ingestion:** Scrapes `beckerspayer.com` on a schedule and saves raw articles to PostgreSQL.
 - **Phase 2 — Analysis:** Prompts triage and analysis agents against saved articles to extract structured intelligence.
 
 ```mermaid
 flowchart TD
-    S([Scheduler<br/>every 8h]) --> M[News Monitor Agent]
-    M --> SC[Scraper<br/>newsroom.cigna.com]
+    S([Cron job<br/>every 8h]) --> M[News Monitor Agent]
+    M --> SC[Scraper<br/>beckerspayer.com RSS]
     SC --> T{Triage LLM<br/>Step 1: relevant?}
     T -- PR/soft → discard --> Skip([skip])
     T -- relevant --> T2{Step 2: significant?}
@@ -23,7 +23,7 @@ flowchart TD
     A --> G[Geography<br/>sub-agent]
     A --> E[Economic Sizing<br/>sub-agent]
     A --> AL[Alternatives<br/>sub-agent]
-    G & E & AL --> B([Briefing object])
+    G & E & AL --> B([Briefing row<br/>in DB])
 ```
 
 ---
@@ -36,7 +36,7 @@ flowchart TD
 | Scraping (monitor) | requests + BeautifulSoup + feedparser | beckerspayer.com RSS feed is open; no JS rendering needed for regular runs |
 | Scraping (backfill) | Playwright (chromium) | Article pages are behind Cloudflare; real browser required to fetch body text for historical articles |
 | LLM | Anthropic Claude API | claude-haiku-4-5 for triage (cheap, fast); claude-sonnet-4-6 for analysis (quality) |
-| Scheduling | APScheduler | In-process, no external cron dependency; simple to configure |
+| Scheduling | cron | External OS-level scheduler; process runs and exits each time, so a restart always triggers an immediate run |
 | Database | PostgreSQL (local Docker) | Already available; structured logging across runs |
 | DB access | psycopg2 | Lightweight, no ORM needed at this scale |
 | Prompt testing | Braintrust | Dataset management, structured output scoring, prompt versioning; articles are public so no data concerns |
@@ -57,8 +57,6 @@ CREATE TABLE scrape_runs (
     status          TEXT NOT NULL,           -- 'running' | 'completed' | 'failed'
     articles_found  INTEGER,                 -- total articles seen
     articles_new    INTEGER,                 -- articles not previously seen
-    end_time        TIMESTAMPTZ,             -- timestamp when run reached completed or failed
-    duration_secs   INTEGER,                 -- wall-clock seconds from started_at to end_time
     error_message   TEXT
 );
 ```
@@ -178,10 +176,12 @@ Deliverables:
 - Article body is extracted from the `content:encoded` field directly — no second HTTP request needed per article; strip HTML tags before storing
 
 **Backfill (category listing pages + CDP):**
-- Category listing page URLs (e.g. `https://www.beckerspayer.com/executive-moves/`) are loaded from config
-- Each listing page is fetched with plain `requests` (not Cloudflare-blocked) and parsed for article URLs + publish dates
-- Articles older than the configured cutoff date are skipped before any browser session is opened
-- Pagination follows `/page/2/`, `/page/3/`, etc.; stops when all articles on a page are older than the cutoff
+- Category listing page URLs (e.g. `https://www.beckerspayer.com/contracting/`) are loaded from config
+- Listing pages are Cloudflare-blocked — fetched via the same Chrome CDP session as article pages
+- Only articles inside `.entry-main__posts` are parsed — the "most read" sidebar (`.bh-most-read__cards`) is excluded
+- Each listing entry exposes a URL (`h3 a`), title (`h3 a` text), and publish date (`time[datetime]` attribute)
+- Articles older than the configured cutoff date are skipped before any article page is fetched
+- Pagination follows `/page/2/`, `/page/3/`, etc.; stops when all articles on a page are older than the cutoff, or when a page returns no URLs not already seen this crawl (cross-page sticky/featured duplicates)
 - URLs already in `articles` are skipped on the listing page — no CDP fetch for known URLs
 - New article pages are loaded via Chrome CDP (headed Chrome required — headless Playwright is Cloudflare-blocked)
 - Extracts title from `article h1`, date from `<time datetime>`, body from `.entry-content`, tags from `NewsArticle` JSON-LD `keywords`
@@ -242,12 +242,12 @@ Triggered when `is_relevant = true` AND `is_significant = true`. Three focused s
 
 Results assembled into a `briefings` row.
 
-### 5.4 Scheduler (Phase 2)
+### 5.4 Scheduler (Phase 3)
 
-APScheduler with an `IntervalTrigger` set to 8 hours. On startup, runs immediately if no prior completed run exists within the last 8 hours.
+A system cron job invokes the monitor script every 8 hours. Because the process exits after each run, a restart or reboot triggers an immediate run — no state persistence needed.
 
-```python
-scheduler.add_job(run_monitor, 'interval', hours=8, next_run_time=datetime.now())
+```
+0 */8 * * * /path/to/.venv/bin/python -m agent.scraper
 ```
 
 ---
@@ -256,9 +256,9 @@ scheduler.add_job(run_monitor, 'interval', hours=8, next_run_time=datetime.now()
 
 ```mermaid
 flowchart TD
-    A([Scheduler fires]) --> B[Open scrape_run\nstatus='running']
-    B --> C[Playwright loads\nnewsroom.cigna.com]
-    C --> D[For each article link]
+    A([Cron fires]) --> B[Open scrape_run\nstatus='running']
+    B --> C[Fetch beckerspayer.com\nRSS feed]
+    C --> D[For each article entry]
     D --> E{URL in\narticles table?}
     E -- Yes --> D
     E -- No --> F[Fetch article body]
@@ -290,7 +290,7 @@ health-insurance-news-agent/
 ├── db/
 │   ├── connection.py       # psycopg2 connection pool
 │   └── schema.sql          # All CREATE TABLE statements
-├── scheduler.py            # APScheduler entry point (Phase 2)
+├── scheduler.py            # Cron entry point (Phase 3)
 ├── config.py               # ENV vars (DB URL, API key, schedule interval)
 ├── requirements.txt
 └── tests/
@@ -320,10 +320,10 @@ Unit tests cover Phase 1 scraper code. Prompt quality is evaluated separately vi
 
 ## 10. Open Questions
 
-| # | Question | Why it matters |
-|---|----------|----------------|
-| Q1 | How are briefings delivered to Eric? | Determines what happens after a briefing row is written — email, Slack, file output, etc. Deferred from PRD. |
-| Q2 | Should the scheduler persist its next-run time in the DB? | If the process restarts mid-interval, does it resume from the original schedule or run immediately? |
+| # | Question | Why it matters | Status |
+|---|----------|----------------|--------|
+| Q1 | How are briefings surfaced to Eric beyond the DB? | The `briefings` table is the output; downstream delivery (email, Slack, file) is not decided. | Deferred to Phase 3 |
+| Q2 | Scheduler persistence | Resolved — cron job, process exits after each run, restarts trigger immediate execution. | Closed |
 
 ---
 
@@ -400,20 +400,17 @@ Post sitemap files are accessible via plain `requests`. Each contains `<loc>` an
 
 Pagination on the RSS feed is blocked (see A.2). The backfill path uses category listing pages instead:
 
-1. Load category listing page URLs from config (e.g. `/executive-moves/`, `/contracting/`)
-2. Fetch each listing page with plain `requests` — not Cloudflare-blocked
-3. Parse article URLs and publish dates from each listing entry
-4. Skip articles older than the cutoff date and URLs already in `articles` — no CDP fetch needed
-5. Paginate through `/page/N/` until cutoff is reached or no more pages exist
-6. Fetch qualifying article pages using **Chrome CDP** — headless Playwright/Chromium is detected and blocked by Cloudflare; only a real Chrome session passes
+1. Load category listing page URLs from config (e.g. `/contracting/`)
+2. Fetch each listing page via Chrome CDP — Cloudflare blocks plain `requests` to listing pages
+3. Parse article URLs and publish dates from `.entry-main__posts article` entries only — excludes the "most read" sidebar
+4. Skip articles older than the cutoff date and URLs already in `articles`
+5. Paginate through `/page/N/` until cutoff is reached, no more pages exist, or a page returns no new URLs (sticky/featured duplicates)
+6. Fetch qualifying article pages using the same **Chrome CDP** session
 
-**Listing page date formats** (three formats observed in the wild):
-- Recent: `Jun 22, 2026, 12:44 PM PDT`
-- Older: `Tuesday, June 9th, 2026`
-- Very recent: `2 hours ago`
+**CDP setup (required for backfill):** Quit Chrome completely, then launch with:
+```
+'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' --remote-debugging-port=9222 --user-data-dir=/tmp/chrome-debug
+```
+The `--user-data-dir` flag is required — without it, Chrome reuses an existing session that doesn't have debugging enabled.
 
-**CDP setup (required for backfill):** Quit Chrome, then launch with:
-```
-open -a "Google Chrome" --args --remote-debugging-port=9222
-```
 The scraper connects via `playwright.chromium.connect_over_cdp("http://localhost:9222")` and reuses the existing browser session.
