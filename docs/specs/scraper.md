@@ -14,7 +14,6 @@ Applies to both RSS runs and backfill runs.
 - When the run raises an unhandled exception, status is updated to `failed` and the error message is recorded
 - The source name is recorded on every scrape run (the url of the RSS feed or the backfill url)
 - The count of articles found and articles newly inserted is recorded when the run completes
-- when the run completes with completed or failed status, write the timestamp of the completed time in `end_time` and write a `duration` in seconds
 
 ---
 
@@ -50,6 +49,7 @@ The system prints the article URL, title, and date of publication stdio with a s
 
 - The list of category listing page URLs is loaded from config — not hardcoded
 - Listing pages are fetched via the same Chrome CDP session as article pages (Cloudflare blocks plain requests to listing pages)
+- Only articles inside `.entry-main__posts` are parsed — the "most read" sidebar (`.bh-most-read__cards`) is excluded
 - Each article entry on a listing page exposes a URL (`h3 a`), title (`h3 a` text), and publish date (`time[datetime]` attribute — always ISO 8601)
 - The publish date is read from the `datetime` attribute before any article page is fetched
 - An article whose listing date is older than the cutoff date is skipped — its page is never fetched

@@ -40,8 +40,9 @@ def run_scrape():
 CDP_URL = 'http://localhost:9222'
 CDP_LAUNCH_HINT = (
     'Chrome must be running with remote debugging enabled.\n'
-    'Quit Chrome, then run:\n'
-    '  open -a "Google Chrome" --args --remote-debugging-port=9222\n'
+    'Quit Chrome completely, then run:\n'
+    "  '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' "
+    '--remote-debugging-port=9222 --user-data-dir=/tmp/chrome-debug\n'
     'Then re-run the backfill.'
 )
 
@@ -168,7 +169,7 @@ def _fetch_listing_page(url: str, cutoff: datetime, conn=None, page=None) -> tup
     articles = []
     any_within_cutoff = False
 
-    for article_el in soup.find_all('article'):
+    for article_el in soup.select('.entry-main__posts article'):
         link_el = article_el.select_one('h3 a')
         time_el = article_el.select_one('time[datetime]')
         if not link_el or not time_el:
@@ -304,6 +305,7 @@ def _fail_run(conn, run_id, error_message):
 
 if __name__ == '__main__':
     import sys
+    # Run as a module from the project root: python -m agent.scraper [backfill]
     if len(sys.argv) > 1 and sys.argv[1] == 'backfill':
         run_backfill()
     else:
