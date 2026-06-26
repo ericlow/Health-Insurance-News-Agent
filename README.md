@@ -2,7 +2,7 @@ https://newsroom.cigna.com/uc-health
 
 Thought about it. This is how I would tell my chief of staff what to look for in provider news.
 
-We are looking for major changes in relationships. Could be the form of acquisitions, mergers, partnerships, divestitures, or terminations of deals between major insurance carriers and providers. 
+*We are looking for major changes in relationships. Could be the form of acquisitions, mergers, partnerships, divestitures, or terminations of deals between major insurance carriers and providers.* 
 
 Time frame would be last five years shorter is also fine. Just giving the wish list. 
 
