@@ -20,3 +20,5 @@ I'mI had one telltale sign this was coming. Actually two signs. CalPERs said the
 
 In this case, this is huge news, but not necessarily my rodeo. What I would want to show how much volume with picked up via Sutter. 
 
+
+https://www.healthaffairs.org/topic/primary-topic/pt_83
