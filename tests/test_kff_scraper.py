@@ -11,6 +11,7 @@ KFF_LISTING_LAST_PAGE_HTML = (FIXTURES / 'kff_listing_last_page.html').read_byte
 KFF_ARTICLE_URL = 'https://kffhealthnews.org/mental-health/article-one/'
 KFF_ARTICLE_HTML = (FIXTURES / 'kff_article.html').read_bytes()
 KFF_ARTICLE_NO_TAGS_HTML = (FIXTURES / 'kff_article_no_tags.html').read_bytes()
+KFF_ARTICLE_NO_DATE_HTML = (FIXTURES / 'kff_article_no_date.html').read_bytes()
 
 
 # =============================================================================
@@ -89,13 +90,20 @@ def test_fetch_kff_article_returns_body_text_from_main_p():
     assert 'Second paragraph' in article['body_text']
 
 @responses_lib.activate
-def test_fetch_kff_article_returns_date_from_time_datetime():
+def test_fetch_kff_article_returns_date_from_json_ld_date_published():
     from agent.kff_scraper import _fetch_kff_article
     responses_lib.add(responses_lib.GET, KFF_ARTICLE_URL, body=KFF_ARTICLE_HTML, status=200)
     article = _fetch_kff_article(KFF_ARTICLE_URL)
     assert article['published_at'].year == 2026
     assert article['published_at'].month == 6
     assert article['published_at'].day == 18
+
+@responses_lib.activate
+def test_fetch_kff_article_returns_null_published_at_when_json_ld_date_published_absent():
+    from agent.kff_scraper import _fetch_kff_article
+    responses_lib.add(responses_lib.GET, KFF_ARTICLE_URL, body=KFF_ARTICLE_NO_DATE_HTML, status=200)
+    article = _fetch_kff_article(KFF_ARTICLE_URL)
+    assert article['published_at'] is None
 
 @responses_lib.activate
 def test_fetch_kff_article_returns_tags_from_json_ld_keywords():

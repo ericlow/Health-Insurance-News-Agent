@@ -89,20 +89,22 @@ def _fetch_kff_article(url, conn=None):
     title_el = soup.select_one('h1')
     title = title_el.get_text(strip=True) if title_el else ''
 
-    time_el = soup.select_one('time[datetime]')
-    published_at = _parse_date(time_el.get('datetime')) if time_el else None
-
     body_text = '\n'.join(p.get_text(strip=True) for p in soup.select('main p')).strip()
 
+    published_at = None
     tags = None
     for script in soup.select('script[type="application/ld+json"]'):
         try:
             data = json.loads(script.string)
             nodes = [data] + data.get('@graph', [])
             article_node = next((n for n in nodes if n.get('@type') == 'Article'), None)
-            if article_node and 'keywords' in article_node:
-                tags = article_node['keywords']
-                break
+            if article_node:
+                if published_at is None and 'datePublished' in article_node:
+                    published_at = _parse_date(article_node['datePublished'])
+                if tags is None and 'keywords' in article_node:
+                    tags = article_node['keywords']
+                if published_at is not None and tags is not None:
+                    break
         except Exception:
             continue
 
