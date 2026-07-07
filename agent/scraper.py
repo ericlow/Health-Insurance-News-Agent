@@ -47,7 +47,7 @@ CDP_LAUNCH_HINT = (
 )
 
 
-def run_backfill(config_path: str = 'config.json'):
+def run_backfill(config_path: str = 'config.json', page_limit: int | None = None):
     """Crawls category listing pages and fetches new articles via Chrome CDP."""
     import urllib.request
     try:
@@ -73,6 +73,7 @@ def run_backfill(config_path: str = 'config.json'):
             candidate_urls = []
             for listing_url in config['backfill_urls']:
                 url = listing_url
+                pages_fetched = 0
                 while url:
                     articles, next_url = _fetch_listing_page(url, cutoff=cutoff, conn=conn, page=page)
                     new_articles = [a for a in articles if a['url'] not in seen_urls]
@@ -80,8 +81,12 @@ def run_backfill(config_path: str = 'config.json'):
                         seen_urls.add(a['url'])
                         print(f'  found: {a["title"]} — {a["date"]} — {a["url"]}')
                         candidate_urls.append(a['url'])
-                    # Stop if no new URLs appeared — all were cross-page sticky duplicates
-                    url = next_url if new_articles else None
+                    pages_fetched += 1
+                    # Stop if no new URLs appeared, page limit reached, or no next page
+                    if not new_articles or (page_limit is not None and pages_fetched >= page_limit):
+                        url = None
+                    else:
+                        url = next_url
 
             print(f'[backfill] {len(candidate_urls)} new articles to fetch via CDP.')
             for i, url in enumerate(candidate_urls, 1):
@@ -307,6 +312,7 @@ if __name__ == '__main__':
     import sys
     # Run as a module from the project root: python -m agent.scraper [backfill]
     if len(sys.argv) > 1 and sys.argv[1] == 'backfill':
-        run_backfill()
+        limit = int(sys.argv[2]) if len(sys.argv) > 2 else None
+        run_backfill(page_limit=limit)
     else:
         run_scrape()

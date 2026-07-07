@@ -33,34 +33,14 @@ Sources to integrate: insurer newsrooms (e.g., `newsroom.cigna.com`), health ind
 
 ## Development Philosophy: Spec-Driven Development
 
-<<<<<<< HEAD
-This project follows **spec-driven development**: specs are written and agreed upon before code is written. Type `/sdd` to enter interactive coaching mode.
+This project follows **spec-driven development**: specs are written and agreed upon before code is written. Type `/sdd` to enter interactive coaching mode. Claude acts as a coach — proactively telling Eric what spec work needs to happen next and what decisions need to be made before implementation can proceed.
 
 ### Spec locations:
-- `docs/prd.md` — Product Requirements Doc
-- `docs/technical-design.md` — Technical Design Doc
-- `docs/inputs.md` — Domain expert input log (never paraphrase or compress entries — original framing contains signal)
-- `docs/specs/*.md` — Feature specs, one per story/Linear issue, written before implementation
-- `docs/sdd-playbook.md` — Full SDD reference: spec template, Gherkin format, execution modes, anti-patterns
-
-### Branch and issue strategy:
-- All implementation work happens on a feature branch, never directly on `main`
-- Before branching: create a Linear issue in the **Agents** team, **Health Insurance News Agent** project, assigned to the relevant phase milestone
-- Use Linear's auto-generated branch name to link the branch to the issue automatically
-- One story = one branch; target branch lifetime ≤ 1 day
-- Merge via PR when work is complete and tests pass; `main` must always be in a working state
-
-**Linear workspace:**
-- Team: `Agents`
-- Project: `Health Insurance News Agent`
-- Milestones: Phase 1 — Ingestion | Phase 2 — Prompt Development | Phase 3 — Analysis Pipeline
-=======
-This project follows **spec-driven development**: specs are written and agreed upon before code is written. Claude acts as a coach in this process — proactively telling Eric what spec work needs to happen next and what decisions need to be made before implementation can proceed.
-
-### Specs live here:
 - `docs/prd.md` — **Product Requirements Doc (PRD)**: what we're building and why, user needs, success metrics, scope boundaries
 - `docs/technical-design.md` — **Technical Design Doc (TDD)**: architecture, data models, component design, technology choices
 - `docs/inputs.md` — **Domain expert input log**: raw dated inputs from Eric; source of truth for domain knowledge
+- `docs/specs/*.md` — Feature specs, one per story/Linear issue, written before implementation
+- `docs/sdd-playbook.md` — Full SDD reference: spec template, Gherkin format, execution modes, anti-patterns
 
 ### The workflow:
 1. New direction or feature idea comes in from Eric (verbally or as notes)
@@ -75,7 +55,40 @@ This project follows **spec-driven development**: specs are written and agreed u
 - When domain expert input arrives, append it to `docs/inputs.md` first, then surface what PRD or TDD sections it affects
 
 Never paraphrase or compress entries in `docs/inputs.md` — the expert's original framing often contains signal that gets lost in synthesis.
->>>>>>> 51a6ba1 (Complete Phase 1: Becker's Payer ingestion pipeline)
+
+### Branch and issue strategy:
+- All implementation work happens on a feature branch, never directly on `main`
+- Before branching: create a Linear issue in the **Agents** team, **Health Insurance News Agent** project, assigned to the relevant phase milestone
+- Use Linear's auto-generated branch name to link the branch to the issue automatically
+- One story = one branch; target branch lifetime ≤ 1 day
+- Merge via PR when work is complete and tests pass; `main` must always be in a working state
+
+**Linear workspace:**
+- Team: `Agents`
+- Project: `Health Insurance News Agent`
+- Milestones: Phase 1 — Ingestion | Phase 2 — Prompt Development | Phase 3 — Analysis Pipeline
+
+## Multi-Agent Protocol
+
+Two Claude instances run in parallel via tmux. Start them with `scripts/start-agents.sh`.
+
+**Sessions and roles:**
+- `spy` — monitor and coordinator; user's primary vantage point
+- `worker` — executor; runs headless
+
+**Messaging protocol:**
+- Prefix every message with your session name: `[worker] message` or `[spy] message`
+- Send text and Enter as two separate `tmux send-keys` calls:
+  ```
+  tmux send-keys -t <target> "[sender] message"
+  tmux send-keys -t <target> "" Enter
+  ```
+- Do not poll — only message when there is something to coordinate
+- Escalate dangerous or irreversible actions to the user before proceeding
+
+**Monitoring worker output:**
+- Worker output is piped to `/tmp/worker-agent.log` by the bootstrap script
+- Spy can tail it with: `tail -f /tmp/worker-agent.log`
 
 ## Python Environment
 
@@ -102,7 +115,3 @@ Run a single test:
 ```bash
 pytest tests/path/to/test_file.py::test_function_name
 ```
-
-**Known issue:** `pytest` currently fails with `ModuleNotFoundError: No module named 'agent'` for all tests. Root cause: no `conftest.py` or `pyproject.toml` to add the project root to `sys.path`. Fix needed before any tests can run: add a `conftest.py` at the project root with `sys.path` configuration, or add `[tool.pytest.ini_options] pythonpath = ["."]` to a `pyproject.toml`.
-
-
