@@ -219,3 +219,6 @@ __marimo__/
 
 # Local config (environment-specific; use config.example.json as template)
 config.json
+
+# macOS
+.DS_Store
