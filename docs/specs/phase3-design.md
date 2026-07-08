@@ -161,49 +161,54 @@ it sets a precedent for Centene's reimbursement posture with major urban health 
 
 ---
 
-## 6. Component Map
+## 6. Component Map (AWS Target State)
 
-| Component | File | Model | Runs on |
-|-----------|------|-------|---------|
-| Becker's monitor | `agent/scraper.py` | — | laptop + EC2 |
-| KFF monitor | `agent/kff_monitor.py` | — | laptop + EC2 |
-| Triage agent | `agent/triage.py` | claude-haiku-4-5 | laptop + EC2 |
-| Structured summary | `agent/summarizer.py` | claude-sonnet-4-6 | laptop + EC2 |
-| Discord notifier | `agent/discord.py` | — | laptop + EC2 |
-| Orchestrator | `scheduler.py` | — | laptop + EC2 |
-| Backfill (Becker's) | `agent/scraper.py` | — | laptop only |
-| Backfill (KFF) | `agent/kff_scraper.py` | — | laptop only |
+| Component | File | Model | AWS placement |
+|-----------|------|-------|---------------|
+| Orchestrator | `scheduler.py` | — | EC2 t2.micro |
+| Becker's monitor | `agent/scraper.py` | — | EC2 t2.micro |
+| KFF monitor | `agent/kff_monitor.py` | — | EC2 t2.micro |
+| Triage agent | `agent/triage.py` | claude-haiku-4-5 | EC2 t2.micro |
+| Structured summary | `agent/summarizer.py` | claude-sonnet-4-6 | EC2 t2.micro |
+| Discord notifier | `agent/discord.py` | — | EC2 t2.micro |
+| PostgreSQL | — | — | RDS db.t3.micro |
+
+> Backfill scripts (`agent/scraper.py --backfill`, `agent/kff_scraper.py`) are run manually from the analyst laptop and are not deployed to AWS. See Section 7.
 
 ---
 
 ## 7. Laptop → AWS Migration Plan
 
-### What changes
+### Architecture comparison
 
-| Concern | Laptop | AWS Free Tier |
-|---------|--------|---------------|
-| Compute | Local Python process | EC2 t2.micro |
-| Database | PostgreSQL in Docker | RDS db.t3.micro |
-| Scheduler | System cron | System cron (same) |
-| Secrets | `.env` file | `.env` file on instance |
-| Backfill | Headed Chrome CDP | Stays on laptop (permanent) |
+The laptop and AWS implementations run identical Python code. The differences are entirely in infrastructure.
 
-### What doesn't change
+| Concern | Laptop (Phase 3 start) | AWS Free Tier (target) |
+|---------|------------------------|------------------------|
+| Compute | Local Python process, runs while laptop is on | EC2 t2.micro, always-on |
+| Database | PostgreSQL in Docker Desktop | RDS db.t3.micro (PostgreSQL 15) |
+| Scheduler | `launchd` plist or manual `cron` | System `cron` on EC2 — identical syntax |
+| Secrets | `.env` file in project root | `.env` file on EC2 instance |
+| Uptime | Interrupted by sleep, lid close, restarts | 24/7, survives laptop off |
+| Backfill | Headed Chrome CDP — runs on laptop | Stays on laptop permanently (CDP requires headed browser) |
 
-- All Python code — zero changes
-- Cron syntax — identical
-- `.env` file format — same keys, different values
-- Discord webhook — same endpoint
+### What does not change when migrating
+
+- All Python source code — zero changes
+- Cron expression — `0 * * * *` is identical
+- `.env` key names — only `DATABASE_URL` value changes
+- Discord webhook URL
+- DB schema — `pg_dump` / `pg_restore` carries it over exactly
 
 ### Migration steps
 
-1. Launch EC2 t2.micro (Amazon Linux 2023)
-2. Launch RDS db.t3.micro (PostgreSQL 15), same schema as local
+1. Launch EC2 t2.micro (Amazon Linux 2023) in default VPC
+2. Launch RDS db.t3.micro (PostgreSQL 15), same VPC, private subnet
 3. Migrate data: `pg_dump` local → `pg_restore` to RDS
-4. Clone repo onto EC2, create `.venv`, `pip install -r requirements.txt`
-5. Copy `.env` to EC2, update `DATABASE_URL` to RDS endpoint
-6. Add cron entry: `0 * * * * /path/to/.venv/bin/python -m scheduler`
-7. Verify one run completes cleanly
+4. SSH into EC2; clone repo, create `.venv`, `pip install -r requirements.txt`
+5. Create `.env` on EC2; set `DATABASE_URL` to RDS endpoint, copy remaining keys
+6. Add cron entry: `0 * * * * cd /home/ec2-user/app && .venv/bin/python -m scheduler >> /var/log/monitor.log 2>&1`
+7. Trigger one manual run; confirm articles stored and Discord alert fires
 8. Shut down local Docker Postgres
 
 ### Cost estimate (AWS Free Tier)
@@ -213,19 +218,19 @@ it sets a precedent for Centene's reimbursement posture with major urban health 
 | EC2 t2.micro | 750 hrs/month | ~720 hrs/month ✅ |
 | RDS db.t3.micro | 750 hrs/month | ~720 hrs/month ✅ |
 | RDS storage | 20 GB | <1 GB ✅ |
-| Data transfer | 1 GB/month | <100 MB/month ✅ |
+| Data transfer out | 1 GB/month | <100 MB/month ✅ |
 
-Stays within free tier indefinitely at current scale.
+Stays within free tier indefinitely at current article volume.
 
 ---
 
 ## 8. Environment Variables
 
-| Variable | Description | Required on |
-|----------|-------------|-------------|
-| `DATABASE_URL` | PostgreSQL connection string | laptop + EC2 |
-| `ANTHROPIC_API_KEY` | Claude API key | laptop + EC2 |
-| `DISCORD_WEBHOOK_URL` | Discord channel webhook | laptop + EC2 |
+| Variable | Description |
+|----------|-------------|
+| `DATABASE_URL` | PostgreSQL connection string (only value differs between laptop and EC2) |
+| `ANTHROPIC_API_KEY` | Claude API key |
+| `DISCORD_WEBHOOK_URL` | Discord channel webhook |
 
 ---
 
