@@ -69,13 +69,85 @@ flowchart TD
     MON -->|post alert| DISCORD
 ```
 
-> Note: Backfill (Chrome CDP) stays on the laptop permanently — it requires a headed browser and is not deployed to AWS.
+> Backfill (Chrome CDP) stays on the laptop permanently — it requires a headed browser and is not deployed to AWS.
 
-    BACKFILL --> PG_L2
-    BACKFILL <-->|headed Chrome CDP| BECKERS
+---
+
+## 2c. Deployment Diagram — AWS Free Tier
+
+Shows where each process physically runs.
+
+```mermaid
+flowchart TD
+    subgraph vpc["☁️ AWS Free Tier"]
+        subgraph ec2["EC2 t2.micro · Amazon Linux 2023"]
+            CRON[System Cron\nevery hour]
+            APP[Monitor App\nscheduler.py]
+        end
+        PG[(RDS PostgreSQL\ndb.t3.micro · 20 GB)]
+    end
+
+    subgraph lan["💻 Laptop (permanent — headed browser required)"]
+        BACKFILL[Backfill\nChrome CDP]
+        PG_L[(PostgreSQL\nDocker)]
+    end
+
+    BECKERS[Becker's RSS]
+    KFF[KFF RSS]
+    ANTHROPIC[Anthropic API]
+    DISCORD[Discord]
+
+    CRON -->|triggers hourly| APP
+    APP <-->|deduplicate / store| PG
+    APP -->|GET feed| BECKERS
+    APP -->|GET feed| KFF
+    APP -->|triage + summarise| ANTHROPIC
+    APP -->|POST alert| DISCORD
+
+    BACKFILL -->|headed CDP| BECKERS
+    BACKFILL -->|INSERT| PG_L
 ```
 
-**Key architectural boundary:** Backfill (Chrome CDP) requires a headed browser and stays laptop-only permanently. The monitor (RSS only) is fully portable.
+---
+
+## 2d. Component Diagram
+
+Shows logical software components and data flow through the pipeline.
+
+```mermaid
+flowchart LR
+    subgraph ext["External Sources"]
+        B_RSS[Becker's RSS]
+        K_RSS[KFF RSS]
+    end
+
+    subgraph app["Monitor App"]
+        BM["scraper.py\nBecker's Monitor"]
+        KM["kff_monitor.py\nKFF Monitor"]
+        TR["triage.py\nHaiku · flag + 2-sentence summary"]
+        SM["summarizer.py\nSonnet · structured brief"]
+        DN["discord.py\nNotifier"]
+    end
+
+    subgraph db["PostgreSQL"]
+        ART[(articles)]
+        TRR[(triage_results)]
+        BRF[(briefings)]
+    end
+
+    DISC[Discord Channel]
+
+    B_RSS --> BM
+    K_RSS --> KM
+    BM -->|new articles| ART
+    KM -->|new articles| ART
+    ART -->|unseen| TR
+    TR -->|flag + summary| TRR
+    TRR -->|yes / uncertain| SM
+    SM -->|structured brief| BRF
+    BRF --> DN
+    DN -->|POST webhook| DISC
+```
 
 ---
 
