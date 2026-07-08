@@ -241,4 +241,4 @@ Stays within free tier indefinitely at current article volume.
 | Q1 | Should `uncertain` articles be included in Discord alerts? | Decided — yes |
 | Q2 | What is the cron interval? | Decided — 1 hour |
 | Q3 | Secrets management on EC2? | Decided — `.env` file on instance (can upgrade to SSM later) |
-| Q4 | What KFF categories/feeds to monitor? | Open — currently `/feed/` (all categories). Scope to specific categories? |
+| Q4 | What KFF categories/feeds to monitor? | Decided — `https://kffhealthnews.org/state/california/feed/` |
