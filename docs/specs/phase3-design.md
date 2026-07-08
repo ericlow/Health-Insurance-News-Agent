@@ -90,6 +90,7 @@ C4Component
 A run where new articles are found and at least one passes triage.
 
 ```mermaid
+%%{init: {'sequence': {'mirrorActors': false}}}%%
 sequenceDiagram
     participant CRON as Cron
     participant MON as Monitor App
@@ -137,6 +138,7 @@ sequenceDiagram
 The common case: new articles found but none pass triage. Discord is never called.
 
 ```mermaid
+%%{init: {'sequence': {'mirrorActors': false}}}%%
 sequenceDiagram
     participant CRON as Cron
     participant MON as Monitor App
