@@ -12,51 +12,64 @@ Designed to run on a developer laptop today and migrate to AWS Free Tier in ~2 w
 
 ---
 
-## 2. System Context
+## 2a. System Context — Laptop
 
 ```mermaid
 flowchart TD
-    subgraph laptop["💻 Laptop (now)"]
-        CRON_L[System cron\nevery 1h]
-        APP_L[Monitor app\nPython]
-        PG_L[(PostgreSQL\nDocker)]
-        ENV_L[.env file\nAPI keys]
-    end
+    USER([👤 Analyst])
 
-    subgraph aws["☁️ AWS Free Tier (in ~2 weeks)"]
-        CRON_A[System cron\nevery 1h]
-        APP_A[Monitor app\nPython\nEC2 t2.micro]
-        PG_A[(PostgreSQL\nRDS db.t3.micro)]
-        ENV_A[.env file\non instance]
-    end
-
-    subgraph laptop_only["💻 Laptop only (permanent)"]
+    subgraph system["💻 Health Insurance News Agent (Laptop)"]
+        MON[Monitor App\nPython + cron]
+        PG[(PostgreSQL\nDocker)]
         BACKFILL[Backfill\nChrome CDP]
-        PG_L2[(PostgreSQL\nDocker)]
     end
 
-    subgraph external["External Services"]
+    subgraph external["External"]
         BECKERS[Becker's Payer\nRSS feed]
         KFF[KFF Health News\nRSS feed]
         ANTHROPIC[Anthropic API\nHaiku + Sonnet]
-        DISCORD[Discord\nWebhook]
+        DISCORD[Discord]
     end
 
-    CRON_L --> APP_L
-    APP_L --> PG_L
-    APP_L <--> BECKERS
-    APP_L <--> KFF
-    APP_L <--> ANTHROPIC
-    APP_L --> DISCORD
-    ENV_L -.->|injects config| APP_L
+    USER -->|reads alerts| DISCORD
+    MON -->|fetch articles| BECKERS
+    MON -->|fetch articles| KFF
+    MON -->|triage + summarise| ANTHROPIC
+    MON -->|store articles + results| PG
+    MON -->|post alert| DISCORD
+    BACKFILL -->|historical scrape| BECKERS
+    BACKFILL -->|store articles| PG
+```
 
-    CRON_A --> APP_A
-    APP_A --> PG_A
-    APP_A <--> BECKERS
-    APP_A <--> KFF
-    APP_A <--> ANTHROPIC
-    APP_A --> DISCORD
-    ENV_A -.->|injects config| APP_A
+---
+
+## 2b. System Context — AWS Free Tier
+
+```mermaid
+flowchart TD
+    USER([👤 Analyst])
+
+    subgraph system["☁️ Health Insurance News Agent (AWS)"]
+        MON[Monitor App\nPython + cron\nEC2 t2.micro]
+        PG[(PostgreSQL\nRDS db.t3.micro)]
+    end
+
+    subgraph external["External"]
+        BECKERS[Becker's Payer\nRSS feed]
+        KFF[KFF Health News\nRSS feed]
+        ANTHROPIC[Anthropic API\nHaiku + Sonnet]
+        DISCORD[Discord]
+    end
+
+    USER -->|reads alerts| DISCORD
+    MON -->|fetch articles| BECKERS
+    MON -->|fetch articles| KFF
+    MON -->|triage + summarise| ANTHROPIC
+    MON -->|store articles + results| PG
+    MON -->|post alert| DISCORD
+```
+
+> Note: Backfill (Chrome CDP) stays on the laptop permanently — it requires a headed browser and is not deployed to AWS.
 
     BACKFILL --> PG_L2
     BACKFILL <-->|headed Chrome CDP| BECKERS
