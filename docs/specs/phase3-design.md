@@ -133,42 +133,7 @@ sequenceDiagram
 
 ---
 
-## 5. Sequence Diagram — No-Hit Run
-
-The common case: new articles found but none pass triage. Discord is never called.
-
-```mermaid
-%%{init: {'sequence': {'mirrorActors': false}}}%%
-sequenceDiagram
-    participant CRON as Cron
-    participant MON as Monitor App
-    participant RSS_B as Becker's RSS
-    participant RSS_K as KFF RSS
-    participant DB as PostgreSQL
-    participant HAIKU as Claude Haiku
-
-    CRON->>MON: trigger (every 1h)
-    MON->>RSS_B: GET /feed/
-    RSS_B-->>MON: articles
-    MON->>RSS_K: GET /feed/
-    RSS_K-->>MON: articles
-
-    loop each article
-        MON->>DB: SELECT 1 FROM articles WHERE url = ?
-        alt new article
-            MON->>DB: INSERT INTO articles
-            MON->>HAIKU: triage prompt
-            HAIKU-->>MON: {flag: "no", summary}
-            MON->>DB: INSERT INTO triage_results
-        end
-    end
-
-    note over MON: No briefings this run → exit silently
-```
-
----
-
-## 6. Discord Alert Format
+## 5. Discord Alert Format
 
 Posted only when ≥1 article is flagged `yes` or `uncertain`.
 
@@ -196,7 +161,7 @@ it sets a precedent for Centene's reimbursement posture with major urban health 
 
 ---
 
-## 7. Component Map
+## 6. Component Map
 
 | Component | File | Model | Runs on |
 |-----------|------|-------|---------|
@@ -211,7 +176,7 @@ it sets a precedent for Centene's reimbursement posture with major urban health 
 
 ---
 
-## 8. Laptop → AWS Migration Plan
+## 7. Laptop → AWS Migration Plan
 
 ### What changes
 
@@ -254,7 +219,7 @@ Stays within free tier indefinitely at current scale.
 
 ---
 
-## 9. Environment Variables
+## 8. Environment Variables
 
 | Variable | Description | Required on |
 |----------|-------------|-------------|
@@ -264,7 +229,7 @@ Stays within free tier indefinitely at current scale.
 
 ---
 
-## 10. Open Questions
+## 9. Open Questions
 
 | # | Question | Status |
 |---|----------|--------|
