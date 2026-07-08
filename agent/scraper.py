@@ -16,20 +16,25 @@ HEADERS = {'User-Agent': 'Mozilla/5.0 (compatible; HealthInsuranceNewsAgent/1.0)
 BACKFILL_DELAY_SECONDS = 1
 
 
-def run_scrape():
-    """Regular monitor run — fetches the RSS feed (most recent ~10 articles)."""
+def run_scrape() -> tuple[int, list[int]]:
+    """Regular monitor run — fetches the RSS feed (most recent ~10 articles).
+
+    Returns (run_id, new_article_ids) so the orchestrator can pass them to triage.
+    """
     entries = _fetch_feed()
     conn = get_connection()
     run_id = _open_run(conn, datetime.now(timezone.utc))
     try:
-        new_count = 0
+        new_ids = []
         for entry in entries:
             if _already_seen(conn, entry['url']):
                 continue
-            if _insert_article(conn, entry, run_id):
-                new_count += 1
-        _close_run(conn, run_id, 'completed', len(entries), new_count)
-        print(f'[monitor] {len(entries)} found, {new_count} new.')
+            article_id = _insert_article(conn, entry, run_id)
+            if article_id:
+                new_ids.append(article_id)
+        _close_run(conn, run_id, 'completed', len(entries), len(new_ids))
+        print(f'[beckers-monitor] {len(entries)} found, {len(new_ids)} new.')
+        return run_id, new_ids
     except Exception as exc:
         _fail_run(conn, run_id, str(exc))
         raise
@@ -269,21 +274,23 @@ def _already_seen(conn, url: str) -> bool:
         return cur.fetchone() is not None
 
 
-def _insert_article(conn, entry: dict, run_id: int) -> bool:
+def _insert_article(conn, entry: dict, run_id: int) -> int | None:
+    """Insert article and return its id, or None if it was a duplicate."""
     with conn.cursor() as cur:
         cur.execute(
             """
             INSERT INTO articles (url, title, published_at, body_text, source, category, tags, first_seen_at, scrape_run_id)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             ON CONFLICT (url) DO NOTHING
+            RETURNING id
             """,
             (entry['url'], entry['title'], entry['published_at'], entry['body_text'],
              SOURCE, entry.get('category'), entry.get('tags'),
              datetime.now(timezone.utc), run_id),
         )
-        inserted = cur.rowcount > 0
+        row = cur.fetchone()
     conn.commit()
-    return inserted
+    return row[0] if row else None
 
 
 def _close_run(conn, run_id, status, articles_found, articles_new):

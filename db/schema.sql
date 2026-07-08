@@ -21,3 +21,27 @@ CREATE TABLE IF NOT EXISTS articles (
     first_seen_at   TIMESTAMPTZ NOT NULL,
     scrape_run_id   INTEGER REFERENCES scrape_runs(id)
 );
+
+CREATE TABLE IF NOT EXISTS triage_results (
+    id              SERIAL PRIMARY KEY,
+    article_id      INTEGER NOT NULL REFERENCES articles(id),
+    scrape_run_id   INTEGER REFERENCES scrape_runs(id),
+    flag            TEXT NOT NULL CHECK (flag IN ('yes', 'uncertain', 'no')),
+    summary         TEXT,
+    model           TEXT NOT NULL,
+    triaged_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS briefings (
+    id                  SERIAL PRIMARY KEY,
+    article_id          INTEGER NOT NULL REFERENCES articles(id),
+    triage_result_id    INTEGER NOT NULL REFERENCES triage_results(id),
+    scrape_run_id       INTEGER REFERENCES scrape_runs(id),
+    what_happened       TEXT NOT NULL,
+    who                 TEXT NOT NULL,
+    impact              TEXT NOT NULL,
+    why_it_matters      TEXT NOT NULL,
+    model               TEXT NOT NULL,
+    created_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
+    discord_sent_at     TIMESTAMPTZ
+);
