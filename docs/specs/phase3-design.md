@@ -12,141 +12,130 @@ Designed to run on a developer laptop today and migrate to AWS Free Tier in ~2 w
 
 ---
 
-## 2a. System Context — Laptop
+## 2a. C4 Level 2 — Container (Laptop)
 
 ```mermaid
-flowchart TD
-    USER([👤 Analyst])
+C4Container
+    title Health Insurance News Agent — Containers (Laptop)
 
-    subgraph system["💻 Health Insurance News Agent (Laptop)"]
-        MON[Monitor App\nPython + cron]
-        PG[(PostgreSQL\nDocker)]
-        BACKFILL[Backfill\nChrome CDP]
-    end
+    Person(analyst, "Analyst")
 
-    subgraph external["External"]
-        BECKERS[Becker's Payer\nRSS feed]
-        KFF[KFF Health News\nRSS feed]
-        ANTHROPIC[Anthropic API\nHaiku + Sonnet]
-        DISCORD[Discord]
-    end
+    System_Boundary(laptop, "Developer Laptop") {
+        Container(app, "Monitor App", "Python · system cron", "Fetches RSS, deduplicates, runs triage pipeline, sends alerts")
+        Container(backfill, "Backfill", "Python · Chrome CDP", "Historical article scraping — headed browser only")
+        ContainerDb(pg, "PostgreSQL", "Docker", "Stores articles, triage results, and briefings")
+    }
 
-    USER -->|reads alerts| DISCORD
-    MON -->|fetch articles| BECKERS
-    MON -->|fetch articles| KFF
-    MON -->|triage + summarise| ANTHROPIC
-    MON -->|store articles + results| PG
-    MON -->|post alert| DISCORD
-    BACKFILL -->|historical scrape| BECKERS
-    BACKFILL -->|store articles| PG
+    System_Ext(beckers, "Becker's Payer RSS")
+    System_Ext(kff, "KFF Health News RSS")
+    System_Ext(anthropic, "Anthropic API")
+    System_Ext(discord, "Discord")
+
+    Rel(app, pg, "Reads / writes", "psycopg2")
+    Rel(app, beckers, "GET feed", "HTTP")
+    Rel(app, kff, "GET feed", "HTTP")
+    Rel(app, anthropic, "Triage + summarise", "HTTPS")
+    Rel(app, discord, "POST alert", "HTTPS")
+    Rel(analyst, discord, "Reads alerts")
+    Rel(backfill, beckers, "Scrapes pages", "Chrome CDP")
+    Rel(backfill, pg, "Inserts articles", "psycopg2")
 ```
 
 ---
 
-## 2b. System Context — AWS Free Tier
+## 2b. C4 Level 1 — System Context
 
 ```mermaid
-flowchart TD
-    USER([👤 Analyst])
+C4Context
+    title Health Insurance News Agent — System Context
 
-    subgraph system["☁️ Health Insurance News Agent (AWS)"]
-        MON[Monitor App\nPython + cron\nEC2 t2.micro]
-        PG[(PostgreSQL\nRDS db.t3.micro)]
-    end
+    Person(analyst, "Analyst", "Industry analyst monitoring carrier/provider relationship changes")
 
-    subgraph external["External"]
-        BECKERS[Becker's Payer\nRSS feed]
-        KFF[KFF Health News\nRSS feed]
-        ANTHROPIC[Anthropic API\nHaiku + Sonnet]
-        DISCORD[Discord]
-    end
+    System(agent, "Health Insurance News Agent", "Monitors RSS feeds, triages articles via LLM, posts structured Discord alerts")
 
-    USER -->|reads alerts| DISCORD
-    MON -->|fetch articles| BECKERS
-    MON -->|fetch articles| KFF
-    MON -->|triage + summarise| ANTHROPIC
-    MON -->|store articles + results| PG
-    MON -->|post alert| DISCORD
-```
+    System_Ext(beckers, "Becker's Payer RSS", "Trade press covering payer contracting and M&A")
+    System_Ext(kff, "KFF Health News RSS", "Health policy and industry news")
+    System_Ext(anthropic, "Anthropic API", "Claude Haiku (triage) + Claude Sonnet (summary)")
+    System_Ext(discord, "Discord", "Alert delivery channel")
 
-> Backfill (Chrome CDP) stays on the laptop permanently — it requires a headed browser and is not deployed to AWS.
-
----
-
-## 2c. Deployment Diagram — AWS Free Tier
-
-Shows where each process physically runs.
-
-```mermaid
-flowchart TD
-    subgraph vpc["☁️ AWS Free Tier"]
-        subgraph ec2["EC2 t2.micro · Amazon Linux 2023"]
-            CRON[System Cron\nevery hour]
-            APP[Monitor App\nscheduler.py]
-        end
-        PG[(RDS PostgreSQL\ndb.t3.micro · 20 GB)]
-    end
-
-    subgraph lan["💻 Laptop (permanent — headed browser required)"]
-        BACKFILL[Backfill\nChrome CDP]
-        PG_L[(PostgreSQL\nDocker)]
-    end
-
-    BECKERS[Becker's RSS]
-    KFF[KFF RSS]
-    ANTHROPIC[Anthropic API]
-    DISCORD[Discord]
-
-    CRON -->|triggers hourly| APP
-    APP <-->|deduplicate / store| PG
-    APP -->|GET feed| BECKERS
-    APP -->|GET feed| KFF
-    APP -->|triage + summarise| ANTHROPIC
-    APP -->|POST alert| DISCORD
-
-    BACKFILL -->|headed CDP| BECKERS
-    BACKFILL -->|INSERT| PG_L
+    Rel(analyst, discord, "Reads alerts")
+    Rel(agent, beckers, "Fetches articles", "HTTP/RSS")
+    Rel(agent, kff, "Fetches articles", "HTTP/RSS")
+    Rel(agent, anthropic, "Triages and summarises", "HTTPS")
+    Rel(agent, discord, "Posts structured alert", "HTTPS webhook")
 ```
 
 ---
 
-## 2d. Component Diagram
-
-Shows logical software components and data flow through the pipeline.
+## 2c. C4 Level 2 — Container (AWS Free Tier)
 
 ```mermaid
-flowchart LR
-    subgraph ext["External Sources"]
-        B_RSS[Becker's RSS]
-        K_RSS[KFF RSS]
-    end
+C4Container
+    title Health Insurance News Agent — Containers (AWS Free Tier)
 
-    subgraph app["Monitor App"]
-        BM["scraper.py\nBecker's Monitor"]
-        KM["kff_monitor.py\nKFF Monitor"]
-        TR["triage.py\nHaiku · flag + 2-sentence summary"]
-        SM["summarizer.py\nSonnet · structured brief"]
-        DN["discord.py\nNotifier"]
-    end
+    Person(analyst, "Analyst")
 
-    subgraph db["PostgreSQL"]
-        ART[(articles)]
-        TRR[(triage_results)]
-        BRF[(briefings)]
-    end
+    System_Boundary(aws, "AWS Free Tier") {
+        Container(app, "Monitor App", "Python · system cron · EC2 t2.micro", "Fetches RSS, deduplicates, runs triage pipeline, sends alerts")
+        ContainerDb(rds, "PostgreSQL", "RDS db.t3.micro · 20 GB", "Stores articles, triage results, and briefings")
+    }
 
-    DISC[Discord Channel]
+    System_Boundary(laptop, "Analyst Laptop (permanent — headed browser required)") {
+        Container(backfill, "Backfill", "Python · Chrome CDP", "Historical article scraping — cannot run headless")
+    }
 
-    B_RSS --> BM
-    K_RSS --> KM
-    BM -->|new articles| ART
-    KM -->|new articles| ART
-    ART -->|unseen| TR
-    TR -->|flag + summary| TRR
-    TRR -->|yes / uncertain| SM
-    SM -->|structured brief| BRF
-    BRF --> DN
-    DN -->|POST webhook| DISC
+    System_Ext(beckers, "Becker's Payer RSS")
+    System_Ext(kff, "KFF Health News RSS")
+    System_Ext(anthropic, "Anthropic API")
+    System_Ext(discord, "Discord")
+
+    Rel(app, rds, "Reads / writes", "psycopg2")
+    Rel(app, beckers, "GET feed", "HTTP")
+    Rel(app, kff, "GET feed", "HTTP")
+    Rel(app, anthropic, "Triage + summarise", "HTTPS")
+    Rel(app, discord, "POST alert", "HTTPS")
+    Rel(analyst, discord, "Reads alerts")
+    Rel(backfill, beckers, "Scrapes pages", "Chrome CDP")
+    Rel(backfill, rds, "Inserts articles", "psycopg2")
+```
+
+---
+
+## 2d. C4 Level 3 — Component (Monitor App)
+
+```mermaid
+C4Component
+    title Health Insurance News Agent — Components (Monitor App)
+
+    Container_Boundary(app, "Monitor App") {
+        Component(orch, "Orchestrator", "scheduler.py", "Triggers hourly runs, coordinates pipeline stages")
+        Component(bm, "Becker's Monitor", "agent/scraper.py", "Fetches Becker's RSS, deduplicates against DB")
+        Component(km, "KFF Monitor", "agent/kff_monitor.py", "Fetches KFF RSS, deduplicates against DB")
+        Component(triage, "Triage Agent", "agent/triage.py · Claude Haiku", "Flags each article yes / uncertain / no with 2-sentence summary")
+        Component(summ, "Summariser", "agent/summarizer.py · Claude Sonnet", "Produces structured 5-field brief for flagged articles")
+        Component(notif, "Discord Notifier", "agent/discord.py", "Formats and POSTs webhook alert")
+    }
+
+    ContainerDb(db, "PostgreSQL", "RDS / Docker", "articles · triage_results · briefings")
+    System_Ext(beckers, "Becker's Payer RSS")
+    System_Ext(kff, "KFF Health News RSS")
+    System_Ext(anthropic, "Anthropic API")
+    System_Ext(discord, "Discord")
+
+    Rel(orch, bm, "Calls")
+    Rel(orch, km, "Calls")
+    Rel(bm, beckers, "GET feed", "HTTP")
+    Rel(km, kff, "GET feed", "HTTP")
+    Rel(bm, db, "Dedup + insert", "articles")
+    Rel(km, db, "Dedup + insert", "articles")
+    Rel(orch, triage, "Passes new articles")
+    Rel(triage, anthropic, "Haiku API call", "HTTPS")
+    Rel(triage, db, "Writes flag + summary", "triage_results")
+    Rel(orch, summ, "Passes flagged articles")
+    Rel(summ, anthropic, "Sonnet API call", "HTTPS")
+    Rel(summ, db, "Writes structured brief", "briefings")
+    Rel(orch, notif, "Passes briefings")
+    Rel(notif, discord, "POST webhook", "HTTPS")
 ```
 
 ---
