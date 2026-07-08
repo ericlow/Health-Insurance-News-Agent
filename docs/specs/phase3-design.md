@@ -234,7 +234,154 @@ Stays within free tier indefinitely at current article volume.
 
 ---
 
-## 9. Open Questions
+## 9. DB Schema Changes
+
+Two new tables. The existing `articles` table is unchanged.
+
+```sql
+CREATE TABLE IF NOT EXISTS triage_results (
+    id              SERIAL PRIMARY KEY,
+    article_id      INTEGER NOT NULL REFERENCES articles(id),
+    scrape_run_id   INTEGER REFERENCES scrape_runs(id),
+    flag            TEXT NOT NULL CHECK (flag IN ('yes', 'uncertain', 'no')),
+    summary         TEXT,
+    model           TEXT NOT NULL,
+    triaged_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS briefings (
+    id                  SERIAL PRIMARY KEY,
+    article_id          INTEGER NOT NULL REFERENCES articles(id),
+    triage_result_id    INTEGER NOT NULL REFERENCES triage_results(id),
+    scrape_run_id       INTEGER REFERENCES scrape_runs(id),
+    what_happened       TEXT NOT NULL,
+    who                 TEXT NOT NULL,
+    impact              TEXT NOT NULL,
+    why_it_matters      TEXT NOT NULL,
+    model               TEXT NOT NULL,
+    created_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
+    discord_sent_at     TIMESTAMPTZ
+);
+```
+
+> `url` is not stored in `briefings` — the Discord notifier joins `articles` on `article_id` to retrieve it. `discord_sent_at` is `NULL` until the alert posts successfully.
+
+---
+
+## 10. Prompts
+
+### Triage prompt (Claude Haiku)
+
+Already in production at `scripts/export_for_labeling.py`. Canonical text:
+
+```
+SYSTEM:
+You are a health insurance industry analyst assistant.
+Your job is to screen news articles for a senior analyst who tracks major relationship changes
+between health insurance carriers and healthcare providers.
+
+Relationship changes of interest include:
+- Acquisitions or mergers (insurer buys insurer, provider buys provider, insurer buys provider)
+- Partnerships or new network agreements
+- Divestitures or spin-offs
+- Contract terminations or network exits (a provider leaving an insurer's network, or vice versa)
+- TPA or administrator switches (a large employer changing its claims processor)
+
+When in doubt, FLAG IT. We prefer false positives over false negatives — the analyst can quickly
+rule out borderline cases, but missed hits can't be recovered.
+
+Do NOT flag: earnings reports with no relationship change, general policy/regulatory news,
+clinical/medical research, personnel announcements (unless the role change signals a deal),
+or soft PR stories without a concrete business action.
+
+Respond in JSON with exactly two fields:
+  "flag": one of "yes", "uncertain", or "no"
+  "summary": a 2-sentence plain-English summary of what the article is about
+
+USER:
+Title: {title}
+
+Body (first 2000 chars):
+{body_preview}
+```
+
+### Structured summary prompt (Claude Sonnet)
+
+Only called when `flag` is `yes` or `uncertain`. Produces the 4-field brief written to `briefings`.
+
+```
+SYSTEM:
+You are a briefing tool for a health insurance industry analyst.
+You receive a news article about a potential relationship change between a health insurance carrier
+and a healthcare provider. Your job is to extract a concise, structured summary.
+
+Be specific and factual. Use entity names, not pronouns. If a field cannot be determined from
+the article, write "Not stated" — do not infer or speculate.
+
+Respond in JSON with exactly four fields:
+  "what_happened": 2–3 sentences describing the specific business action or change
+  "who": the key entities and their roles (e.g. "Northwell Health (provider) · Fidelis Care / Centene (insurer)")
+  "impact": members affected, revenue at stake, or market scope — use numbers from the article if available
+  "why_it_matters": 1–2 sentences on the strategic significance or precedent this sets
+
+USER:
+Title: {title}
+
+Full article:
+{body_text}
+```
+
+---
+
+## 11. Acceptance Criteria
+
+```gherkin
+Feature: Hourly monitor pipeline
+
+  Scenario: New article flagged yes
+    Given an article about a provider/insurer contract termination is published on Becker's RSS
+    When the hourly run fetches the feed
+    Then the article is inserted into articles
+    And triage_results has a row with flag = 'yes'
+    And briefings has a row with all four fields non-empty
+    And a Discord alert is posted containing the article title and url
+
+  Scenario: New article flagged no
+    Given an article about a health tech product launch is published on KFF RSS
+    When the hourly run fetches the feed
+    Then the article is inserted into articles
+    And triage_results has a row with flag = 'no'
+    And no row is inserted into briefings
+    And no Discord webhook is called
+
+  Scenario: New article flagged uncertain
+    Given an article with ambiguous signals (e.g. insurer "signals intent to renegotiate")
+    When the hourly run processes it
+    Then triage_results has a row with flag = 'uncertain'
+    And briefings has a row with all four fields non-empty
+    And the article is included in the Discord alert
+
+  Scenario: No articles pass triage
+    Given an hourly run where all fetched articles are flagged 'no'
+    When the run completes
+    Then no Discord webhook is called
+    And discord_sent_at remains null for all briefings from this run
+
+  Scenario: Duplicate article is skipped
+    Given an article URL already present in the articles table from a prior run
+    When the hourly run fetches the same URL
+    Then no new row is inserted into articles
+    And triage is not called for that URL
+
+  Scenario: Discord alert marks delivery
+    Given briefings exist for the current run
+    When the Discord notifier posts the webhook successfully
+    Then discord_sent_at is set to the current timestamp for each briefing in the alert
+```
+
+---
+
+## 12. Open Questions
 
 | # | Question | Status |
 |---|----------|--------|
