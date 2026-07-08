@@ -12,62 +12,7 @@ Designed to run on a developer laptop today and migrate to AWS Free Tier in ~2 w
 
 ---
 
-## 2a. C4 Level 2 — Container (Laptop)
-
-```mermaid
-C4Container
-    title Health Insurance News Agent — Containers (Laptop)
-
-    Person(analyst, "Analyst")
-
-    System_Boundary(laptop, "Developer Laptop") {
-        Container(app, "Monitor App", "Python · system cron", "Fetches RSS, deduplicates, runs triage pipeline, sends alerts")
-        Container(backfill, "Backfill", "Python · Chrome CDP", "Historical article scraping — headed browser only")
-        ContainerDb(pg, "PostgreSQL", "Docker", "Stores articles, triage results, and briefings")
-    }
-
-    System_Ext(beckers, "Becker's Payer RSS")
-    System_Ext(kff, "KFF Health News RSS")
-    System_Ext(anthropic, "Anthropic API")
-    System_Ext(discord, "Discord")
-
-    Rel(app, pg, "Reads / writes", "psycopg2")
-    Rel(app, beckers, "GET feed", "HTTP")
-    Rel(app, kff, "GET feed", "HTTP")
-    Rel(app, anthropic, "Triage + summarise", "HTTPS")
-    Rel(app, discord, "POST alert", "HTTPS")
-    Rel(analyst, discord, "Reads alerts")
-    Rel(backfill, beckers, "Scrapes pages", "Chrome CDP")
-    Rel(backfill, pg, "Inserts articles", "psycopg2")
-```
-
----
-
-## 2b. C4 Level 1 — System Context
-
-```mermaid
-C4Context
-    title Health Insurance News Agent — System Context
-
-    Person(analyst, "Analyst", "Industry analyst monitoring carrier/provider relationship changes")
-
-    System(agent, "Health Insurance News Agent", "Monitors RSS feeds, triages articles via LLM, posts structured Discord alerts")
-
-    System_Ext(beckers, "Becker's Payer RSS", "Trade press covering payer contracting and M&A")
-    System_Ext(kff, "KFF Health News RSS", "Health policy and industry news")
-    System_Ext(anthropic, "Anthropic API", "Claude Haiku (triage) + Claude Sonnet (summary)")
-    System_Ext(discord, "Discord", "Alert delivery channel")
-
-    Rel(analyst, discord, "Reads alerts")
-    Rel(agent, beckers, "Fetches articles", "HTTP/RSS")
-    Rel(agent, kff, "Fetches articles", "HTTP/RSS")
-    Rel(agent, anthropic, "Triages and summarises", "HTTPS")
-    Rel(agent, discord, "Posts structured alert", "HTTPS webhook")
-```
-
----
-
-## 2c. C4 Level 2 — Container (AWS Free Tier)
+## 2. C4 Level 2 — Container (AWS Free Tier)
 
 ```mermaid
 C4Container
@@ -101,7 +46,7 @@ C4Container
 
 ---
 
-## 2d. C4 Level 3 — Component (Monitor App)
+## 3. C4 Level 3 — Component (Monitor App)
 
 ```mermaid
 C4Component
@@ -140,7 +85,7 @@ C4Component
 
 ---
 
-## 3. Sequence Diagram — Happy Path
+## 4. Sequence Diagram — Happy Path
 
 A run where new articles are found and at least one passes triage.
 
@@ -187,7 +132,7 @@ sequenceDiagram
 
 ---
 
-## 4. Sequence Diagram — No-Hit Run
+## 5. Sequence Diagram — No-Hit Run
 
 The common case: new articles found but none pass triage. Discord is never called.
 
@@ -221,7 +166,7 @@ sequenceDiagram
 
 ---
 
-## 5. Discord Alert Format
+## 6. Discord Alert Format
 
 Posted only when ≥1 article is flagged `yes` or `uncertain`.
 
@@ -249,7 +194,7 @@ it sets a precedent for Centene's reimbursement posture with major urban health 
 
 ---
 
-## 6. Component Map
+## 7. Component Map
 
 | Component | File | Model | Runs on |
 |-----------|------|-------|---------|
@@ -264,7 +209,7 @@ it sets a precedent for Centene's reimbursement posture with major urban health 
 
 ---
 
-## 7. Laptop → AWS Migration Plan
+## 8. Laptop → AWS Migration Plan
 
 ### What changes
 
@@ -307,7 +252,7 @@ Stays within free tier indefinitely at current scale.
 
 ---
 
-## 8. Environment Variables
+## 9. Environment Variables
 
 | Variable | Description | Required on |
 |----------|-------------|-------------|
@@ -317,7 +262,7 @@ Stays within free tier indefinitely at current scale.
 
 ---
 
-## 9. Open Questions
+## 10. Open Questions
 
 | # | Question | Status |
 |---|----------|--------|
