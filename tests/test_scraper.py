@@ -141,11 +141,11 @@ def test_already_seen_false():
 # We use MagicMock to avoid needing a real DB connection in unit tests.
 # =============================================================================
 
-def test_insert_article_returns_true_on_insert():
-    # A new article should be written to the DB and return True so the run count is incremented.
+def test_insert_article_returns_id_on_insert():
+    # A new article should be written to the DB and return its integer id.
     conn = MagicMock()
     cursor = conn.cursor.return_value.__enter__.return_value
-    cursor.rowcount = 1
+    cursor.fetchone.return_value = (42,)
     entry = {
         'url': 'https://www.beckerspayer.com/contracting/test/',
         'title': 'Test Article',
@@ -154,14 +154,14 @@ def test_insert_article_returns_true_on_insert():
         'category': 'contracting',
         'tags': ['Legal', 'Contracting'],
     }
-    assert _insert_article(conn, entry, run_id=1) is True
+    assert _insert_article(conn, entry, run_id=1) == 42
 
-def test_insert_article_returns_false_on_conflict():
-    # If the URL already exists, ON CONFLICT DO NOTHING fires and rowcount is 0.
-    # Return False so the run count is not incremented for a duplicate.
+def test_insert_article_returns_none_on_conflict():
+    # If the URL already exists, ON CONFLICT DO NOTHING fires and RETURNING yields nothing.
+    # Return None so the caller knows it was a duplicate.
     conn = MagicMock()
     cursor = conn.cursor.return_value.__enter__.return_value
-    cursor.rowcount = 0
+    cursor.fetchone.return_value = None
     entry = {
         'url': 'https://www.beckerspayer.com/contracting/test/',
         'title': 'Test Article',
@@ -170,7 +170,7 @@ def test_insert_article_returns_false_on_conflict():
         'category': 'contracting',
         'tags': [],
     }
-    assert _insert_article(conn, entry, run_id=1) is False
+    assert _insert_article(conn, entry, run_id=1) is None
 
 def test_insert_article_passes_correct_fields():
     # Guards against accidentally reordering the SQL parameters — the column order
