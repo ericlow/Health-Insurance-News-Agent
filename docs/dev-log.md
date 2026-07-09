@@ -2,6 +2,82 @@
 
 ---
 
+## 2026-07-08 — Session 4
+
+### Phase 3 complete — full monitor pipeline implemented and merged
+
+All five Phase 3 issues (AGE-37 through AGE-41) implemented by a multi-agent pair (worker-1 + worker-2) and merged to main as individual PRs.
+
+**What was built:**
+
+| Issue | File | What it does |
+|-------|------|-------------|
+| AGE-37 | `db/schema.sql`, `agent/scraper.py`, `agent/kff_monitor.py` | Schema migration (triage_results + briefings tables); Becker's + KFF RSS monitors returning new article IDs |
+| AGE-38 | `agent/triage.py` | Calls Claude Haiku with v1 prompt; writes flag + 2-sentence summary to triage_results; returns yes/uncertain IDs |
+| AGE-39 | `agent/summarizer.py` | Calls Claude Sonnet for flagged articles; writes 4-field structured brief to briefings |
+| AGE-40 | `agent/discord.py` | Formats unsent briefings, POSTs to Discord webhook, sets discord_sent_at on success |
+| AGE-41 | `scheduler.py` | Orchestrator — runs full pipeline in sequence; entry point for hourly cron |
+
+**To run the pipeline manually:**
+```bash
+source .venv/bin/activate
+python -m scheduler
+```
+
+**Cron entry (hourly):**
+```
+0 * * * * cd /path/to/app && .venv/bin/python -m scheduler >> /var/log/monitor.log 2>&1
+```
+
+**Environment variables required:** `DATABASE_URL`, `ANTHROPIC_API_KEY`, `DISCORD_WEBHOOK_URL`
+
+**Test count:** 82 tests passing across all modules.
+
+---
+
+### Multi-agent protocol updates
+
+- Established spy-N / worker-N pair naming for parallel agent sessions
+- Corrected `tmux send-keys` to single-call form: `tmux send-keys -t <target> "[sender] message" Enter`
+- Clarified coordination boundaries: worker agents do not relay cross-pair messages — that's the spy's responsibility
+
+---
+
+## 2026-07-07 — Session 3
+
+### AGE-8 deferred — manual triage serves as adequate prompt for now
+
+AGE-8 (Phase 2 data collection: Braintrust setup, hand-labeling, dataset load) is on hold. The manual triage pass over all 211 articles produced a working classification rubric and an adequate triage prompt. Formal Braintrust evaluation setup deferred until there is a clear need to iterate beyond the current prompt quality.
+
+**Output preserved:** `/tmp/articles_for_labeling_2000.csv` — 211 articles with `llm_flag` (yes/uncertain/no), 2000-char body preview, and 2-sentence summaries for flagged articles. Ready to resume Braintrust setup if needed later.
+
+---
+
+### Phase 2: Article triage experiment — 200-char vs 2000-char body preview
+
+**Context:** 211 articles in DB (Becker's Payer + KFF Health News). Goal is to build a triage prompt that replicates domain expert judgment (<10% hit rate expected). Before labeling, ran a manual triage pass to pre-filter articles for expert review.
+
+**Experiment:** Triaged all 211 articles twice — once with the first 200 chars of body text visible, once with 2000 chars — to measure whether preview length changes classification outcomes.
+
+**Results:**
+- Both runs produced the same 11 `yes` articles (all Becker's Payer contract disputes/agreements — the relationship change is always stated in the headline and opening sentence)
+- 200-char run flagged 8 `uncertain` articles; 2000-char run flagged only 2
+- 6 articles were downgraded from `uncertain → no` with more context:
+  - *Cheaper Alternative Health Plans Are Having a Moment* — market dynamics, not a specific deal
+  - *Eroding ACA Enrollment Portends Higher Insurance Rates* — enrollment trend, not a relationship change
+  - *Big Companies Position Themselves for $50B Rural Health Fund* — federal contracting competition
+  - *Red and Blue States Alike Want To Limit AI in Insurance* — regulatory policy
+  - *Complaints About Gaps in Medicare Advantage Networks Are Common* — systemic enforcement story, no specific split
+  - *Blockbuster Deal Will Wipe Out $30 Billion in Medical Debt* — nonprofit/debt collector deal, not insurer-provider
+
+**Key insight:** 200 chars is sufficient to identify clear hits (relationship changes are stated immediately). It is *not* sufficient to confidently rule out borderline cases — those require ~2000 chars. The false positive risk is concentrated in the `uncertain` band, not the `yes` band.
+
+**Decision:** Use 2000-char body preview as the standard for triage prompts going forward. 200 chars may still be useful as a fast first-pass filter if latency/cost is a concern, but uncertain calls should always be resolved with more context.
+
+**Output:** `/tmp/articles_for_labeling_2000.csv` — all 211 articles with `llm_flag` column (yes/uncertain/no), sorted flags-first, ready for domain expert labeling in Google Sheets.
+
+---
+
 ## 2026-06-21 — Session 2
 
 ### beckerspayer.com added as v1 source

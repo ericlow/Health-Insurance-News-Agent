@@ -70,25 +70,34 @@ Never paraphrase or compress entries in `docs/inputs.md` — the expert's origin
 
 ## Multi-Agent Protocol
 
-Two Claude instances run in parallel via tmux. Start them with `scripts/start-agents.sh`.
+Claude agent pairs run in parallel via tmux. Start a new pair with `scripts/start-agents.sh`.
 
-**Sessions and roles:**
-- `spy` — monitor and coordinator; user's primary vantage point
-- `worker` — executor; runs headless
+Multiple pairs can run simultaneously. Each pair gets a numeric ID (1, 2, 3, …) assigned automatically, or you can pass one explicitly:
+
+```bash
+scripts/start-agents.sh        # auto-assigns next available pair ID
+scripts/start-agents.sh 2      # explicitly start pair 2
+```
+
+**Sessions and roles (per pair N):**
+- `spy-N` — monitor and coordinator; user's primary vantage point
+- `worker-N` — executor; runs headless
+
+Attach to a pair's coordinator: `tmux attach-session -t spy-N`
 
 **Messaging protocol:**
-- Prefix every message with your session name: `[worker] message` or `[spy] message`
-- Send text and Enter as two separate `tmux send-keys` calls:
+- Each agent knows its own session name (`worker-N` / `spy-N`) from the bootstrap briefing
+- Prefix every message with your session name: `[worker-N] message` or `[spy-N] message`
+- Send text and Enter in a single `tmux send-keys` call:
   ```
-  tmux send-keys -t <target> "[sender] message"
-  tmux send-keys -t <target> "" Enter
+  tmux send-keys -t <target-session> "[sender] message" Enter
   ```
 - Do not poll — only message when there is something to coordinate
 - Escalate dangerous or irreversible actions to the user before proceeding
 
 **Monitoring worker output:**
-- Worker output is piped to `/tmp/worker-agent.log` by the bootstrap script
-- Spy can tail it with: `tail -f /tmp/worker-agent.log`
+- Worker output is piped to `/tmp/worker-agent-N.log` by the bootstrap script
+- Spy can tail it with: `tail -f /tmp/worker-agent-N.log`
 
 ## Python Environment
 
