@@ -81,7 +81,7 @@ def _open_run(conn, started_at: datetime) -> int:
     with conn.cursor() as cur:
         cur.execute(
             "INSERT INTO scrape_runs (source, started_at, status) VALUES (%s, %s, 'running') RETURNING id",
-            (f'{SOURCE} [monitor]', started_at),
+            (FEED_URL, started_at),
         )
         run_id = cur.fetchone()[0]
     conn.commit()
