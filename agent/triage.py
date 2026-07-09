@@ -7,6 +7,9 @@ from db.connection import get_connection, release_connection
 
 MODEL = 'claude-haiku-4-5-20251001'
 BODY_PREVIEW_CHARS = 2000
+# Triage response is a small JSON object (flag + 2-sentence summary) — well under 100 tokens in
+# practice. 256 provides headroom without risking truncated JSON from hitting the limit.
+MAX_TOKENS = 256
 
 SYSTEM_PROMPT = """You are a health insurance industry analyst assistant.
 Your job is to screen news articles for a senior analyst who tracks major relationship changes
@@ -78,7 +81,7 @@ def _call_haiku(client: anthropic.Anthropic, article: dict) -> tuple[str, str]:
     try:
         msg = client.messages.create(
             model=MODEL,
-            max_tokens=256,
+            max_tokens=MAX_TOKENS,
             system=SYSTEM_PROMPT,
             messages=[{'role': 'user', 'content': user_content}],
         )
