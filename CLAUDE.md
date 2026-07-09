@@ -88,16 +88,45 @@ Attach to a pair's coordinator: `tmux attach-session -t spy-N`
 **Messaging protocol:**
 - Each agent knows its own session name (`worker-N` / `spy-N`) from the bootstrap briefing
 - Prefix every message with your session name: `[worker-N] message` or `[spy-N] message`
-- Send text and Enter in a single `tmux send-keys` call:
+- Send text and Enter in two calls — one for the message, one blank Enter to submit:
   ```
   tmux send-keys -t <target-session> "[sender] message" Enter
+  tmux send-keys -t <target-session> "" Enter
   ```
+- Avoid `$` signs in messages — the shell interprets them before tmux sees them. Write `0.02 USD` not `$0.02`.
 - Do not poll — only message when there is something to coordinate
 - Escalate dangerous or irreversible actions to the user before proceeding
 
 **Monitoring worker output:**
 - Worker output is piped to `/tmp/worker-agent-N.log` by the bootstrap script
 - Spy can tail it with: `tail -f /tmp/worker-agent-N.log`
+
+## Git Worktrees
+
+Use worktrees to work on a branch in isolation without disturbing the main checkout. The `.claude/worktrees/` directory is the standard location for worktrees in this repo.
+
+```bash
+# Create a worktree for a feature branch
+git worktree add .claude/worktrees/<branch-name> <branch-name>
+
+# Work inside it
+cd .claude/worktrees/<branch-name>
+source ../../.venv/bin/activate   # reuse the root venv
+```
+
+The root `.venv` is shared across worktrees — no need to create a new one per worktree.
+
+Remove a worktree when done:
+
+```bash
+git worktree remove .claude/worktrees/<branch-name>
+```
+
+List active worktrees:
+
+```bash
+git worktree list
+```
 
 ## Python Environment
 

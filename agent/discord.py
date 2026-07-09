@@ -38,27 +38,23 @@ def _fetch_unsent_briefings(conn, run_id=None):
     return rows
 
 
-def _format_message(briefings):
-    count = len(briefings)
-    label = "alert" if count == 1 else "alerts"
-    lines = [f"🔔 Health Insurance News — {count} new {label}", ""]
-
-    for row in briefings:
-        _, what_happened, who, impact, why_it_matters, title, url = row
-        lines.append(DIVIDER)
-        lines.append(f"📌 {title}")
-        lines.append("")
-        lines.append(f"What happened: {what_happened}")
-        lines.append("")
-        lines.append(f"Who's involved: {who}")
-        lines.append("")
-        lines.append(f"Members/revenue at stake: {impact}")
-        lines.append("")
-        lines.append(f"Why it matters: {why_it_matters}")
-        lines.append("")
-        lines.append(f"🔗 {url}")
-
-    lines.append(DIVIDER)
+def _format_briefing(row):
+    _, what_happened, who, impact, why_it_matters, title, url = row
+    lines = [
+        DIVIDER,
+        f"📌 {title}",
+        "",
+        f"What happened: {what_happened}",
+        "",
+        f"Who's involved: {who}",
+        "",
+        f"Members/revenue at stake: {impact}",
+        "",
+        f"Why it matters: {why_it_matters}",
+        "",
+        f"🔗 {url}",
+        DIVIDER,
+    ]
     return "\n".join(lines)
 
 
@@ -90,17 +86,18 @@ def send_alerts(run_id=None):
             return 0
 
         webhook_url = os.environ["DISCORD_WEBHOOK_URL"]
-        message = _format_message(briefings)
+        sent_ids = []
+        for row in briefings:
+            message = _format_briefing(row)
+            response = requests.post(
+                webhook_url,
+                json={"content": message},
+                timeout=10,
+            )
+            response.raise_for_status()
+            sent_ids.append(row[0])
 
-        response = requests.post(
-            webhook_url,
-            json={"content": message},
-            timeout=10,
-        )
-        response.raise_for_status()
-
-        briefing_ids = [row[0] for row in briefings]
-        _mark_sent(conn, briefing_ids)
+        _mark_sent(conn, sent_ids)
 
         return len(briefings)
     finally:
