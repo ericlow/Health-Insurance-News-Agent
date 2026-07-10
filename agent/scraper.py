@@ -23,7 +23,7 @@ def run_scrape() -> tuple[int, list[int]]:
     """
     entries = _fetch_feed()
     conn = get_connection()
-    run_id = _open_run(conn, datetime.now(timezone.utc))
+    run_id = _open_run(conn, datetime.now(timezone.utc), BECKERS_PAYER_FEED_URL)
     try:
         new_ids = []
         for entry in entries:
@@ -66,7 +66,8 @@ def run_backfill(config_path: str = 'config.json', page_limit: int | None = None
     cutoff = config['cutoff_date']
 
     conn = get_connection()
-    run_id = _open_run(conn, datetime.now(timezone.utc), label='backfill')
+    backfill_source = ', '.join(config['backfill_urls'])
+    run_id = _open_run(conn, datetime.now(timezone.utc), backfill_source)
     try:
         new_count = 0
         with sync_playwright() as p:
@@ -256,12 +257,11 @@ def _strip_html(html: str) -> str:
     return BeautifulSoup(html, 'html.parser').get_text(separator='\n', strip=True)
 
 
-def _open_run(conn, started_at, label: str = 'monitor'):
-    source = f'{SOURCE} [{label}]'
+def _open_run(conn, started_at, source_url: str):
     with conn.cursor() as cur:
         cur.execute(
             "INSERT INTO scrape_runs (source, started_at, status) VALUES (%s, %s, 'running') RETURNING id",
-            (source, started_at),
+            (source_url, started_at),
         )
         run_id = cur.fetchone()[0]
     conn.commit()

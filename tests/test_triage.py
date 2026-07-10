@@ -1,5 +1,10 @@
-from unittest.mock import MagicMock, patch, call
-from agent.triage import run_triage, _fetch_article, _call_haiku, _insert_triage_result, MODEL
+from unittest.mock import MagicMock, patch
+import json
+
+from agent.triage import (
+    run_triage, _fetch_article, _call_haiku_title, _call_haiku_article,
+    _insert_triage_result, _parse_response, MODEL,
+)
 
 
 # =============================================================================
@@ -30,79 +35,110 @@ def test_fetch_article_coerces_none_fields():
 
 
 # =============================================================================
-# _call_haiku
+# _parse_response
 # =============================================================================
 
-def _make_client_mock(flag: str, summary: str) -> MagicMock:
-    import json
+def test_parse_response_plain_json():
+    result = _parse_response('{"flag": "yes"}')
+    assert result == {'flag': 'yes'}
+
+
+def test_parse_response_strips_markdown_fences():
+    result = _parse_response('```json\n{"flag": "no"}\n```')
+    assert result == {'flag': 'no'}
+
+
+# =============================================================================
+# _call_haiku_title
+# =============================================================================
+
+def _make_title_mock(flag='yes', confidence=4, scope='CA', reason='9. Cigna vs UC Health'):
     client = MagicMock()
     client.messages.create.return_value.content = [
-        MagicMock(text=json.dumps({'flag': flag, 'summary': summary}))
+        MagicMock(text=json.dumps({
+            'flag': flag, 'confidence': confidence, 'scope': scope, 'reason': reason,
+        }))
     ]
     return client
 
 
-def test_call_haiku_returns_yes_flag():
-    client = _make_client_mock('yes', 'Some summary.')
-    article = {'id': 1, 'title': 'Deal announced', 'body_text': 'Details here.'}
-    flag, summary = _call_haiku(client, article)
+def test_call_haiku_title_returns_expected_fields():
+    client = _make_title_mock(flag='yes', confidence=5, scope='CA', reason='9. Cigna vs UC Health')
+    article = {'id': 1, 'title': 'Cigna exits CA', 'body_text': ''}
+    flag, confidence, scope, reason = _call_haiku_title(client, article)
     assert flag == 'yes'
-    assert summary == 'Some summary.'
+    assert confidence == 5
+    assert scope == 'CA'
+    assert '9' in reason
 
 
-def test_call_haiku_returns_no_flag():
-    client = _make_client_mock('no', 'Not relevant.')
-    article = {'id': 2, 'title': 'Clinical trial results', 'body_text': 'Medical data.'}
-    flag, summary = _call_haiku(client, article)
+def test_call_haiku_title_returns_no():
+    client = _make_title_mock(flag='no', confidence=5, scope='', reason='')
+    article = {'id': 2, 'title': 'Q2 earnings beat', 'body_text': ''}
+    flag, _, _, _ = _call_haiku_title(client, article)
     assert flag == 'no'
 
 
-def test_call_haiku_returns_uncertain_flag():
-    client = _make_client_mock('uncertain', 'Ambiguous signals.')
-    article = {'id': 3, 'title': 'Insurer signals intent', 'body_text': 'Vague language.'}
-    flag, summary = _call_haiku(client, article)
-    assert flag == 'uncertain'
-
-
-def test_call_haiku_normalises_unknown_flag_to_uncertain():
-    import json
+def test_call_haiku_title_normalises_unknown_flag():
     client = MagicMock()
     client.messages.create.return_value.content = [
-        MagicMock(text=json.dumps({'flag': 'maybe', 'summary': 'Odd response.'}))
+        MagicMock(text=json.dumps({'flag': 'maybe', 'confidence': 3, 'scope': '', 'reason': ''}))
     ]
-    article = {'id': 4, 'title': 'Something', 'body_text': 'Text.'}
-    flag, _ = _call_haiku(client, article)
+    article = {'id': 3, 'title': 'Something', 'body_text': ''}
+    flag, _, _, _ = _call_haiku_title(client, article)
     assert flag == 'uncertain'
 
 
-def test_call_haiku_returns_uncertain_on_api_error():
+def test_call_haiku_title_returns_uncertain_on_api_error():
     client = MagicMock()
-    client.messages.create.side_effect = Exception('API timeout')
-    article = {'id': 5, 'title': 'Something', 'body_text': 'Text.'}
-    flag, summary = _call_haiku(client, article)
+    client.messages.create.side_effect = Exception('timeout')
+    article = {'id': 4, 'title': 'Something', 'body_text': ''}
+    flag, confidence, scope, reason = _call_haiku_title(client, article)
+    assert flag == 'uncertain'
+    assert confidence == 3
+
+
+# =============================================================================
+# _call_haiku_article
+# =============================================================================
+
+def _make_article_mock(flag='yes', confidence=4, summary='A deal.', scope='national', reason='1. ACA'):
+    client = MagicMock()
+    client.messages.create.return_value.content = [
+        MagicMock(text=json.dumps({
+            'flag': flag, 'confidence': confidence, 'summary': summary,
+            'scope': scope, 'reason': reason,
+        }))
+    ]
+    return client
+
+
+def test_call_haiku_article_returns_all_fields():
+    client = _make_article_mock(flag='yes', confidence=4, summary='Big deal.', scope='CA', reason='4. Merger')
+    article = {'id': 1, 'title': 'Merger', 'body_text': 'Details.'}
+    flag, confidence, summary, scope, reason = _call_haiku_article(client, article)
+    assert flag == 'yes'
+    assert confidence == 4
+    assert summary == 'Big deal.'
+    assert scope == 'CA'
+    assert '4' in reason
+
+
+def test_call_haiku_article_truncates_body_to_2000_chars():
+    client = _make_article_mock()
+    article = {'id': 2, 'title': 'Title', 'body_text': 'x' * 5000}
+    _call_haiku_article(client, article)
+    user_content = client.messages.create.call_args.kwargs['messages'][0]['content']
+    assert 'x' * 2001 not in user_content
+
+
+def test_call_haiku_article_returns_uncertain_on_api_error():
+    client = MagicMock()
+    client.messages.create.side_effect = Exception('timeout')
+    article = {'id': 3, 'title': 'Something', 'body_text': 'Text.'}
+    flag, confidence, summary, scope, reason = _call_haiku_article(client, article)
     assert flag == 'uncertain'
     assert summary == ''
-
-
-def test_call_haiku_strips_markdown_fences():
-    client = MagicMock()
-    client.messages.create.return_value.content = [
-        MagicMock(text='```json\n{"flag": "yes", "summary": "A deal."}\n```')
-    ]
-    article = {'id': 6, 'title': 'Deal', 'body_text': 'Details.'}
-    flag, summary = _call_haiku(client, article)
-    assert flag == 'yes'
-    assert summary == 'A deal.'
-
-
-def test_call_haiku_truncates_body_to_2000_chars():
-    client = _make_client_mock('no', '')
-    long_body = 'x' * 5000
-    article = {'id': 7, 'title': 'Title', 'body_text': long_body}
-    _call_haiku(client, article)
-    call_args = client.messages.create.call_args
-    user_content = call_args.kwargs['messages'][0]['content']
-    assert 'x' * 2001 not in user_content
 
 
 # =============================================================================
@@ -112,10 +148,11 @@ def test_call_haiku_truncates_body_to_2000_chars():
 def test_insert_triage_result_writes_correct_fields():
     conn = MagicMock()
     cursor = conn.cursor.return_value.__enter__.return_value
-    _insert_triage_result(conn, article_id=10, run_id=5, flag='yes', summary='A summary.')
+    _insert_triage_result(conn, article_id=10, run_id=5, flag='yes',
+                          summary='A summary.', confidence=4, scope='CA', reason='9. Cigna')
     sql, params = cursor.execute.call_args.args
     assert 'triage_results' in sql
-    assert params == (10, 5, 'yes', 'A summary.', MODEL)
+    assert params == (10, 5, 'yes', 'A summary.', 4, 'CA', '9. Cigna', MODEL)
     conn.commit.assert_called_once()
 
 
@@ -129,35 +166,72 @@ def test_run_triage_returns_empty_for_no_articles():
     assert result == []
 
 
-def test_run_triage_returns_flagged_ids_only():
-    article_yes = {'id': 1, 'title': 'Big deal', 'body_text': 'Details.'}
-    article_no  = {'id': 2, 'title': 'Earnings report', 'body_text': 'Numbers.'}
-
-    with patch('agent.triage.get_connection') as mock_conn_fn, \
-         patch('agent.triage.release_connection'), \
-         patch('agent.triage._fetch_article', side_effect=[article_yes, article_no]), \
-         patch('agent.triage._call_haiku', side_effect=[('yes', 'Summary A.'), ('no', 'Summary B.')]), \
-         patch('agent.triage._insert_triage_result') as mock_insert, \
-         patch('agent.triage.anthropic.Anthropic'), \
-         patch.dict('os.environ', {'ANTHROPIC_API_KEY': 'test-key'}):
-
-        result = run_triage([1, 2], run_id=99)
-
-    assert result == [1]
-    assert mock_insert.call_count == 2
-
-
-def test_run_triage_includes_uncertain_in_flagged():
-    article = {'id': 3, 'title': 'Ambiguous', 'body_text': 'Mixed signals.'}
+def test_run_triage_skips_article_eval_when_title_says_no():
+    article = {'id': 1, 'title': 'Earnings beat', 'body_text': 'Numbers.'}
 
     with patch('agent.triage.get_connection'), \
          patch('agent.triage.release_connection'), \
          patch('agent.triage._fetch_article', return_value=article), \
-         patch('agent.triage._call_haiku', return_value=('uncertain', 'Not sure.')), \
+         patch('agent.triage._call_haiku_title', return_value=('no', 5, '', '')) as m_title, \
+         patch('agent.triage._call_haiku_article') as m_article, \
+         patch('agent.triage._insert_triage_result') as m_insert, \
+         patch('agent.triage.anthropic.Anthropic'), \
+         patch.dict('os.environ', {'ANTHROPIC_API_KEY': 'test-key'}):
+        result = run_triage([1], run_id=1)
+
+    assert result == []
+    m_article.assert_not_called()
+    m_insert.assert_not_called()
+
+
+def test_run_triage_runs_article_eval_when_title_passes():
+    article = {'id': 1, 'title': 'Cigna exits CA', 'body_text': 'Details.'}
+
+    with patch('agent.triage.get_connection'), \
+         patch('agent.triage.release_connection'), \
+         patch('agent.triage._fetch_article', return_value=article), \
+         patch('agent.triage._call_haiku_title', return_value=('yes', 5, 'CA', '9. Cigna')), \
+         patch('agent.triage._call_haiku_article', return_value=('yes', 5, 'Big deal.', 'CA', '9. Cigna')) as m_article, \
+         patch('agent.triage._insert_triage_result') as m_insert, \
+         patch('agent.triage.anthropic.Anthropic'), \
+         patch.dict('os.environ', {'ANTHROPIC_API_KEY': 'test-key'}):
+        result = run_triage([1], run_id=99)
+
+    assert result == [1]
+    m_article.assert_called_once()
+    m_insert.assert_called_once()
+
+
+def test_run_triage_returns_flagged_ids_only():
+    articles = [
+        {'id': 1, 'title': 'Big deal', 'body_text': 'Details.'},
+        {'id': 2, 'title': 'Earnings report', 'body_text': 'Numbers.'},
+    ]
+
+    with patch('agent.triage.get_connection'), \
+         patch('agent.triage.release_connection'), \
+         patch('agent.triage._fetch_article', side_effect=articles), \
+         patch('agent.triage._call_haiku_title', side_effect=[('yes', 4, 'CA', '4.'), ('no', 5, '', '')]), \
+         patch('agent.triage._call_haiku_article', return_value=('yes', 4, 'A deal.', 'CA', '4.')), \
          patch('agent.triage._insert_triage_result'), \
          patch('agent.triage.anthropic.Anthropic'), \
          patch.dict('os.environ', {'ANTHROPIC_API_KEY': 'test-key'}):
+        result = run_triage([1, 2], run_id=99)
 
+    assert result == [1]
+
+
+def test_run_triage_includes_uncertain_in_flagged():
+    article = {'id': 3, 'title': 'Ambiguous', 'body_text': 'Mixed.'}
+
+    with patch('agent.triage.get_connection'), \
+         patch('agent.triage.release_connection'), \
+         patch('agent.triage._fetch_article', return_value=article), \
+         patch('agent.triage._call_haiku_title', return_value=('uncertain', 3, 'national', '1.')), \
+         patch('agent.triage._call_haiku_article', return_value=('uncertain', 3, 'Not sure.', 'national', '1.')), \
+         patch('agent.triage._insert_triage_result'), \
+         patch('agent.triage.anthropic.Anthropic'), \
+         patch.dict('os.environ', {'ANTHROPIC_API_KEY': 'test-key'}):
         result = run_triage([3], run_id=1)
 
     assert result == [3]

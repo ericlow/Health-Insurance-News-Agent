@@ -68,6 +68,29 @@ Never paraphrase or compress entries in `docs/inputs.md` — the expert's origin
 - Project: `Health Insurance News Agent`
 - Milestones: Phase 1 — Ingestion | Phase 2 — Prompt Development | Phase 3 — Analysis Pipeline
 
+### Pull request format
+
+Every PR uses this three-section structure:
+
+```
+## Summary
+1-2 sentences: what changed and why.
+
+[AGE-XX — Issue title](https://linear.app/eric-projects/issue/AGE-XX/...)
+
+## Changes
+- bullet details of what was added, changed, or removed
+
+## Test plan
+- [x] what was verified
+```
+
+- **Summary**: high-level "what and why" only — 1-2 sentences max, plus a Linear issue link if one exists
+- **Changes**: all the detail bullets that explain what specifically was added/changed/removed
+- **Test plan**: checklist of what was verified before merging
+
+The template lives in `.github/pull_request_template.md`.
+
 ## Multi-Agent Protocol
 
 Claude agent pairs run in parallel via tmux. Start a new pair with `scripts/start-agents.sh`.
