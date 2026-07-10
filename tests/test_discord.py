@@ -3,7 +3,9 @@ import pytest
 import responses as responses_lib
 from unittest.mock import MagicMock, patch
 
-from agent.discord import send_alerts, _format_message, DIVIDER
+from agent.discord import send_alerts, post_health_check, _format_message, DIVIDER
+
+HEALTH_CHECK_URL = "https://discord.com/api/webhooks/test/health-token"
 
 
 # ---------------------------------------------------------------------------
@@ -131,3 +133,89 @@ def test_send_alerts_does_not_mark_sent_on_webhook_error():
             send_alerts(run_id=1)
 
     mock_conn.commit.assert_not_called()
+
+
+# ---------------------------------------------------------------------------
+# post_health_check — happy path
+# ---------------------------------------------------------------------------
+
+@responses_lib.activate
+def test_post_health_check_posts_message():
+    responses_lib.add(responses_lib.POST, HEALTH_CHECK_URL, status=204)
+
+    with patch.dict(os.environ, {"DISCORD_HEALTH_CHECK_WEBHOOK_URL": HEALTH_CHECK_URL}):
+        post_health_check("Becker's Payer", 3)
+
+    assert len(responses_lib.calls) == 1
+    body = responses_lib.calls[0].request.body.decode()
+    assert "Becker's Payer" in body
+    assert "3 new articles" in body
+
+
+@responses_lib.activate
+def test_post_health_check_singular_article():
+    responses_lib.add(responses_lib.POST, HEALTH_CHECK_URL, status=204)
+
+    with patch.dict(os.environ, {"DISCORD_HEALTH_CHECK_WEBHOOK_URL": HEALTH_CHECK_URL}):
+        post_health_check("KFF Health News", 1)
+
+    body = responses_lib.calls[0].request.body.decode()
+    assert "1 new article" in body
+    assert "articles" not in body
+
+
+@responses_lib.activate
+def test_post_health_check_zero_articles_still_posts():
+    responses_lib.add(responses_lib.POST, HEALTH_CHECK_URL, status=204)
+
+    with patch.dict(os.environ, {"DISCORD_HEALTH_CHECK_WEBHOOK_URL": HEALTH_CHECK_URL}):
+        post_health_check("KFF Health News", 0)
+
+    assert len(responses_lib.calls) == 1
+    assert "0 new articles" in responses_lib.calls[0].request.body.decode()
+
+
+@responses_lib.activate
+def test_post_health_check_message_contains_la_timezone():
+    responses_lib.add(responses_lib.POST, HEALTH_CHECK_URL, status=204)
+
+    with patch.dict(os.environ, {"DISCORD_HEALTH_CHECK_WEBHOOK_URL": HEALTH_CHECK_URL}):
+        post_health_check("Becker's Payer", 2)
+
+    body = responses_lib.calls[0].request.body.decode()
+    assert "PST" in body or "PDT" in body
+
+
+# ---------------------------------------------------------------------------
+# post_health_check — retry and failure handling
+# ---------------------------------------------------------------------------
+
+@responses_lib.activate
+def test_post_health_check_retries_on_server_error():
+    responses_lib.add(responses_lib.POST, HEALTH_CHECK_URL, status=500)
+    responses_lib.add(responses_lib.POST, HEALTH_CHECK_URL, status=204)
+
+    with patch("agent.discord.time.sleep"), \
+         patch.dict(os.environ, {"DISCORD_HEALTH_CHECK_WEBHOOK_URL": HEALTH_CHECK_URL}):
+        post_health_check("Becker's Payer", 3)
+
+    assert len(responses_lib.calls) == 2
+
+
+@responses_lib.activate
+def test_post_health_check_does_not_raise_after_all_retries_exhausted():
+    responses_lib.add(responses_lib.POST, HEALTH_CHECK_URL, status=500)
+    responses_lib.add(responses_lib.POST, HEALTH_CHECK_URL, status=500)
+    responses_lib.add(responses_lib.POST, HEALTH_CHECK_URL, status=500)
+
+    with patch("agent.discord.time.sleep"), \
+         patch.dict(os.environ, {"DISCORD_HEALTH_CHECK_WEBHOOK_URL": HEALTH_CHECK_URL}):
+        post_health_check("Becker's Payer", 3)  # must not raise
+
+    assert len(responses_lib.calls) == 3
+
+
+def test_post_health_check_skips_when_env_var_not_set():
+    env = {k: v for k, v in os.environ.items() if k != "DISCORD_HEALTH_CHECK_WEBHOOK_URL"}
+    with patch.dict(os.environ, env, clear=True):
+        post_health_check("Becker's Payer", 3)  # must not raise
