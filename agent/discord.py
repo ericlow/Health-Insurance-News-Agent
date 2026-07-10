@@ -1,10 +1,16 @@
+import logging
 import os
-import requests
+import time
 from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
+
+import requests
 
 from db.connection import get_connection, release_connection
 
 DIVIDER = "━━━━━━━━━━━━━━━━━━━━━━"
+_LA = ZoneInfo("America/Los_Angeles")
+_HEALTH_CHECK_MAX_ATTEMPTS = 3
 
 
 def _fetch_unsent_briefings(conn, run_id=None):
@@ -105,3 +111,30 @@ def send_alerts(run_id=None):
         return len(briefings)
     finally:
         release_connection(conn)
+
+
+def post_health_check(source: str, new_article_count: int) -> None:
+    """Post a health check message to the health check Discord channel.
+
+    Never raises — a health check failure must not abort the pipeline.
+    """
+    webhook_url = os.environ.get('DISCORD_HEALTH_CHECK_WEBHOOK_URL')
+    if not webhook_url:
+        logging.warning('[discord] DISCORD_HEALTH_CHECK_WEBHOOK_URL not set — skipping health check')
+        return
+
+    now = datetime.now(_LA)
+    timestamp = now.strftime('%Y-%m-%d %I:%M %p %Z')
+    noun = 'article' if new_article_count == 1 else 'articles'
+    content = f'[{source}] {new_article_count} new {noun} — {timestamp}'
+
+    for attempt in range(1, _HEALTH_CHECK_MAX_ATTEMPTS + 1):
+        try:
+            resp = requests.post(webhook_url, json={'content': content}, timeout=10)
+            resp.raise_for_status()
+            return
+        except Exception as exc:
+            if attempt < _HEALTH_CHECK_MAX_ATTEMPTS:
+                time.sleep(2 ** (attempt - 1))
+            else:
+                logging.warning('[discord] health check failed after %d attempts: %s', _HEALTH_CHECK_MAX_ATTEMPTS, exc)
