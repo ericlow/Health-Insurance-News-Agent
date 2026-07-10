@@ -28,6 +28,9 @@ CREATE TABLE IF NOT EXISTS triage_results (
     scrape_run_id   INTEGER REFERENCES scrape_runs(id),
     flag            TEXT NOT NULL CHECK (flag IN ('yes', 'uncertain', 'no')),
     summary         TEXT,
+    confidence      INTEGER,
+    scope           TEXT,
+    reason          TEXT,
     model           TEXT NOT NULL,
     triaged_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
