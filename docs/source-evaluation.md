@@ -8,6 +8,10 @@ This document catalogs candidate news sources for the Health Insurance News Agen
 
 ---
 
+> **Scope note for domain expert review:** The triage prompt in `agent/triage.py` covers **7 target states** (including NY and NJ) and **16 signal categories** — broader than the original PRD's focus on carrier/provider relationship changes. The additional categories include: ACA changes (categories 1, 14), universal healthcare/MFA proposals (2, 10, 15), federal-to-state funding shifts (3, 12), GLP-1 drug costs (13), mental health mandates (11), and labor unions (16). Sources in this catalog are tagged accordingly. **Before adding parsers for Sections H–J** (national policy, GLP-1/PBM, labor), please confirm whether those signal categories are in scope — they are market context signals rather than direct relationship change signals, and may generate noise against the current triage logic.
+
+---
+
 ## How to Read This Doc
 
 Each source entry includes:
