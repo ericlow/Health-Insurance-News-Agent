@@ -2,19 +2,80 @@
 
 _Last updated: 2026-07-11 | AGE-55_
 
-This document catalogs candidate news sources for the Health Insurance News Agent beyond the current Becker's Payer implementation. The domain expert reviews this doc and decides which sources to add scrapers for next.
+This document helps the domain expert decide which sources to add scrapers for next. The recommended order is below — read that first. Full source profiles are in the [Reference](#reference-full-source-profiles) section.
 
 **Target states:** CA, NV, CO, MO, WI, NY, NJ
 
 ---
 
-> **Scope note for domain expert review:** The triage prompt in `agent/triage.py` covers **7 target states** (including NY and NJ) and **16 signal categories** — broader than the original PRD's focus on carrier/provider relationship changes. The additional categories include: ACA changes (categories 1, 14), universal healthcare/MFA proposals (2, 10, 15), federal-to-state funding shifts (3, 12), GLP-1 drug costs (13), mental health mandates (11), and labor unions (16). Sources in this catalog are tagged accordingly. **Before adding parsers for Sections H–J** (national policy, GLP-1/PBM, labor), please confirm whether those signal categories are in scope — they are market context signals rather than direct relationship change signals, and may generate noise against the current triage logic.
+> **Scope note:** The triage prompt covers **7 target states** and **16 signal categories** — broader than the original PRD's focus on carrier/provider relationship changes. The additional categories include ACA changes, universal healthcare/MFA proposals, federal-to-state funding shifts, GLP-1 drug costs, mental health mandates, and labor unions. **Before adding scrapers for Sections H–J** (national policy, GLP-1/PBM, labor), please confirm whether those signal categories are in scope — they are market context signals rather than direct relationship change signals, and may generate noise.
 
 ---
 
-## How to Read This Doc
+## Recommended Scraping Order
 
-Each source entry includes:
+### Tier 1 — Add immediately
+_Free, high signal, proven technical path (RSS or plain HTTP)_
+
+1. **Fierce Healthcare — Payer section + Layoff Tracker** — Trade press covering payer M&A and network changes, with a dedicated layoff tracker that is the direct feed for the "United laid off the CalPERS account team" pattern.
+2. **Healthcare Dive — Payers topic** — Clean RSS feed with reliable M&A and contract coverage; no Cloudflare, straightforward to add as a second RSS source alongside Becker's.
+3. **KFF Health News** — Investigative journalism with a dedicated California Bureau; publishes analysis of purchaser intent and soft RFP signals before they appear in trade press.
+4. **CalPERS Newsroom** — The exact source of the United/Sutter signal that motivated this project; publishes health plan premium decisions and carrier additions/removals months before they take effect.
+5. **California DMHC Press Releases** — CA's health plan regulator; enforcement fines against carriers (e.g., Cigna $500K, Anthem $3.5M recently) signal network relationship strain before it becomes public news.
+
+---
+
+### Tier 2 — Add next
+_Free, lower volume, or covering signal categories that need scope confirmation_
+
+**Federal policy (confirm scope first — see scope note above)**
+- **CMS Newsroom** — Primary federal source for ACA marketplace changes and Medicaid waiver approvals that restructure state carrier markets.
+- **Medicaid.gov Newsroom** — Block grant proposals and 1115 waiver approvals land here first; these are the federal-to-state responsibility shift signals.
+
+**New York coverage**
+- **NY Department of Financial Services (DFS)** — NY's aggressive insurance regulator; enforcement actions on mental health parity and rate filings signal carrier market entry/exit.
+- **NY State of Health Marketplace** — NY's ACA marketplace; carrier participation decisions (joining or leaving) are announced here before open enrollment.
+
+**Cost driver signals (confirm scope first — see scope note above)**
+- **Drug Channels Institute** — Most authoritative free source on PBM formulary decisions; GLP-1 coverage choices by Express Scripts and OptumRx directly affect carrier cost structures.
+
+**Labor signals (confirm scope first — see scope note above)**
+- **SEIU Healthcare Media** — Largest healthcare worker union; labor disputes at major hospital systems (e.g., Kaiser) are leading indicators of network disruption.
+- **Employee Benefit News** — Covers large employer health benefit decisions including TPA switches and self-funded plan changes from the employer side.
+
+**Carrier newsrooms** _(PR-controlled — confirm announcements, not discovery sources)_
+- **UnitedHealth Group Newsroom** — Where United would announce major network or TPA changes; directly relevant given CalPERS/United history.
+- **Cigna Newsroom** — Already identified in domain expert inputs (UC Health example); confirms network partnership announcements.
+- **Elevance/Anthem Newsroom** — Covers CA, CO, MO, WI, and NY under one newsroom; network deal announcements cross multiple target states.
+- **Kaiser Permanente Newsroom** — Dominant integrated HMO in CA and CO; expansion into new geographies or product lines is a significant market signal.
+- **Blue Shield of California Newsroom** — Major CA carrier; relevant example: Blue Shield assumed CalPERS PPO administration in 2025.
+- **Health Net Newsroom** — CA-based carrier (Centene subsidiary); Medi-Cal and commercial coverage for low-income and ACA enrollees.
+
+**Provider newsrooms** _(leading indicator: providers building their own plans signal future network exits)_
+- **Sutter Health Newsroom** — Directly referenced in CalPERS/United/Sutter example; new plan announcements or Anthem partnership expansions are the signals to watch.
+- **Intermountain Health Newsroom** — Major CO provider system; acquisitions of CO provider groups or new plan launches affect the CO target market.
+
+**State ACA marketplaces**
+- **Covered California Newsroom** — CA ACA marketplace; carrier entry/exit decisions are announced here before open enrollment.
+- **Connect for Health Colorado** — CO ACA marketplace equivalent; carrier participation decisions for the CO target state.
+
+---
+
+### Tier 3 — Aware but not actionable now
+
+- **Paywalled / subscription-only:** Modern Healthcare, AIS Health, Health Affairs, Politico Health Care — high signal if we had access, blocked for now.
+- **Lower-volume state regulators:** CO Division of Insurance, NV Division of Insurance, MO Department of Insurance, WI OCI, NJ DOBI — correct signal type, very low volume.
+- **Trade associations and advocacy:** AHIP, CAHP, NAMI — publish policy positions, not breaking relationship news.
+- **Smaller NY carriers:** Healthfirst, EmblemHealth, Oscar Health — correct market, low individual signal volume.
+- **Other:** Providence Newsroom, CommonSpirit/Dignity Health, Mark Farrah Associates, Evernorth Research, Get Covered NJ.
+
+---
+
+## Reference: Full Source Profiles
+
+_Detailed field-by-field profiles for each source. Use this section when evaluating a specific source — not required reading._
+
+### How to Read These Profiles
 
 | Field | What it means |
 |-------|---------------|
@@ -50,9 +111,9 @@ Cost and market drivers:
 
 ---
 
-## A. Trade Press
+### A. Trade Press
 
-### Fierce Healthcare — Payer Section + Layoff Tracker
+#### Fierce Healthcare — Payer Section + Layoff Tracker
 
 | Field | Value |
 |-------|-------|
@@ -70,7 +131,7 @@ Cost and market drivers:
 
 ---
 
-### Healthcare Dive — Payers Topic
+#### Healthcare Dive — Payers Topic
 
 | Field | Value |
 |-------|-------|
@@ -87,7 +148,7 @@ Cost and market drivers:
 
 ---
 
-### KFF Health News
+#### KFF Health News
 
 | Field | Value |
 |-------|-------|
@@ -105,7 +166,7 @@ Cost and market drivers:
 
 ---
 
-### Modern Healthcare — Insurance Section
+#### Modern Healthcare — Insurance Section
 
 | Field | Value |
 |-------|-------|
@@ -122,7 +183,7 @@ Cost and market drivers:
 
 ---
 
-### MedCity News
+#### MedCity News
 
 | Field | Value |
 |-------|-------|
@@ -140,7 +201,7 @@ Cost and market drivers:
 
 ---
 
-### STAT News
+#### STAT News
 
 | Field | Value |
 |-------|-------|
@@ -158,7 +219,7 @@ Cost and market drivers:
 
 ---
 
-### Health Affairs
+#### Health Affairs
 
 | Field | Value |
 |-------|-------|
@@ -175,9 +236,9 @@ Cost and market drivers:
 
 ---
 
-## B. Industry Intelligence (Subscription-Only — Awareness Only)
+### B. Industry Intelligence (Subscription-Only — Awareness Only)
 
-### AIS Health / Health Plan Weekly
+#### AIS Health / Health Plan Weekly
 
 | Field | Value |
 |-------|-------|
@@ -194,7 +255,7 @@ Cost and market drivers:
 
 ---
 
-### AHIP News
+#### AHIP News
 
 | Field | Value |
 |-------|-------|
@@ -211,7 +272,7 @@ Cost and market drivers:
 
 ---
 
-### Mark Farrah Associates — Industry News
+#### Mark Farrah Associates — Industry News
 
 | Field | Value |
 |-------|-------|
@@ -228,9 +289,9 @@ Cost and market drivers:
 
 ---
 
-## C. California Government / Regulatory (High Signal)
+### C. California Government / Regulatory (High Signal)
 
-### CalPERS Newsroom
+#### CalPERS Newsroom
 
 | Field | Value |
 |-------|-------|
@@ -247,7 +308,7 @@ Cost and market drivers:
 
 ---
 
-### California DMHC Press Releases
+#### California DMHC Press Releases
 
 | Field | Value |
 |-------|-------|
@@ -264,7 +325,7 @@ Cost and market drivers:
 
 ---
 
-### Covered California Newsroom
+#### Covered California Newsroom
 
 | Field | Value |
 |-------|-------|
@@ -281,7 +342,7 @@ Cost and market drivers:
 
 ---
 
-### California Association of Health Plans (CAHP)
+#### California Association of Health Plans (CAHP)
 
 | Field | Value |
 |-------|-------|
@@ -298,11 +359,11 @@ Cost and market drivers:
 
 ---
 
-## D. Carrier Newsrooms
+### D. Carrier Newsrooms
 
 > **Editorial note:** Carrier newsrooms are PR-controlled. They announce deals, partnerships, and expansions — but will not break negative news about themselves (contract losses, terminations, disputes). Use these as **confirmation signals** and **provider-plan expansion indicators**, not as primary discovery sources.
 
-### Kaiser Permanente Newsroom
+#### Kaiser Permanente Newsroom
 
 | Field | Value |
 |-------|-------|
@@ -319,7 +380,7 @@ Cost and market drivers:
 
 ---
 
-### Blue Shield of California Newsroom
+#### Blue Shield of California Newsroom
 
 | Field | Value |
 |-------|-------|
@@ -336,7 +397,7 @@ Cost and market drivers:
 
 ---
 
-### Health Net Newsroom
+#### Health Net Newsroom
 
 | Field | Value |
 |-------|-------|
@@ -353,7 +414,7 @@ Cost and market drivers:
 
 ---
 
-### Elevance Health / Anthem Newsroom
+#### Elevance Health / Anthem Newsroom
 
 | Field | Value |
 |-------|-------|
@@ -370,7 +431,7 @@ Cost and market drivers:
 
 ---
 
-### UnitedHealth Group Newsroom
+#### UnitedHealth Group Newsroom
 
 | Field | Value |
 |-------|-------|
@@ -387,7 +448,7 @@ Cost and market drivers:
 
 ---
 
-### Cigna Newsroom
+#### Cigna Newsroom
 
 | Field | Value |
 |-------|-------|
@@ -404,11 +465,11 @@ Cost and market drivers:
 
 ---
 
-## E. Provider Newsrooms (Leading Indicator: Providers Building Own Plans)
+### E. Provider Newsrooms (Leading Indicator: Providers Building Own Plans)
 
 > Providers announcing their own insurance products or network expansions are a leading indicator of impending network exits from existing carrier agreements. Monitor for "provider-sponsored plan" and "new network agreement" announcements.
 
-### Sutter Health Newsroom
+#### Sutter Health Newsroom
 
 | Field | Value |
 |-------|-------|
@@ -425,7 +486,7 @@ Cost and market drivers:
 
 ---
 
-### Intermountain Health Newsroom
+#### Intermountain Health Newsroom
 
 | Field | Value |
 |-------|-------|
@@ -442,7 +503,7 @@ Cost and market drivers:
 
 ---
 
-### Providence Newsroom
+#### Providence Newsroom
 
 | Field | Value |
 |-------|-------|
@@ -459,7 +520,7 @@ Cost and market drivers:
 
 ---
 
-### CommonSpirit / Dignity Health Newsroom
+#### CommonSpirit / Dignity Health Newsroom
 
 | Field | Value |
 |-------|-------|
@@ -476,9 +537,9 @@ Cost and market drivers:
 
 ---
 
-## F. State & Regional Government
+### F. State & Regional Government
 
-### Connect for Health Colorado
+#### Connect for Health Colorado
 
 | Field | Value |
 |-------|-------|
@@ -495,7 +556,7 @@ Cost and market drivers:
 
 ---
 
-### Colorado Division of Insurance
+#### Colorado Division of Insurance
 
 | Field | Value |
 |-------|-------|
@@ -512,7 +573,7 @@ Cost and market drivers:
 
 ---
 
-### Nevada Division of Insurance
+#### Nevada Division of Insurance
 
 | Field | Value |
 |-------|-------|
@@ -529,7 +590,7 @@ Cost and market drivers:
 
 ---
 
-### Missouri Department of Insurance
+#### Missouri Department of Insurance
 
 | Field | Value |
 |-------|-------|
@@ -546,7 +607,7 @@ Cost and market drivers:
 
 ---
 
-### Wisconsin Office of the Commissioner of Insurance
+#### Wisconsin Office of the Commissioner of Insurance
 
 | Field | Value |
 |-------|-------|
@@ -563,9 +624,9 @@ Cost and market drivers:
 
 ---
 
-## G. New York / New Jersey State Sources
+### G. New York / New Jersey State Sources
 
-### New York Department of Financial Services (DFS)
+#### New York Department of Financial Services (DFS)
 
 | Field | Value |
 |-------|-------|
@@ -582,7 +643,7 @@ Cost and market drivers:
 
 ---
 
-### NY State of Health Marketplace
+#### NY State of Health Marketplace
 
 | Field | Value |
 |-------|-------|
@@ -599,7 +660,7 @@ Cost and market drivers:
 
 ---
 
-### New Jersey Department of Banking and Insurance (DOBI)
+#### New Jersey Department of Banking and Insurance (DOBI)
 
 | Field | Value |
 |-------|-------|
@@ -616,7 +677,7 @@ Cost and market drivers:
 
 ---
 
-### Get Covered NJ
+#### Get Covered NJ
 
 | Field | Value |
 |-------|-------|
@@ -633,7 +694,7 @@ Cost and market drivers:
 
 ---
 
-### NY Carrier Newsrooms
+#### NY Carrier Newsrooms
 
 The following carriers are dominant in the NY market and worth monitoring for network and M&A announcements:
 
@@ -648,11 +709,11 @@ The following carriers are dominant in the NY market and worth monitoring for ne
 
 ---
 
-## H. National Policy & Regulatory Sources
+### H. National Policy & Regulatory Sources
 
 These sources cover the ACA, federal-to-state funding shifts, and universal healthcare signals (triage categories 1–3, 10, 12, 14–15).
 
-### CMS Newsroom
+#### CMS Newsroom
 
 | Field | Value |
 |-------|-------|
@@ -669,7 +730,7 @@ These sources cover the ACA, federal-to-state funding shifts, and universal heal
 
 ---
 
-### Medicaid.gov Newsroom
+#### Medicaid.gov Newsroom
 
 | Field | Value |
 |-------|-------|
@@ -686,7 +747,7 @@ These sources cover the ACA, federal-to-state funding shifts, and universal heal
 
 ---
 
-### NAMI Press Room
+#### NAMI Press Room
 
 | Field | Value |
 |-------|-------|
@@ -703,7 +764,7 @@ These sources cover the ACA, federal-to-state funding shifts, and universal heal
 
 ---
 
-### Politico Health Care
+#### Politico Health Care
 
 | Field | Value |
 |-------|-------|
@@ -720,11 +781,11 @@ These sources cover the ACA, federal-to-state funding shifts, and universal heal
 
 ---
 
-## I. Cost & Market Driver Sources (GLP-1 / PBM)
+### I. Cost & Market Driver Sources (GLP-1 / PBM)
 
 These sources cover GLP-1 drug costs and PBM/formulary changes that affect carrier plan costs (triage category 13).
 
-### Drug Channels Institute
+#### Drug Channels Institute
 
 | Field | Value |
 |-------|-------|
@@ -742,7 +803,7 @@ These sources cover GLP-1 drug costs and PBM/formulary changes that affect carri
 
 ---
 
-### Express Scripts / Evernorth Research Blog
+#### Express Scripts / Evernorth Research Blog
 
 | Field | Value |
 |-------|-------|
@@ -759,11 +820,11 @@ These sources cover GLP-1 drug costs and PBM/formulary changes that affect carri
 
 ---
 
-## J. Labor & Employer Plan Sources
+### J. Labor & Employer Plan Sources
 
 These sources cover labor union healthcare negotiations and large employer plan changes (triage categories 8, 16).
 
-### SEIU Healthcare Media
+#### SEIU Healthcare Media
 
 | Field | Value |
 |-------|-------|
@@ -780,7 +841,7 @@ These sources cover labor union healthcare negotiations and large employer plan 
 
 ---
 
-### Employee Benefit News
+#### Employee Benefit News
 
 | Field | Value |
 |-------|-------|
@@ -795,85 +856,3 @@ These sources cover labor union healthcare negotiations and large employer plan 
 | **Expected volume** | low (1–3 relevant articles/week) |
 | **Priority tier** | 2 |
 | **Notes** | Covers large employer health benefit decisions — self-funded plan shifts, TPA switches, carrier contract changes from the employer side. Useful for category 8 (TPA or administrator switches). Has RSS. |
-
----
-
-## Quick-Reference Summary
-
-> All target states: CA, NV, CO, MO, WI, NY, NJ
-
-| Source | Tier | Access | Technical | Leading Indicator | Primary States |
-|--------|------|--------|-----------|-------------------|----------------|
-| Becker's Payer ✓ | — | free | RSS | N | all |
-| **Fierce Healthcare** (Payer + Layoff Tracker) | **1** | free | RSS | **Y** | all |
-| **Healthcare Dive** (Payers) | **1** | free | RSS | N | all |
-| **KFF Health News** | **1** | free | RSS | **Y** | CA, all |
-| **CalPERS Newsroom** | **1** | free | plain HTTP | **Y** | CA |
-| **DMHC Press Releases** | **1** | free | plain HTTP | **Y** | CA |
-| Covered California Newsroom | 2 | free | plain HTTP | **Y** | CA |
-| Modern Healthcare (Insurance) | 2 | paywalled | plain HTTP | N | all |
-| MedCity News | 2 | free | RSS | N | all |
-| STAT News | 2 | partial paywall | RSS | **Y** | all |
-| Kaiser Permanente Newsroom | 2 | free | plain HTTP | **Y** | CA, CO |
-| Blue Shield CA Newsroom | 2 | free | plain HTTP | N | CA |
-| Health Net Newsroom | 2 | free | plain HTTP | N | CA |
-| Elevance/Anthem Newsroom | 2 | free | plain HTTP | N | CA, CO, MO, WI, NY |
-| UnitedHealth Group Newsroom | 2 | free | plain HTTP | N | all |
-| Cigna Newsroom | 2 | free | plain HTTP | N | all |
-| Sutter Health Newsroom | 2 | free | plain HTTP | **Y** | CA |
-| Intermountain Health Newsroom | 2 | free | plain HTTP | **Y** | CO, NV |
-| Connect for Health Colorado | 2 | free | plain HTTP | **Y** | CO |
-| NY DFS | 2 | free | plain HTTP | **Y** | NY |
-| NY State of Health Marketplace | 2 | free | plain HTTP | **Y** | NY |
-| CMS Newsroom | 2 | free | plain HTTP | **Y** | all |
-| Medicaid.gov Newsroom | 2 | free | plain HTTP | **Y** | all |
-| Drug Channels Institute | 2 | free | RSS | **Y** | all |
-| SEIU Healthcare Media | 2 | free | plain HTTP | **Y** | CA, NY, NJ |
-| Employee Benefit News | 2 | free | RSS | **Y** | all |
-| Empire BlueCross Newsroom | 2 | free | plain HTTP | N | NY |
-| Providence Newsroom | 3 | free | plain HTTP | N | CA, NV |
-| CommonSpirit Newsroom | 3 | free | plain HTTP | N | CA, CO |
-| CO Division of Insurance | 3 | free | plain HTTP | **Y** | CO |
-| NV Division of Insurance | 3 | free | plain HTTP | **Y** | NV |
-| MO Department of Insurance | 3 | free | plain HTTP | **Y** | MO |
-| WI OCI | 3 | free | plain HTTP | **Y** | WI |
-| NJ DOBI | 3 | free | plain HTTP | **Y** | NJ |
-| Get Covered NJ | 3 | free | plain HTTP | **Y** | NJ |
-| Healthfirst Newsroom | 3 | free | plain HTTP | N | NY |
-| EmblemHealth Newsroom | 3 | free | plain HTTP | N | NY |
-| Oscar Health Blog | 3 | free | plain HTTP | N | NY, NJ |
-| AHIP News | 3 | free | plain HTTP | N | all |
-| Mark Farrah Associates | 3 | free | plain HTTP | N | all |
-| CAHP | 3 | free | plain HTTP | N | CA |
-| NAMI Press Room | 3 | free | plain HTTP | **Y** | all |
-| Evernorth Research | 3 | free | plain HTTP | **Y** | all |
-| AIS Health / Health Plan Weekly | 3 — **blocked** | subscription | N/A | **Y** | all |
-| Health Affairs | 3 — **blocked** | paywalled | plain HTTP | N | all |
-| Politico Health Care | 3 — **blocked** | subscription | N/A | **Y** | all |
-
----
-
-## Recommended Scraping Order (for domain expert prioritization)
-
-**Add immediately (Tier 1 — free, high signal, proven technical path):**
-1. Fierce Healthcare Payer + Layoff Tracker — RSS, free, direct leading indicator for account team layoffs
-2. Healthcare Dive Payers — RSS, free, broad M&A and contract coverage
-3. KFF Health News — RSS, free, CA investigative + ACA/federal policy
-4. CalPERS Newsroom — plain HTTP, free, direct procurement/RFP signal source
-5. DMHC Press Releases — plain HTTP, free, enforcement = relationship strain signal
-
-**Add next (Tier 2 — free, lower volume or new signal categories):**
-- CMS and Medicaid.gov newsrooms — for federal-to-state shift signals (categories 3, 12)
-- NY DFS and NY State of Health — for NY target state coverage
-- Drug Channels Institute — RSS, free, GLP-1 / PBM cost signals (category 13)
-- SEIU Healthcare — labor signals (category 16)
-- Employee Benefit News — TPA switch signals (category 8)
-- Carrier newsrooms: UHG, Cigna, Elevance, Kaiser, Blue Shield CA, Health Net
-- Sutter Health, Intermountain Health provider newsrooms
-- Covered California, Connect for Health Colorado
-
-**Aware but not actionable now (Tier 3):**
-- Paywalled / subscription: Modern Healthcare, AIS Health, Health Affairs, Politico Health Care
-- Lower-volume state regulators: CO, NV, MO, WI, NJ
-- Trade associations and advocacy: AHIP, CAHP, NAMI (low discovery value)
-- Smaller NY carriers: Healthfirst, EmblemHealth, Oscar
