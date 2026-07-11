@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Cigna Group Press Releases</title>
+    <link>https://newsroom.cigna.com/latest-press-releases</link>
+    <description>Latest press releases from Cigna Group</description>
+    <item>
+      <title>Cigna Group Announces Strategic Partnership</title>
+      <link>https://newsroom.cigna.com/cigna-group-strategic-partnership</link>
+      <pubDate>Mon, 02 Jun 2026 10:00:00 GMT</pubDate>
+      <description>Cigna Group today announced a new strategic partnership.</description>
+      <category>Press Release</category>
+    </item>
+    <item>
+      <title>Cigna Group Reports Strong Q1 Results</title>
+      <link>https://newsroom.cigna.com/cigna-q1-2026-results</link>
+      <pubDate>Tue, 01 Apr 2026 14:00:00 GMT</pubDate>
+      <description>Cigna Group today reported first quarter 2026 results.</description>
+    </item>
+    <item>
+      <title>Evernorth Expands Behavioral Health Services</title>
+      <link>https://newsroom.cigna.com/evernorth-behavioral-health-expansion</link>
+      <pubDate>Wed, 05 Mar 2026 09:00:00 GMT</pubDate>
+      <description>Evernorth Health Services today announced expansion of behavioral health services.</description>
+    </item>
+  </channel>
+</rss>
