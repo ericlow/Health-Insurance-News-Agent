@@ -2,6 +2,52 @@
 
 ---
 
+## 2026-07-10 — Session 6
+
+### Four PRs merged — triage overhaul and operational visibility
+
+**AGE-51** (PR #10): Health check Discord notification after each scraper run. Posts `[Becker's Payer](url) N new articles — HH:MM AM PDT` to a dedicated health check channel (`DISCORD_HEALTH_CHECK_WEBHOOK_URL`) after each source scrapes. Timestamps in America/Los_Angeles. 3-attempt retry with exponential backoff; never raises. PR template (`.github/pull_request_template.md`) and PR format documented in CLAUDE.md also added in this PR.
+
+**AGE-52** (PR #11): Two-stage triage with updated prompts. Title screened first — articles returning `no` skipped without article API call. Both prompts updated with target states (CA, NV, CO, MO, WI, NY, NJ), national vs. state scope classification, and 16 numbered signal categories (ACA, MFA/single-payer, mergers, network exits, GLP-1, labor unions, mental health mandates, Cigna/UC Health, etc.). New `triage_results` columns: `confidence` (1–5), `scope`, `reason`.
+
+**AGE-53** (PR #12): Health check message now shows a clickable Discord hyperlink `[Becker's Payer](https://www.beckerspayer.com/feed/)` instead of a plain source name.
+
+**AGE-54** (PR #13): Every article now gets a `triage_results` row regardless of outcome — including articles previously dropped silently at the title stage. Schema renamed existing columns with `article_` prefix and added `title_flag`, `title_confidence`, `title_scope`, `title_reason`. `article_flag` is now nullable (NULL = never reached article eval). Full decision trail now queryable.
+
+### Braintrust — PermissiveRecall scorer
+
+Discussed and defined a permissive scorer for the Braintrust triage eval:
+- Expected `yes`: `yes` or `uncertain` → pass (don't miss real signals)
+- Expected `no`: anything → pass (false alarms are acceptable, analyst reviews)
+
+Only fails when expected is `yes` and model returns `no`. User is implementing this in Braintrust alongside AGE-48/49/50 (prompt iteration).
+
+### PR format standardised
+
+All PRs now follow: **Summary** (1–2 sentences + Linear link) → **Changes** (detail bullets) → **Test plan** (checklist). Documented in CLAUDE.md and `.github/pull_request_template.md`.
+
+---
+
+## 2026-07-09 — Session 5
+
+### Pipeline running on launchd (hourly, macOS)
+
+Registered the scheduler as a launchd agent so it runs automatically every hour without manual intervention. Survives reboots and fires on wake if the machine was asleep at the scheduled time (unlike cron).
+
+**Plist location:** `~/Library/LaunchAgents/com.ericlow.health-insurance-monitor.plist`
+**Log:** `tail -f /tmp/health-insurance-monitor.log`
+**Test fire:** `launchctl start com.ericlow.health-insurance-monitor`
+**Stop:** `launchctl unload ~/Library/LaunchAgents/com.ericlow.health-insurance-monitor.plist`
+
+### Other changes this session
+
+- **AGE-42** (PR #8): README developer setup guide — 6-step install, cron/launchd section, tests section; `.env.example` updated with `DISCORD_WEBHOOK_URL` and placeholder password; `CLAUDE.md` updated with two-call tmux protocol, dollar-sign warning, and git worktree guidance
+- **AGE-43** (PR #9, merged): `scrape_runs.source` now stores the actual RSS feed URL (e.g. `https://www.beckerspayer.com/feed/`) instead of a domain label, so runs are directly verifiable
+- **Discord fix** (included in AGE-42): sends one POST per briefing to stay under Discord's 2000-character limit
+- **Tmux protocol fix**: two `send-keys` calls required (message + blank Enter); dollar signs must be avoided in messages (shell interprets them)
+
+---
+
 ## 2026-07-08 — Session 4
 
 ### Phase 3 complete — full monitor pipeline implemented and merged
