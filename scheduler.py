@@ -1,10 +1,11 @@
 import logging
 
 from agent.scraper import run_scrape
-from agent.kff_monitor import run_monitor
+from agent.kff_monitor import run_monitor, FEED_URL as KFF_FEED_URL
 from agent.triage import run_triage
 from agent.summarizer import run_summarizer
 from agent.discord import send_alerts, post_health_check
+from config import BECKERS_PAYER_FEED_URL
 
 logging.basicConfig(
     level=logging.INFO,
@@ -18,10 +19,10 @@ def run_pipeline():
     log.info('[scheduler] Starting pipeline run.')
 
     beckers_run_id, beckers_new_ids = run_scrape()
-    post_health_check("Becker's Payer", len(beckers_new_ids))
+    post_health_check("Becker's Payer", BECKERS_PAYER_FEED_URL, len(beckers_new_ids))
 
     _kff_run_id, kff_new_ids = run_monitor()
-    post_health_check("KFF Health News", len(kff_new_ids))
+    post_health_check("KFF Health News", KFF_FEED_URL, len(kff_new_ids))
 
     combined_ids = beckers_new_ids + kff_new_ids
     log.info(

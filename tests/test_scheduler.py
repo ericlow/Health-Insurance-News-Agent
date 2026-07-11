@@ -95,14 +95,15 @@ def test_health_check_called_for_beckers_with_correct_count():
     _, _, _, _, _, m_hc = _run_with_mocks(beckers_return=(10, [1, 2, 3]))
     calls = m_hc.call_args_list
     beckers_call = next(c for c in calls if "Becker" in c.args[0])
-    assert beckers_call.args[1] == 3
+    assert "beckerspayer.com" in beckers_call.args[1]
+    assert beckers_call.args[2] == 3
 
 
 def test_health_check_called_for_kff_with_correct_count():
     _, _, _, _, _, m_hc = _run_with_mocks(kff_return=(20, [7, 8]))
     calls = m_hc.call_args_list
     kff_call = next(c for c in calls if "KFF" in c.args[0])
-    assert kff_call.args[1] == 2
+    assert kff_call.args[2] == 2
 
 
 def test_health_check_called_with_zero_when_no_new_articles():
@@ -110,5 +111,5 @@ def test_health_check_called_with_zero_when_no_new_articles():
         beckers_return=(1, []),
         kff_return=(2, []),
     )
-    counts = [c.args[1] for c in m_hc.call_args_list]
+    counts = [c.args[2] for c in m_hc.call_args_list]
     assert counts == [0, 0]

@@ -110,7 +110,7 @@ def send_alerts(run_id=None):
         release_connection(conn)
 
 
-def post_health_check(source: str, new_article_count: int) -> None:
+def post_health_check(label: str, url: str, new_article_count: int) -> None:
     """Post a health check message to the health check Discord channel.
 
     Never raises — a health check failure must not abort the pipeline.
@@ -123,7 +123,7 @@ def post_health_check(source: str, new_article_count: int) -> None:
     now = datetime.now(_LA)
     timestamp = now.strftime('%Y-%m-%d %I:%M %p %Z')
     noun = 'article' if new_article_count == 1 else 'articles'
-    content = f'[{source}] {new_article_count} new {noun} — {timestamp}'
+    content = f'[{label}]({url}) {new_article_count} new {noun} — {timestamp}'
 
     for attempt in range(1, _HEALTH_CHECK_MAX_ATTEMPTS + 1):
         try:
