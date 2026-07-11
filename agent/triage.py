@@ -121,17 +121,27 @@ def run_triage(article_ids: list[int], run_id: int) -> list[int]:
             if not article:
                 continue
 
-            title_flag, _, _, _ = _call_haiku_title(client, article)
+            title_flag, title_confidence, title_scope, title_reason = _call_haiku_title(client, article)
             if title_flag == 'no':
                 print(f'[triage] ✗ (title) {article["title"][:70]}')
+                _insert_triage_result(
+                    conn, article_id, run_id,
+                    title_flag, title_confidence, title_scope, title_reason,
+                    None, None, None, None, None,
+                )
                 continue
 
-            flag, confidence, summary, scope, reason = _call_haiku_article(client, article)
-            _insert_triage_result(conn, article_id, run_id, flag, summary, confidence, scope, reason)
-            if flag in ('yes', 'uncertain'):
+            article_flag, article_confidence, article_summary, article_scope, article_reason = \
+                _call_haiku_article(client, article)
+            _insert_triage_result(
+                conn, article_id, run_id,
+                title_flag, title_confidence, title_scope, title_reason,
+                article_flag, article_confidence, article_summary, article_scope, article_reason,
+            )
+            if article_flag in ('yes', 'uncertain'):
                 flagged_ids.append(article_id)
-            label = '✓' if flag == 'yes' else '?' if flag == 'uncertain' else '✗'
-            print(f'[triage] {label} [{scope}] {article["title"][:70]}')
+            label = '✓' if article_flag == 'yes' else '?' if article_flag == 'uncertain' else '✗'
+            print(f'[triage] {label} [{article_scope}] {article["title"][:70]}')
 
         print(f'[triage] {len(article_ids)} triaged, {len(flagged_ids)} flagged.')
         return flagged_ids
@@ -202,16 +212,34 @@ def _parse_response(text: str) -> dict:
 
 
 def _insert_triage_result(
-    conn, article_id: int, run_id: int, flag: str, summary: str,
-    confidence: int, scope: str, reason: str
+    conn,
+    article_id: int,
+    run_id: int,
+    title_flag: str,
+    title_confidence: int,
+    title_scope: str,
+    title_reason: str,
+    article_flag: str | None,
+    article_confidence: int | None,
+    article_summary: str | None,
+    article_scope: str | None,
+    article_reason: str | None,
 ) -> None:
     with conn.cursor() as cur:
         cur.execute(
             """
-            INSERT INTO triage_results
-                (article_id, scrape_run_id, flag, summary, confidence, scope, reason, model)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            INSERT INTO triage_results (
+                article_id, scrape_run_id,
+                title_flag, title_confidence, title_scope, title_reason,
+                article_flag, article_confidence, article_summary, article_scope, article_reason,
+                model
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """,
-            (article_id, run_id, flag, summary, confidence, scope, reason, MODEL),
+            (
+                article_id, run_id,
+                title_flag, title_confidence, title_scope, title_reason,
+                article_flag, article_confidence, article_summary, article_scope, article_reason,
+                MODEL,
+            ),
         )
     conn.commit()
