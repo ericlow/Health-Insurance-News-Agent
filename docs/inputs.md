@@ -38,3 +38,8 @@ We care about three types of substantive stories: (1) relationship changes, (2) 
 All articles sourced from newsroom.cigna.com are public information — no data privacy constraints on tooling choices.
 
 Use Braintrust for prompt testing and evaluation. Articles are public so there is no concern with sending them to a commercial platform.
+
+## 2026-07-10
+
+Another input
+https://med.stanford.edu/news/all-news/2021/02/stanford-medicine-and-sutter-health-to-provide-east-bay-cancer-care.html
