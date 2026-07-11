@@ -3,7 +3,7 @@ import pytest
 import responses as responses_lib
 from unittest.mock import MagicMock, patch
 
-from agent.discord import send_alerts, post_health_check, _format_message, DIVIDER
+from agent.discord import send_alerts, post_health_check, _format_briefing, DIVIDER
 
 HEALTH_CHECK_URL = "https://discord.com/api/webhooks/test/health-token"
 
@@ -18,23 +18,12 @@ def _make_briefing(id=1, title="Test Title", url="https://example.com/article"):
 
 
 # ---------------------------------------------------------------------------
-# _format_message
+# _format_briefing
 # ---------------------------------------------------------------------------
 
-def test_format_message_single_alert_label():
-    msg = _format_message([_make_briefing()])
-    assert "1 new alert\n" in msg
-    assert "alerts" not in msg.split("1 new alert")[0]
-
-
-def test_format_message_plural_label():
-    msg = _format_message([_make_briefing(1), _make_briefing(2)])
-    assert "2 new alerts" in msg
-
-
-def test_format_message_contains_all_fields():
+def test_format_briefing_contains_all_fields():
     row = _make_briefing(title="Northwell Fidelis Split", url="https://example.com/a")
-    msg = _format_message([row])
+    msg = _format_briefing(row)
     assert "📌 Northwell Fidelis Split" in msg
     assert "What happened: Something happened." in msg
     assert "Who's involved: Entity A (provider) · Entity B (insurer)" in msg
@@ -43,9 +32,9 @@ def test_format_message_contains_all_fields():
     assert "🔗 https://example.com/a" in msg
 
 
-def test_format_message_dividers_wrap_each_briefing():
-    msg = _format_message([_make_briefing(1), _make_briefing(2)])
-    assert msg.count(DIVIDER) == 3  # one between header and first, between items, and final
+def test_format_briefing_wrapped_in_dividers():
+    msg = _format_briefing(_make_briefing())
+    assert msg.count(DIVIDER) == 2
 
 
 # ---------------------------------------------------------------------------
@@ -144,7 +133,7 @@ def test_post_health_check_posts_message():
     responses_lib.add(responses_lib.POST, HEALTH_CHECK_URL, status=204)
 
     with patch.dict(os.environ, {"DISCORD_HEALTH_CHECK_WEBHOOK_URL": HEALTH_CHECK_URL}):
-        post_health_check("Becker's Payer", 3)
+        post_health_check("Becker's Payer", "https://www.beckerspayer.com/feed/", 3)
 
     assert len(responses_lib.calls) == 1
     body = responses_lib.calls[0].request.body.decode()
@@ -157,7 +146,7 @@ def test_post_health_check_singular_article():
     responses_lib.add(responses_lib.POST, HEALTH_CHECK_URL, status=204)
 
     with patch.dict(os.environ, {"DISCORD_HEALTH_CHECK_WEBHOOK_URL": HEALTH_CHECK_URL}):
-        post_health_check("KFF Health News", 1)
+        post_health_check("KFF Health News", "https://kffhealthnews.org/state/california/feed/", 1)
 
     body = responses_lib.calls[0].request.body.decode()
     assert "1 new article" in body
@@ -169,7 +158,7 @@ def test_post_health_check_zero_articles_still_posts():
     responses_lib.add(responses_lib.POST, HEALTH_CHECK_URL, status=204)
 
     with patch.dict(os.environ, {"DISCORD_HEALTH_CHECK_WEBHOOK_URL": HEALTH_CHECK_URL}):
-        post_health_check("KFF Health News", 0)
+        post_health_check("KFF Health News", "https://kffhealthnews.org/state/california/feed/", 0)
 
     assert len(responses_lib.calls) == 1
     assert "0 new articles" in responses_lib.calls[0].request.body.decode()
@@ -180,7 +169,7 @@ def test_post_health_check_message_contains_la_timezone():
     responses_lib.add(responses_lib.POST, HEALTH_CHECK_URL, status=204)
 
     with patch.dict(os.environ, {"DISCORD_HEALTH_CHECK_WEBHOOK_URL": HEALTH_CHECK_URL}):
-        post_health_check("Becker's Payer", 2)
+        post_health_check("Becker's Payer", "https://www.beckerspayer.com/feed/", 2)
 
     body = responses_lib.calls[0].request.body.decode()
     assert "PST" in body or "PDT" in body
@@ -197,7 +186,7 @@ def test_post_health_check_retries_on_server_error():
 
     with patch("agent.discord.time.sleep"), \
          patch.dict(os.environ, {"DISCORD_HEALTH_CHECK_WEBHOOK_URL": HEALTH_CHECK_URL}):
-        post_health_check("Becker's Payer", 3)
+        post_health_check("Becker's Payer", "https://www.beckerspayer.com/feed/", 3)
 
     assert len(responses_lib.calls) == 2
 
@@ -210,7 +199,7 @@ def test_post_health_check_does_not_raise_after_all_retries_exhausted():
 
     with patch("agent.discord.time.sleep"), \
          patch.dict(os.environ, {"DISCORD_HEALTH_CHECK_WEBHOOK_URL": HEALTH_CHECK_URL}):
-        post_health_check("Becker's Payer", 3)  # must not raise
+        post_health_check("Becker's Payer", "https://www.beckerspayer.com/feed/", 3)  # must not raise
 
     assert len(responses_lib.calls) == 3
 
@@ -218,4 +207,4 @@ def test_post_health_check_does_not_raise_after_all_retries_exhausted():
 def test_post_health_check_skips_when_env_var_not_set():
     env = {k: v for k, v in os.environ.items() if k != "DISCORD_HEALTH_CHECK_WEBHOOK_URL"}
     with patch.dict(os.environ, env, clear=True):
-        post_health_check("Becker's Payer", 3)  # must not raise
+        post_health_check("Becker's Payer", "https://www.beckerspayer.com/feed/", 3)  # must not raise
