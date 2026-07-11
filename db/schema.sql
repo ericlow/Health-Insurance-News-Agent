@@ -23,16 +23,25 @@ CREATE TABLE IF NOT EXISTS articles (
 );
 
 CREATE TABLE IF NOT EXISTS triage_results (
-    id              SERIAL PRIMARY KEY,
-    article_id      INTEGER NOT NULL REFERENCES articles(id),
-    scrape_run_id   INTEGER REFERENCES scrape_runs(id),
-    flag            TEXT NOT NULL CHECK (flag IN ('yes', 'uncertain', 'no')),
-    summary         TEXT,
-    confidence      INTEGER,
-    scope           TEXT,
-    reason          TEXT,
-    model           TEXT NOT NULL,
-    triaged_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+    id                  SERIAL PRIMARY KEY,
+    article_id          INTEGER NOT NULL REFERENCES articles(id),
+    scrape_run_id       INTEGER REFERENCES scrape_runs(id),
+
+    -- Stage 1: title screen (always populated)
+    title_flag          TEXT CHECK (title_flag IN ('yes', 'uncertain', 'no')),
+    title_confidence    INTEGER,
+    title_scope         TEXT,
+    title_reason        TEXT,
+
+    -- Stage 2: article eval (NULL when dropped at title stage)
+    article_flag        TEXT CHECK (article_flag IN ('yes', 'uncertain', 'no')),
+    article_confidence  INTEGER,
+    article_summary     TEXT,
+    article_scope       TEXT,
+    article_reason      TEXT,
+
+    model               TEXT NOT NULL,
+    triaged_at          TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE TABLE IF NOT EXISTS briefings (

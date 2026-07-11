@@ -145,15 +145,33 @@ def test_call_haiku_article_returns_uncertain_on_api_error():
 # _insert_triage_result
 # =============================================================================
 
-def test_insert_triage_result_writes_correct_fields():
+def test_insert_triage_result_writes_all_fields():
     conn = MagicMock()
     cursor = conn.cursor.return_value.__enter__.return_value
-    _insert_triage_result(conn, article_id=10, run_id=5, flag='yes',
-                          summary='A summary.', confidence=4, scope='CA', reason='9. Cigna')
+    _insert_triage_result(
+        conn, article_id=10, run_id=5,
+        title_flag='yes', title_confidence=4, title_scope='CA', title_reason='9. Cigna',
+        article_flag='yes', article_confidence=4, article_summary='A summary.',
+        article_scope='CA', article_reason='9. Cigna',
+    )
     sql, params = cursor.execute.call_args.args
     assert 'triage_results' in sql
-    assert params == (10, 5, 'yes', 'A summary.', 4, 'CA', '9. Cigna', MODEL)
+    assert params == (10, 5, 'yes', 4, 'CA', '9. Cigna', 'yes', 4, 'A summary.', 'CA', '9. Cigna', MODEL)
     conn.commit.assert_called_once()
+
+
+def test_insert_triage_result_accepts_null_article_fields():
+    conn = MagicMock()
+    cursor = conn.cursor.return_value.__enter__.return_value
+    _insert_triage_result(
+        conn, article_id=10, run_id=5,
+        title_flag='no', title_confidence=5, title_scope='', title_reason='',
+        article_flag=None, article_confidence=None, article_summary=None,
+        article_scope=None, article_reason=None,
+    )
+    _, params = cursor.execute.call_args.args
+    assert params[6] is None   # article_flag
+    assert params[8] is None   # article_summary
 
 
 # =============================================================================
@@ -166,8 +184,8 @@ def test_run_triage_returns_empty_for_no_articles():
     assert result == []
 
 
-def test_run_triage_skips_article_eval_when_title_says_no():
-    article = {'id': 1, 'title': 'Earnings beat', 'body_text': 'Numbers.'}
+def test_run_triage_saves_row_for_title_dropped_article():
+    article = {'id': 1, 'title': 'Earnings report', 'body_text': 'Numbers.'}
 
     with patch('agent.triage.get_connection'), \
          patch('agent.triage.release_connection'), \
@@ -181,24 +199,25 @@ def test_run_triage_skips_article_eval_when_title_says_no():
 
     assert result == []
     m_article.assert_not_called()
-    m_insert.assert_not_called()
+    m_insert.assert_called_once()
+    # article_flag is the 8th positional arg (conn, article_id, run_id, title_*, article_flag, ...)
+    assert m_insert.call_args.args[7] is None
 
 
-def test_run_triage_runs_article_eval_when_title_passes():
+def test_run_triage_saves_both_stages_when_title_passes():
     article = {'id': 1, 'title': 'Cigna exits CA', 'body_text': 'Details.'}
 
     with patch('agent.triage.get_connection'), \
          patch('agent.triage.release_connection'), \
          patch('agent.triage._fetch_article', return_value=article), \
          patch('agent.triage._call_haiku_title', return_value=('yes', 5, 'CA', '9. Cigna')), \
-         patch('agent.triage._call_haiku_article', return_value=('yes', 5, 'Big deal.', 'CA', '9. Cigna')) as m_article, \
+         patch('agent.triage._call_haiku_article', return_value=('yes', 5, 'Big deal.', 'CA', '9. Cigna')), \
          patch('agent.triage._insert_triage_result') as m_insert, \
          patch('agent.triage.anthropic.Anthropic'), \
          patch.dict('os.environ', {'ANTHROPIC_API_KEY': 'test-key'}):
         result = run_triage([1], run_id=99)
 
     assert result == [1]
-    m_article.assert_called_once()
     m_insert.assert_called_once()
 
 
