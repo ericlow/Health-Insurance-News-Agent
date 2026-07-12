@@ -2,6 +2,14 @@
 
 ---
 
+## 2026-07-11 — Session 7
+
+### AGE-59: claude-pyrojects sync — blocked
+
+Implementation is complete (venv install, `claude_pyrojects.ignore`, `.gitignore` entries, `scripts/sync_claude_project.sh` wrapper). Blocked on first-time setup: requires copying the `sessionKey` cookie from claude.ai DevTools to run `init` + `create`. Branch unmerged until setup is verified.
+
+---
+
 ## 2026-07-10 — Session 6
 
 ### Four PRs merged — triage overhaul and operational visibility
