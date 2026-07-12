@@ -43,3 +43,15 @@ Use Braintrust for prompt testing and evaluation. Articles are public so there i
 
 Another input
 https://med.stanford.edu/news/all-news/2021/02/stanford-medicine-and-sutter-health-to-provide-east-bay-cancer-care.html
+
+## 2026-07-11
+
+**Short list of entities to watch:**
+
+Insurers: United Healthcare, Blue Shield, Anthem / Blue Cross, Aetna, Cigna, Healthnet / Centene, Kaiser
+
+Hospitals / doctors: Sutter Health, Stanford, UC, Cedars, Providence, Optumcare, Heritage, Scripps, Sharp, Kaiser
+
+Employers: CalPERS, nursing unions, doctors unions, labor unions for major employers
+
+California Health and Human Services open data portal: https://data.chhs.ca.gov/
