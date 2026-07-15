@@ -151,6 +151,28 @@ List active worktrees:
 git worktree list
 ```
 
+## Claude.ai Project Sync
+
+`scripts/sync_claude_project.sh` uploads project docs to a Claude.ai Project via `claude-pyrojects`. Run it whenever docs change so the assistant has current context.
+
+**Day-to-day:**
+```bash
+./scripts/sync_claude_project.sh        # incremental update
+./scripts/sync_claude_project.sh status # show pending changes
+```
+
+**First-time setup on a new machine:**
+1. Go to claude.ai → DevTools → Application → Cookies → copy `sessionKey`
+2. `./scripts/sync_claude_project.sh init <session_key>`
+3. `./scripts/sync_claude_project.sh create`
+
+Runtime files (`claude_pyrojects.key`, `claude_pyrojects.config`, `claude_pyrojects.manifest`) are gitignored — they must be present in the repo root for updates to work. If missing after a fresh clone, run the first-time setup above.
+
+**Known issue:** `claude-pyrojects` installs with a hyphenated package directory that Python can't import. Fix with:
+```bash
+ln -s .venv/lib/python3.10/site-packages/claude-pyrojects .venv/lib/python3.10/site-packages/claude_pyrojects
+```
+
 ## Python Environment
 
 Use `.venv/` in the project root (created with `python3 -m venv .venv`). Activate before running anything:
