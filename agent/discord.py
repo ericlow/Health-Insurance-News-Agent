@@ -82,17 +82,19 @@ def _format_no_article(title, url, article_flag,
                        article_reason, article_confidence, article_scope, article_summary):
     title_rejected = article_flag is None
     if title_rejected:
+        label = "❌ Title rejected"
         reason = title_reason or ""
         confidence = title_confidence
         scope = title_scope or ""
         summary = None
     else:
+        label = "❌ Article rejected"
         reason = article_reason or ""
         confidence = article_confidence
         scope = article_scope or ""
         summary = article_summary
 
-    lines = [f"[{title}]({url})"]
+    lines = [f"[{title}]({url})", label]
     if reason:
         lines.append(f"Reason: {reason}")
     if summary:

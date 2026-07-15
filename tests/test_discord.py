@@ -79,7 +79,7 @@ def test_format_briefing_wrapped_in_dividers():
 # _format_no_article
 # ---------------------------------------------------------------------------
 
-def test_format_no_article_article_rejected_includes_reason_summary_and_meta():
+def test_format_no_article_article_rejected_includes_label_reason_summary_and_meta():
     msg = _format_no_article(
         "Anthem Q3 Earnings", "https://example.com/a", 'no',
         "A. earnings", 3, "CA",
@@ -87,19 +87,21 @@ def test_format_no_article_article_rejected_includes_reason_summary_and_meta():
         "Anthem reported Q3 earnings. Cost controls drove the beat.",
     )
     assert "[Anthem Q3 Earnings](https://example.com/a)" in msg
+    assert "❌ Article rejected" in msg
     assert "Reason: A. earnings reports with no relationship change" in msg
     assert "Summary: Anthem reported Q3 earnings." in msg
     assert "Confidence: 4" in msg
     assert "Scope: national" in msg
 
 
-def test_format_no_article_title_rejected_uses_title_fields_and_no_summary():
+def test_format_no_article_title_rejected_shows_label_and_no_summary():
     msg = _format_no_article(
         "Anthem Q3 Earnings", "https://example.com/a", None,
         "A. earnings reports", 3, "CA",
         None, None, None, None,
     )
     assert "[Anthem Q3 Earnings](https://example.com/a)" in msg
+    assert "❌ Title rejected" in msg
     assert "Reason: A. earnings reports" in msg
     assert "Summary" not in msg
     assert "Confidence: 3" in msg
