@@ -55,3 +55,114 @@ Hospitals / doctors: Sutter Health, Stanford, UC, Cedars, Providence, Optumcare,
 Employers: CalPERS, nursing unions, doctors unions, labor unions for major employers
 
 California Health and Human Services open data portal: https://data.chhs.ca.gov/
+
+## 2026-07-11 — Agentic system design brainstorm
+
+# Health Insurance News Bot — Agentic System Design
+
+## Project Context
+
+Building a news scraping app for health insurance financial news (contracts, deals,
+terminations, mergers, reinsurance, rate filings, litigation with financial exposure).
+Sources are scraped into Postgres. Domain expert is a health insurance executive who
+wants alerts on financially material news, delivered via Discord.
+
+A separate dedup pipeline exists as a concept (entity fingerprinting + LLM-as-judge)
+but is **unvalidated** — treat clustering as unreliable until tested. Agentic
+capabilities below should not hard-depend on dedup working.
+
+## Goals
+
+1. Deliver real value to the health insurance exec (fast, trustworthy, low-noise alerts
+   and answers).
+2. Build learning reps in agentic system design: tool use, orchestration, grounding,
+   human-in-the-loop feedback.
+
+## System Shape: Single Discord Bot, Shared Toolset
+
+**Passive/push side** — background loop, always running:
+scraper → dedup (once validated) → triage/relevance agent → bot posts alert to channel.
+
+**Active/pull side** — exec interacts via open mentions (not slash commands):
+exec @-mentions bot in natural language → bot orchestrates tools → responds with
+cited, grounded answer.
+
+Chosen: **open mentions** over slash commands, despite higher hallucination risk,
+because it's more natural for the exec.
+
+## Tools Available to the Conversational Agent
+
+- `summarize_article(url_or_id)` — single-article brief (build first, no dedup dependency)
+- `summarize_cluster(cluster_id)` — multi-article synthesis, reconciles conflicting
+  figures across sources (build only after dedup is validated — bad clusters produce
+  confidently wrong summaries)
+- `query_articles(company, date_range, event_type)` — structured Postgres lookup
+- `get_financial_context(company)` — SEC EDGAR filings / stock data via structured
+  APIs (not scraping); depends on entity resolution (see Shared Dependency below)
+- `search_web(query)` — bounded, only when local data is insufficient
+- `record_feedback(alert_id, thumbs_up_or_down)` — closes the loop for triage tuning
+
+## Shared Dependency: Entity Resolution
+
+Company name normalization (e.g. "AIG" vs "American International Group" vs
+subsidiary names) is required by dedup, `get_financial_context`, and the
+conversational agent's grounding. Build this lookup table/service once, reuse
+everywhere — don't solve it three separate times.
+
+## Query Routing Logic
+
+Two-step process per exec question:
+1. **Classify** what's being asked (summary request / structured lookup / financial
+   context / trend analysis / research question).
+2. **Route** to the appropriate tool(s) based on classification, preferring local
+   Postgres data first (fast, grounded) and only branching to web search or financial
+   APIs when local data is empty or the exec explicitly asks for something outside
+   scraped scope.
+
+If the bot lacks sufficient data to answer, it should say so explicitly rather than
+hallucinate.
+
+## Hallucination Mitigation: Three-Agent Pipeline
+
+Settled design after discussion — three distinct models/steps so no single model's
+errors get reinforced unchecked:
+
+| Step | Role | Model | Rationale |
+|---|---|---|---|
+| 1. Plan | Interpret the exec's question, output a structured plan of what to fetch | **Opus 4.8** | Handles ambiguity well; planning mistakes cascade through the whole system, so this is the highest-stakes step |
+| 2. Execute | Run the tools per the plan (DB query, API calls, web search) | **Haiku 4.5** | Mechanical, low-reasoning task once the plan is set; cheap and fast |
+| 3. Interpret | Analyze retrieved data, reconcile conflicting sources, decide relevance, synthesize final response with citations | **Fable 5** | Cost is not a constraint for this project; use strongest available judgment here to catch subtleties/conflicts a cheaper model might miss |
+
+Note on tradeoffs discussed: using the same model for multiple steps risks the system
+"agreeing with itself" — a bad plan gets executed and interpreted without correction.
+Using three distinct models avoids this. Main known tradeoff of the current design:
+sequential calls across three models add latency (roughly 10-20s) — acceptable given
+cost is not a constraint for this project, but worth monitoring once real usage starts.
+
+## Build Sequencing (agreed order)
+
+1. **Triage/relevance agent** — single-article scoring against financial materiality
+   criteria. No dedup dependency. Build first.
+2. **Feedback-loop agent** — store exec's thumbs up/down reactions, periodically have
+   an agent review disagreements and propose (not auto-apply) updated relevance
+   criteria. Also surfaces dedup-quality signal for free.
+3. **Research/enrichment agent** (`get_financial_context`, `search_web`) — structured
+   APIs first (SEC EDGAR, stock data), bounded scope, firm stopping conditions to
+   avoid rabbit holes.
+4. **Event-cluster summarizer** — gated on dedup validation.
+5. **Cross-event trend agent** — needs both validated dedup and weeks of historical
+   clustered data; most vague success criterion, build last.
+
+Discord bot build order: push-only alerts (triage + single-article summarizer) first
+→ pull side (open-mention tool orchestration, three-agent pipeline) once stable.
+
+## Open Items / Not Yet Decided
+
+- Concrete rubric for "why this matters to a health insurer" (candidate categories:
+  reserve/capital impact, competitive positioning, regulatory exposure, claims cost
+  trend) — needs to be defined so the summarizer isn't freelancing.
+- Dedup validation has not been done yet — recommended approach was a small hand-labeled
+  test set (20-30 articles) to check entity-fingerprinting precision before building
+  anything that depends on clusters.
+- Financial-data trigger policy: gate `get_financial_context` behind triage score or
+  make it on-demand only, rather than auto-enriching every alert.
