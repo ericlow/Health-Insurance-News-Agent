@@ -102,6 +102,7 @@ def test_send_alerts_yes_goes_to_main_channel():
 
     with patch("agent.discord.get_connection", return_value=mock_conn), \
          patch("agent.discord.release_connection"), \
+         patch("agent.discord.time.sleep"), \
          patch.dict(os.environ, ENV):
         result = send_alerts(run_id=1)
 
@@ -122,6 +123,7 @@ def test_send_alerts_uncertain_goes_to_uncertain_channel():
 
     with patch("agent.discord.get_connection", return_value=mock_conn), \
          patch("agent.discord.release_connection"), \
+         patch("agent.discord.time.sleep"), \
          patch.dict(os.environ, ENV):
         result = send_alerts(run_id=1)
 
@@ -138,6 +140,7 @@ def test_send_alerts_uncertain_not_sent_to_main_channel():
 
     with patch("agent.discord.get_connection", return_value=mock_conn), \
          patch("agent.discord.release_connection"), \
+         patch("agent.discord.time.sleep"), \
          patch.dict(os.environ, ENV):
         send_alerts(run_id=1)
 
@@ -161,6 +164,7 @@ def test_send_alerts_routes_yes_and_uncertain_to_separate_channels():
 
     with patch("agent.discord.get_connection", return_value=mock_conn), \
          patch("agent.discord.release_connection"), \
+         patch("agent.discord.time.sleep"), \
          patch.dict(os.environ, ENV):
         result = send_alerts()
 
@@ -182,14 +186,15 @@ def test_send_alerts_marks_both_verdicts_sent():
 
     with patch("agent.discord.get_connection", return_value=mock_conn), \
          patch("agent.discord.release_connection"), \
+         patch("agent.discord.time.sleep"), \
          patch.dict(os.environ, ENV):
         send_alerts()
 
-    # The UPDATE should include both briefing ids
-    update_call = mock_cur.execute.call_args_list[-1]
-    sent_ids = update_call.args[1][1]
-    assert 3 in sent_ids
-    assert 4 in sent_ids
+    # Each article is marked sent immediately after posting — two separate UPDATEs
+    update_calls = [c for c in mock_cur.execute.call_args_list if "UPDATE briefings" in str(c)]
+    all_sent_ids = [id for c in update_calls for id in c.args[1][1]]
+    assert 3 in all_sent_ids
+    assert 4 in all_sent_ids
 
 
 # ---------------------------------------------------------------------------
@@ -238,6 +243,7 @@ def test_send_no_alerts_posts_to_no_channel():
 
     with patch("agent.discord.get_connection", return_value=mock_conn), \
          patch("agent.discord.release_connection"), \
+         patch("agent.discord.time.sleep"), \
          patch.dict(os.environ, ENV):
         result = send_no_alerts(run_id=1)
 
@@ -257,6 +263,7 @@ def test_send_no_alerts_marks_triage_results_sent():
 
     with patch("agent.discord.get_connection", return_value=mock_conn), \
          patch("agent.discord.release_connection"), \
+         patch("agent.discord.time.sleep"), \
          patch.dict(os.environ, ENV):
         send_no_alerts()
 
@@ -274,6 +281,7 @@ def test_send_no_alerts_returns_count():
 
     with patch("agent.discord.get_connection", return_value=mock_conn), \
          patch("agent.discord.release_connection"), \
+         patch("agent.discord.time.sleep"), \
          patch.dict(os.environ, ENV):
         result = send_no_alerts()
 

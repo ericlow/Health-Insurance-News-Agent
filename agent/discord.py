@@ -100,15 +100,20 @@ def _mark_no_sent(conn, triage_result_ids):
     cur.close()
 
 
-def _post_briefings(briefings, webhook_url):
-    """POST briefing rows to a webhook. Returns list of sent briefing IDs."""
-    sent_ids = []
+_DISCORD_SEND_DELAY = 0.5  # seconds between webhook POSTs to avoid rate limiting
+
+
+def _post_briefings(conn, briefings, webhook_url):
+    """POST briefing rows to a webhook, marking each sent immediately."""
+    count = 0
     for row in briefings:
         message = _format_briefing(row)
         response = requests.post(webhook_url, json={"content": message}, timeout=10)
         response.raise_for_status()
-        sent_ids.append(row[0])
-    return sent_ids
+        _mark_briefings_sent(conn, [row[0]])
+        count += 1
+        time.sleep(_DISCORD_SEND_DELAY)
+    return count
 
 
 def send_alerts(run_id=None):
@@ -128,18 +133,13 @@ def send_alerts(run_id=None):
         yes_briefings = _fetch_unsent_briefings(conn, 'yes', run_id)
         uncertain_briefings = _fetch_unsent_briefings(conn, 'uncertain', run_id)
 
-        sent_ids = []
-
+        sent = 0
         if yes_briefings:
-            sent_ids += _post_briefings(yes_briefings, os.environ["DISCORD_WEBHOOK_URL"])
-
+            sent += _post_briefings(conn, yes_briefings, os.environ["DISCORD_WEBHOOK_URL"])
         if uncertain_briefings:
-            sent_ids += _post_briefings(uncertain_briefings, os.environ["DISCORD_UNCERTAIN_WEBHOOK_URL"])
+            sent += _post_briefings(conn, uncertain_briefings, os.environ["DISCORD_UNCERTAIN_WEBHOOK_URL"])
 
-        if sent_ids:
-            _mark_briefings_sent(conn, sent_ids)
-
-        return len(sent_ids)
+        return sent
     finally:
         release_connection(conn)
 
@@ -160,15 +160,15 @@ def send_no_alerts(run_id=None):
             return 0
 
         webhook_url = os.environ["DISCORD_NO_WEBHOOK_URL"]
-        sent_ids = []
+        count = 0
         for triage_result_id, title, url in articles:
             message = _format_no_article(title, url)
             response = requests.post(webhook_url, json={"content": message}, timeout=10)
             response.raise_for_status()
-            sent_ids.append(triage_result_id)
-
-        _mark_no_sent(conn, sent_ids)
-        return len(sent_ids)
+            _mark_no_sent(conn, [triage_result_id])
+            count += 1
+            time.sleep(_DISCORD_SEND_DELAY)
+        return count
     finally:
         release_connection(conn)
 
