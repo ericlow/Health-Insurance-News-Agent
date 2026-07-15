@@ -3,6 +3,7 @@ import logging
 from agent.scraper import run_scrape
 from agent.kff_monitor import run_monitor as kff_run_monitor, FEED_URL as KFF_FEED_URL
 from agent.cigna_monitor import run_monitor as cigna_run_monitor, FEED_URL as CIGNA_FEED_URL
+from agent.sutter_monitor import run_monitor as sutter_run_monitor, FEED_URL as SUTTER_FEED_URL
 from agent.triage import run_triage
 from agent.summarizer import run_summarizer
 from agent.discord import send_alerts, post_health_check
@@ -28,10 +29,13 @@ def run_pipeline():
     _cigna_run_id, cigna_new_ids = cigna_run_monitor()
     post_health_check("Cigna Newsroom", CIGNA_FEED_URL, len(cigna_new_ids))
 
-    combined_ids = beckers_new_ids + kff_new_ids + cigna_new_ids
+    _sutter_run_id, sutter_new_ids = sutter_run_monitor()
+    post_health_check("Sutter Health", SUTTER_FEED_URL, len(sutter_new_ids))
+
+    combined_ids = beckers_new_ids + kff_new_ids + cigna_new_ids + sutter_new_ids
     log.info(
-        '[scheduler] %d new articles (%d Becker\'s, %d KFF, %d Cigna).',
-        len(combined_ids), len(beckers_new_ids), len(kff_new_ids), len(cigna_new_ids),
+        "[scheduler] %d new articles (%d Becker's, %d KFF, %d Cigna, %d Sutter).",
+        len(combined_ids), len(beckers_new_ids), len(kff_new_ids), len(cigna_new_ids), len(sutter_new_ids),
     )
 
     # Becker's run_id used as the canonical pipeline run for triage/briefing records.
