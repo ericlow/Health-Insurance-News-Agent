@@ -8,6 +8,15 @@ from agent.discord import (
     _format_briefing, _format_no_article, DIVIDER,
 )
 
+def _make_no_row(triage_result_id=10, title="Rejected Article", url="https://example.com/no",
+                 article_flag='no', title_reason="A. earnings reports",
+                 title_confidence=4, title_scope="CA",
+                 article_reason="A. earnings reports with no relationship change",
+                 article_confidence=4, article_scope="national", article_summary="Anthem posted earnings."):
+    return (triage_result_id, title, url, article_flag,
+            title_reason, title_confidence, title_scope,
+            article_reason, article_confidence, article_scope, article_summary)
+
 HEALTH_CHECK_URL = "https://discord.com/api/webhooks/test/health-token"
 MAIN_URL = "https://discord.com/api/webhooks/test/main"
 UNCERTAIN_URL = "https://discord.com/api/webhooks/test/uncertain"
@@ -70,9 +79,31 @@ def test_format_briefing_wrapped_in_dividers():
 # _format_no_article
 # ---------------------------------------------------------------------------
 
-def test_format_no_article_is_markdown_link():
-    msg = _format_no_article("Anthem Drops Sutter", "https://example.com/article")
-    assert msg == "[Anthem Drops Sutter](https://example.com/article)"
+def test_format_no_article_article_rejected_includes_reason_summary_and_meta():
+    msg = _format_no_article(
+        "Anthem Q3 Earnings", "https://example.com/a", 'no',
+        "A. earnings", 3, "CA",
+        "A. earnings reports with no relationship change", 4, "national",
+        "Anthem reported Q3 earnings. Cost controls drove the beat.",
+    )
+    assert "[Anthem Q3 Earnings](https://example.com/a)" in msg
+    assert "Reason: A. earnings reports with no relationship change" in msg
+    assert "Summary: Anthem reported Q3 earnings." in msg
+    assert "Confidence: 4" in msg
+    assert "Scope: national" in msg
+
+
+def test_format_no_article_title_rejected_uses_title_fields_and_no_summary():
+    msg = _format_no_article(
+        "Anthem Q3 Earnings", "https://example.com/a", None,
+        "A. earnings reports", 3, "CA",
+        None, None, None, None,
+    )
+    assert "[Anthem Q3 Earnings](https://example.com/a)" in msg
+    assert "Reason: A. earnings reports" in msg
+    assert "Summary" not in msg
+    assert "Confidence: 3" in msg
+    assert "Scope: CA" in msg
 
 
 # ---------------------------------------------------------------------------
@@ -232,14 +263,14 @@ def test_send_no_alerts_returns_zero_when_nothing():
 
 
 # ---------------------------------------------------------------------------
-# send_no_alerts — happy path: title + link posted to no channel
+# send_no_alerts — happy path: LLM fields posted to no channel
 # ---------------------------------------------------------------------------
 
 @responses_lib.activate
 def test_send_no_alerts_posts_to_no_channel():
     responses_lib.add(responses_lib.POST, NO_URL, status=204)
 
-    mock_conn, _ = _make_no_conn(rows=[(10, "Rejected Article", "https://example.com/no")])
+    mock_conn, _ = _make_no_conn(rows=[_make_no_row()])
 
     with patch("agent.discord.get_connection", return_value=mock_conn), \
          patch("agent.discord.release_connection"), \
@@ -248,18 +279,18 @@ def test_send_no_alerts_posts_to_no_channel():
         result = send_no_alerts(run_id=1)
 
     assert result == 1
-    assert len(responses_lib.calls) == 1
     assert responses_lib.calls[0].request.url == NO_URL
     body = responses_lib.calls[0].request.body.decode()
     assert "Rejected Article" in body
     assert "https://example.com/no" in body
+    assert "Reason:" in body
 
 
 @responses_lib.activate
 def test_send_no_alerts_marks_triage_results_sent():
     responses_lib.add(responses_lib.POST, NO_URL, status=204)
 
-    mock_conn, mock_cur = _make_no_conn(rows=[(15, "Title", "https://example.com")])
+    mock_conn, mock_cur = _make_no_conn(rows=[_make_no_row(triage_result_id=15)])
 
     with patch("agent.discord.get_connection", return_value=mock_conn), \
          patch("agent.discord.release_connection"), \
@@ -276,7 +307,7 @@ def test_send_no_alerts_returns_count():
     responses_lib.add(responses_lib.POST, NO_URL, status=204)
     responses_lib.add(responses_lib.POST, NO_URL, status=204)
 
-    rows = [(i, f"Article {i}", f"https://example.com/{i}") for i in range(1, 3)]
+    rows = [_make_no_row(triage_result_id=i, title=f"Article {i}") for i in range(1, 3)]
     mock_conn, _ = _make_no_conn(rows=rows)
 
     with patch("agent.discord.get_connection", return_value=mock_conn), \
@@ -292,7 +323,7 @@ def test_send_no_alerts_returns_count():
 def test_send_no_alerts_does_not_mark_sent_on_webhook_error():
     responses_lib.add(responses_lib.POST, NO_URL, status=500)
 
-    mock_conn, mock_cur = _make_no_conn(rows=[(20, "Bad Title", "https://example.com")])
+    mock_conn, mock_cur = _make_no_conn(rows=[_make_no_row(triage_result_id=20)])
 
     with patch("agent.discord.get_connection", return_value=mock_conn), \
          patch("agent.discord.release_connection"), \

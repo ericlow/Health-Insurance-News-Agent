@@ -38,7 +38,10 @@ def _fetch_unsent_no_articles(conn, run_id=None):
     """Fetch triage_results for 'no' articles not yet sent to the no channel."""
     cur = conn.cursor()
     base = """
-        SELECT tr.id, a.title, a.url
+        SELECT tr.id, a.title, a.url,
+               tr.article_flag,
+               tr.title_reason, tr.title_confidence, tr.title_scope,
+               tr.article_reason, tr.article_confidence, tr.article_scope, tr.article_summary
         FROM triage_results tr
         JOIN articles a ON a.id = tr.article_id
         WHERE tr.discord_no_sent_at IS NULL
@@ -74,8 +77,33 @@ def _format_briefing(row):
     return "\n".join(lines)
 
 
-def _format_no_article(title, url):
-    return f"[{title}]({url})"
+def _format_no_article(title, url, article_flag,
+                       title_reason, title_confidence, title_scope,
+                       article_reason, article_confidence, article_scope, article_summary):
+    title_rejected = article_flag is None
+    if title_rejected:
+        reason = title_reason or ""
+        confidence = title_confidence
+        scope = title_scope or ""
+        summary = None
+    else:
+        reason = article_reason or ""
+        confidence = article_confidence
+        scope = article_scope or ""
+        summary = article_summary
+
+    lines = [f"[{title}]({url})"]
+    if reason:
+        lines.append(f"Reason: {reason}")
+    if summary:
+        lines.append(f"Summary: {summary}")
+    meta = " | ".join(filter(None, [
+        f"Confidence: {confidence}" if confidence else None,
+        f"Scope: {scope}" if scope else None,
+    ]))
+    if meta:
+        lines.append(meta)
+    return "\n".join(lines)
 
 
 def _mark_briefings_sent(conn, briefing_ids):
@@ -161,8 +189,15 @@ def send_no_alerts(run_id=None):
 
         webhook_url = os.environ["DISCORD_NO_WEBHOOK_URL"]
         count = 0
-        for triage_result_id, title, url in articles:
-            message = _format_no_article(title, url)
+        for (triage_result_id, title, url,
+             article_flag,
+             title_reason, title_confidence, title_scope,
+             article_reason, article_confidence, article_scope, article_summary) in articles:
+            message = _format_no_article(
+                title, url, article_flag,
+                title_reason, title_confidence, title_scope,
+                article_reason, article_confidence, article_scope, article_summary,
+            )
             response = requests.post(webhook_url, json={"content": message}, timeout=10)
             response.raise_for_status()
             _mark_no_sent(conn, [triage_result_id])
