@@ -222,3 +222,8 @@ config.json
 
 # macOS
 .DS_Store
+
+# claude-pyrojects sync state (session key, project config, file manifest)
+claude_pyrojects.key
+claude_pyrojects.config
+claude_pyrojects.manifest

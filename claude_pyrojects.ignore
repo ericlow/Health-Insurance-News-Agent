@@ -1,0 +1,4 @@
+ignore_folders=[".venv", ".idea", ".vscode", "__pycache__", ".git", ".pytest_cache", "tests", "agent", "db", "scripts", ".claude"]
+ignore_file_extensions=["pdf", "jpg", "jpeg", "png", "gif", "pyc", "py", "xml", "html", "sql", "sh", "txt", "lock", "iml", "log", "json"]
+ignore_name_includes=["claude_pyrojects", ".DS_Store", "README.md", "sdd-playbook", ".env", ".gitignore", ".git"]
+ignore_relative_paths=[]

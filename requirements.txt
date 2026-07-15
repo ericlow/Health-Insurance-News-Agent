@@ -9,3 +9,4 @@ python-dotenv
 apscheduler
 responses
 pytest
+claude-pyrojects
