@@ -10,6 +10,13 @@ from db.connection import get_connection, release_connection
 
 DIVIDER = "━━━━━━━━━━━━━━━━━━━━━━"
 _LA = ZoneInfo("America/Los_Angeles")
+_DISCORD_MAX_CHARS = 2000
+
+
+def _truncate(text, limit):
+    if len(text) <= limit:
+        return text
+    return text[:limit - 1] + "…"
 _HEALTH_CHECK_MAX_ATTEMPTS = 3
 
 
@@ -63,13 +70,13 @@ def _format_briefing(row):
         DIVIDER,
         f"📌 {title}",
         "",
-        f"What happened: {what_happened}",
+        f"What happened: {_truncate(what_happened, 400)}",
         "",
-        f"Who's involved: {who}",
+        f"Who's involved: {_truncate(who, 300)}",
         "",
-        f"Members/revenue at stake: {impact}",
+        f"Members/revenue at stake: {_truncate(impact, 350)}",
         "",
-        f"Why it matters: {why_it_matters}",
+        f"Why it matters: {_truncate(why_it_matters, 300)}",
         "",
         f"🔗 {url}",
         DIVIDER,

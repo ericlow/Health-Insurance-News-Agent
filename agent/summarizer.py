@@ -14,11 +14,11 @@ and a healthcare provider. Your job is to extract a concise, structured summary.
 Be specific and factual. Use entity names, not pronouns. If a field cannot be determined from
 the article, write "Not stated" — do not infer or speculate.
 
-Respond in JSON with exactly four fields:
-  "what_happened": 2–3 sentences describing the specific business action or change
-  "who": the key entities and their roles (e.g. "Northwell Health (provider) · Fidelis Care / Centene (insurer)")
-  "impact": members affected, revenue at stake, or market scope — use numbers from the article if available
-  "why_it_matters": 1–2 sentences on the strategic significance or precedent this sets
+Respond in JSON with exactly four fields. Keep each field within the character limit shown — be ruthlessly concise.
+  "what_happened": 2–3 sentences, max 300 chars. The specific business action or change.
+  "who": max 200 chars. Key entities and their roles using the separator · (e.g. "Northwell Health (provider) · Fidelis Care (insurer)"). List only the most important parties; omit minor ones.
+  "impact": max 250 chars. Members affected, revenue at stake, or market scope. One or two key numbers from the article only.
+  "why_it_matters": 1–2 sentences, max 200 chars. Strategic significance or precedent.
 """
 
 
