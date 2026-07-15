@@ -92,6 +92,27 @@ The `MONITOR_INTERVAL_HOURS` env var is available for future scheduler-driven lo
 
 ---
 
+## Syncing docs to Claude.ai
+
+The `scripts/sync_claude_project.sh` script uploads project docs to a Claude.ai Project so the assistant has current context when you chat.
+
+**Day-to-day** (after docs change):
+```bash
+./scripts/sync_claude_project.sh
+```
+
+**First-time setup** (one-time per machine):
+1. Go to [claude.ai](https://claude.ai) → DevTools → Application → Cookies → copy `sessionKey`
+2. Run:
+   ```bash
+   ./scripts/sync_claude_project.sh init <session_key>
+   ./scripts/sync_claude_project.sh create
+   ```
+
+The runtime files (`claude_pyrojects.key`, `claude_pyrojects.config`, `claude_pyrojects.manifest`) are gitignored and stay local.
+
+---
+
 ## Running tests
 
 ```bash
