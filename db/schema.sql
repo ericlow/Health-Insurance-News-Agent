@@ -41,7 +41,8 @@ CREATE TABLE IF NOT EXISTS triage_results (
     article_reason      TEXT,
 
     model               TEXT NOT NULL,
-    triaged_at          TIMESTAMPTZ NOT NULL DEFAULT now()
+    triaged_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
+    discord_no_sent_at  TIMESTAMPTZ
 );
 
 CREATE TABLE IF NOT EXISTS briefings (

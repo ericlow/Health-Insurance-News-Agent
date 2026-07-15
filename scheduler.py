@@ -6,7 +6,7 @@ from agent.cigna_monitor import run_monitor as cigna_run_monitor, FEED_URL as CI
 from agent.sutter_monitor import run_monitor as sutter_run_monitor, FEED_URL as SUTTER_FEED_URL
 from agent.triage import run_triage
 from agent.summarizer import run_summarizer
-from agent.discord import send_alerts, post_health_check
+from agent.discord import send_alerts, send_no_alerts, post_health_check
 from config import BECKERS_PAYER_FEED_URL
 
 logging.basicConfig(
@@ -50,6 +50,10 @@ def run_pipeline():
         log.info('[scheduler] Discord alert posted (%d briefings).', sent)
     else:
         log.info('[scheduler] No alerts to send this run.')
+
+    no_sent = send_no_alerts()
+    if no_sent:
+        log.info('[scheduler] Discord no-channel posted (%d articles).', no_sent)
 
     log.info('[scheduler] Pipeline run complete.')
 
