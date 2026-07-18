@@ -1,3 +1,4 @@
+import json
 import os
 import pytest
 import responses as responses_lib
@@ -7,6 +8,12 @@ from agent.discord import (
     send_alerts, send_no_alerts, post_health_check,
     _format_briefing, _format_no_article, DIVIDER,
 )
+
+_HC_ARTICLES = [
+    ("Cigna exits Humana network", "https://beckers.com/a", "yes"),
+    ("UHC revenue misses", "https://beckers.com/b", "uncertain"),
+    ("FDA drug approval", "https://beckers.com/c", "no"),
+]
 
 def _make_no_row(triage_result_id=10, title="Rejected Article", url="https://example.com/no",
                  article_flag='no', title_reason="A. earnings reports",
@@ -345,7 +352,7 @@ def test_post_health_check_posts_message():
     responses_lib.add(responses_lib.POST, HEALTH_CHECK_URL, status=204)
 
     with patch.dict(os.environ, {"DISCORD_HEALTH_CHECK_WEBHOOK_URL": HEALTH_CHECK_URL}):
-        post_health_check("Becker's Payer", "https://www.beckerspayer.com/feed/", 3)
+        post_health_check("Becker's Payer", _HC_ARTICLES)
 
     assert len(responses_lib.calls) == 1
     body = responses_lib.calls[0].request.body.decode()
@@ -358,7 +365,7 @@ def test_post_health_check_singular_article():
     responses_lib.add(responses_lib.POST, HEALTH_CHECK_URL, status=204)
 
     with patch.dict(os.environ, {"DISCORD_HEALTH_CHECK_WEBHOOK_URL": HEALTH_CHECK_URL}):
-        post_health_check("KFF Health News", "https://kffhealthnews.org/state/california/feed/", 1)
+        post_health_check("KFF Health News", [("Some article", "https://kff.org/a", "yes")])
 
     body = responses_lib.calls[0].request.body.decode()
     assert "1 new article" in body
@@ -370,10 +377,36 @@ def test_post_health_check_zero_articles_still_posts():
     responses_lib.add(responses_lib.POST, HEALTH_CHECK_URL, status=204)
 
     with patch.dict(os.environ, {"DISCORD_HEALTH_CHECK_WEBHOOK_URL": HEALTH_CHECK_URL}):
-        post_health_check("KFF Health News", "https://kffhealthnews.org/state/california/feed/", 0)
+        post_health_check("KFF Health News", [])
 
     assert len(responses_lib.calls) == 1
     assert "0 new articles" in responses_lib.calls[0].request.body.decode()
+
+
+@responses_lib.activate
+def test_post_health_check_zero_articles_has_no_article_lines():
+    responses_lib.add(responses_lib.POST, HEALTH_CHECK_URL, status=204)
+
+    with patch.dict(os.environ, {"DISCORD_HEALTH_CHECK_WEBHOOK_URL": HEALTH_CHECK_URL}):
+        post_health_check("KFF Health News", [])
+
+    body = responses_lib.calls[0].request.body.decode()
+    assert "✅" not in body
+    assert "❓" not in body
+    assert "❌" not in body
+
+
+@responses_lib.activate
+def test_post_health_check_includes_verdict_emojis_and_links():
+    responses_lib.add(responses_lib.POST, HEALTH_CHECK_URL, status=204)
+
+    with patch.dict(os.environ, {"DISCORD_HEALTH_CHECK_WEBHOOK_URL": HEALTH_CHECK_URL}):
+        post_health_check("Becker's Payer", _HC_ARTICLES)
+
+    content = json.loads(responses_lib.calls[0].request.body.decode())["content"]
+    assert "✅ [Cigna exits Humana network](https://beckers.com/a)" in content
+    assert "❓ [UHC revenue misses](https://beckers.com/b)" in content
+    assert "❌ [FDA drug approval](https://beckers.com/c)" in content
 
 
 @responses_lib.activate
@@ -381,7 +414,7 @@ def test_post_health_check_message_contains_la_timezone():
     responses_lib.add(responses_lib.POST, HEALTH_CHECK_URL, status=204)
 
     with patch.dict(os.environ, {"DISCORD_HEALTH_CHECK_WEBHOOK_URL": HEALTH_CHECK_URL}):
-        post_health_check("Becker's Payer", "https://www.beckerspayer.com/feed/", 2)
+        post_health_check("Becker's Payer", _HC_ARTICLES)
 
     body = responses_lib.calls[0].request.body.decode()
     assert "PST" in body or "PDT" in body
@@ -398,7 +431,7 @@ def test_post_health_check_retries_on_server_error():
 
     with patch("agent.discord.time.sleep"), \
          patch.dict(os.environ, {"DISCORD_HEALTH_CHECK_WEBHOOK_URL": HEALTH_CHECK_URL}):
-        post_health_check("Becker's Payer", "https://www.beckerspayer.com/feed/", 3)
+        post_health_check("Becker's Payer", _HC_ARTICLES)
 
     assert len(responses_lib.calls) == 2
 
@@ -411,7 +444,7 @@ def test_post_health_check_does_not_raise_after_all_retries_exhausted():
 
     with patch("agent.discord.time.sleep"), \
          patch.dict(os.environ, {"DISCORD_HEALTH_CHECK_WEBHOOK_URL": HEALTH_CHECK_URL}):
-        post_health_check("Becker's Payer", "https://www.beckerspayer.com/feed/", 3)  # must not raise
+        post_health_check("Becker's Payer", _HC_ARTICLES)  # must not raise
 
     assert len(responses_lib.calls) == 3
 
@@ -419,4 +452,4 @@ def test_post_health_check_does_not_raise_after_all_retries_exhausted():
 def test_post_health_check_skips_when_env_var_not_set():
     env = {k: v for k, v in os.environ.items() if k != "DISCORD_HEALTH_CHECK_WEBHOOK_URL"}
     with patch.dict(os.environ, env, clear=True):
-        post_health_check("Becker's Payer", "https://www.beckerspayer.com/feed/", 3)  # must not raise
+        post_health_check("Becker's Payer", _HC_ARTICLES)  # must not raise
