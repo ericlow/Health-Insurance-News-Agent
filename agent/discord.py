@@ -18,6 +18,7 @@ def _truncate(text, limit):
         return text
     return text[:limit - 1] + "…"
 _HEALTH_CHECK_MAX_ATTEMPTS = 3
+_VERDICT_EMOJI = {'yes': '✅', 'uncertain': '❓', 'no': '❌'}
 
 
 def _fetch_unsent_briefings(conn, verdict: str, run_id=None):
@@ -217,9 +218,44 @@ def send_no_alerts(run_id=None):
         release_connection(conn)
 
 
-def post_health_check(label: str, url: str, new_article_count: int) -> None:
+def fetch_verdicts_for_articles(article_ids: list[int]) -> list[tuple[str, str, str]]:
+    """Return (title, url, effective_verdict) for each article ID after triage."""
+    if not article_ids:
+        return []
+    conn = get_connection()
+    try:
+        cur = conn.cursor()
+        cur.execute(
+            """
+            SELECT a.id, a.title, a.url,
+                   tr.title_flag, tr.article_flag
+            FROM articles a
+            LEFT JOIN triage_results tr ON tr.article_id = a.id
+            WHERE a.id = ANY(%s)
+            ORDER BY a.id
+            """,
+            (article_ids,),
+        )
+        rows = cur.fetchall()
+        cur.close()
+        result = []
+        for (_aid, title, url, title_flag, article_flag) in rows:
+            if article_flag is not None:
+                verdict = article_flag
+            elif title_flag == 'no':
+                verdict = 'no'
+            else:
+                verdict = 'uncertain'
+            result.append((title or '', url or '', verdict))
+        return result
+    finally:
+        release_connection(conn)
+
+
+def post_health_check(label: str, articles: list[tuple[str, str, str]]) -> None:
     """Post a health check message to the health check Discord channel.
 
+    articles: list of (title, url, verdict) tuples; pass [] for a zero-article run.
     Never raises — a health check failure must not abort the pipeline.
     """
     webhook_url = os.environ.get('DISCORD_HEALTH_CHECK_WEBHOOK_URL')
@@ -229,8 +265,13 @@ def post_health_check(label: str, url: str, new_article_count: int) -> None:
 
     now = datetime.now(_LA)
     timestamp = now.strftime('%Y-%m-%d %I:%M %p %Z')
-    noun = 'article' if new_article_count == 1 else 'articles'
-    content = f'[{label}]({url}) {new_article_count} new {noun} — {timestamp}'
+    count = len(articles)
+    noun = 'article' if count == 1 else 'articles'
+    lines = [f'[{label}] {count} new {noun} — {timestamp}']
+    for title, url, verdict in articles:
+        emoji = _VERDICT_EMOJI.get(verdict, '❓')
+        lines.append(f'{emoji} [{title}]({url})')
+    content = '\n'.join(lines)
 
     for attempt in range(1, _HEALTH_CHECK_MAX_ATTEMPTS + 1):
         try:
