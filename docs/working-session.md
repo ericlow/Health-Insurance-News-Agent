@@ -99,16 +99,21 @@ We are in a planning session to define two new agents (A1 and A2) and an AWS inf
 
 ---
 
-## Next actions
+## Outstanding work — pick up here next session
 
-1. ~~Create Linear issue + branch~~ ✓ AGE-70, branch active
-2. ~~Confirm Neon decision → write ADR-001~~ ✓ Done
-3. ~~Reopen ADR-002 — decide Lambda vs Google Cloud Functions, then rewrite~~ ✓ Done
-4. Work through A1 open questions ← next
-5. Work through A2 open questions
-6. Update PRD and TDD once decisions are made
-7. Write specs: docs/specs/event-tracking-agent-a1.md, docs/specs/analysis-agent-a2.md, docs/specs/aws-migration.md
-8. Delete this file when all decisions are captured in Linear/specs
+### Must do before PR
+- [ ] **Review A1 spec** (`docs/specs/event-tracking-agent-a1.md`) — Eric to read and approve
+- [ ] **A2 spec** — work through open questions (invocation model, data providers, search filters, output format), write `docs/specs/analysis-agent-a2.md`
+- [ ] **AWS migration spec** — write `docs/specs/aws-migration.md` (infrastructure decisions are complete, just needs to be written up)
+- [ ] **Update TDD** (`docs/technical-design.md`) — reflect Lambda, Neon, EventBridge, API Gateway, A1, A2 as new components
+- [ ] **Update PRD** (`docs/prd.md`) — reflect A1 and A2 as new product capabilities
+- [ ] **Merge PR** for AGE-70 branch and close issue
+
+### Already complete this session
+- ✓ ADR-001 (Neon)
+- ✓ ADR-002 (AWS Lambda)
+- ✓ A1 spec written
+- ✓ All infrastructure decisions made (cost ceiling $10/mo, full DB migration, backfill laptop-only)
 
 ---
 

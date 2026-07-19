@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Session Startup
+
+**At the start of every session**, before doing anything else: check whether `docs/working-session.md` exists. If it does, read it in full and immediately tell Eric what outstanding work is listed under "Outstanding work — pick up here next session." Do not wait for Eric to ask. Do this proactively as the first thing you say.
+
 ## Project Purpose
 
 This is a multi-agent system that monitors health insurance industry news for significant relationship changes between major insurance carriers and healthcare providers — acquisitions, mergers, partnerships, divestitures, and contract terminations. The intended user is an industry analyst who wants to be alerted to shifts that affect health plan networks.
