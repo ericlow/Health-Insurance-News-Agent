@@ -184,3 +184,13 @@ CalOptima first told Becker's it planned to join the marketplace in February 202
 **Analysis questions (Eric):**
 
 CalOptima is moving into OC. I want an analysis of how many members they will get and how many I, Elevance, will lose. Also estimate if that impacts the small and individual risk adjustment pool.
+
+## 2026-07-23 — SB 260 missed in AGE-71 analysis
+
+**Eric (verbatim):**
+
+> sb-260 was missed in the analysis. what class of context is missing? why? why is this important.
+
+> the exec is upset that you missed sb260 explain how and why this was missed. update the analysis. summarize the changes between new and old analysis
+
+**Spec impact:** AGE-71 analysis revised (rev 3) to incorporate SB 260 auto-enrollment. AGE-68 (A2 spec) gains a hard requirement: a curated regulatory-mechanism knowledge base ("rules layer") — standing statutes governing member flows cannot be surfaced by news or dataset retrieval and must be maintained as domain memory seeded by expert input.
