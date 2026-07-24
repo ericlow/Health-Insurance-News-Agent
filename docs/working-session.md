@@ -101,6 +101,11 @@ We are in a planning session to define two new agents (A1 and A2) and an AWS inf
 
 ## Outstanding work — pick up here next session
 
+### NEW (2026-07-23): AGE-71 analysis complete — handoff doc for A2 work
+- [ ] **Read `docs/analysis/age-71-session-handoff.md` (on main) first** — full context from the AGE-71 CalOptima analysis session: cost-optimized A2 pipeline design ($3–5/analysis target), 4 new AGE-68 requirements, open A2 spec decisions, artifact map
+- [ ] **Merge PR #24** (market-impact-analysis skill, branch age-72) — awaiting Eric's approval
+- [ ] **October 2026**: re-run AGE-71 against final 2027 rates
+
 ### Must do before PR
 - [ ] **Review A1 spec** (`docs/specs/event-tracking-agent-a1.md`) — Eric to read and approve
 - [ ] **A2 spec** — work through open questions (invocation model, data providers, search filters, output format), write `docs/specs/analysis-agent-a2.md`
