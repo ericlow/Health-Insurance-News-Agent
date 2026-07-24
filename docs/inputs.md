@@ -166,3 +166,31 @@ Discord bot build order: push-only alerts (triage + single-article summarizer) f
   anything that depends on clusters.
 - Financial-data trigger policy: gate `get_financial_context` behind triage score or
   make it on-demand only, rather than auto-enriching every alert.
+
+## 2026-07-23 — CalOptima OC ACA entry
+
+**Source:** https://www.beckerspayer.com/payer/aca/caloptima-to-be-californias-only-new-aca-carrier-in-2027/
+
+CalOptima Health, the public Medi-Cal insurer for Orange County, Calif., will soon begin selling individual plans on the state's ACA marketplace, Covered California, for the 2027 plan year.
+
+CalOptima will offer coverage in Orange County and is the only new carrier on the state marketplace, according to a July 21 news release. Its entry coincides with Molina Healthcare's exit from the northeastern portion of Los Angeles County and Orange County. Molina's roughly 1,600 enrollees in those areas will be shifted to a new plan or the lowest-cost option in their metal tier.
+
+In total, 12 insurers will offer coverage across California next year. Insurers proposed a preliminary weighted average rate increase of 9.9%, below the preliminary national median of 14%.
+
+CalOptima first told Becker's it planned to join the marketplace in February 2025, pointing to continuity of care for members who cycle in and out of Medi-Cal eligibility as their incomes fluctuate. The new plan, CalOptima Health Covered, will be the lowest-cost Silver plan available in Orange County, the insurer said.
+
+"Our single goal in going on the exchange is to work with that population to offer them affordable access to care and continuity," CEO Michael Hunn previously said. The insurer estimated the offering would reach more than 15,000 people.
+
+**Analysis questions (Eric):**
+
+CalOptima is moving into OC. I want an analysis of how many members they will get and how many I, Elevance, will lose. Also estimate if that impacts the small and individual risk adjustment pool.
+
+## 2026-07-23 — SB 260 missed in AGE-71 analysis
+
+**Eric (verbatim):**
+
+> sb-260 was missed in the analysis. what class of context is missing? why? why is this important.
+
+> the exec is upset that you missed sb260 explain how and why this was missed. update the analysis. summarize the changes between new and old analysis
+
+**Spec impact:** AGE-71 analysis revised (rev 3) to incorporate SB 260 auto-enrollment. AGE-68 (A2 spec) gains a hard requirement: a curated regulatory-mechanism knowledge base ("rules layer") — standing statutes governing member flows cannot be surfaced by news or dataset retrieval and must be maintained as domain memory seeded by expert input.
