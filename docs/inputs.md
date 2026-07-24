@@ -44,6 +44,8 @@ Use Braintrust for prompt testing and evaluation. Articles are public so there i
 Another input
 https://med.stanford.edu/news/all-news/2021/02/stanford-medicine-and-sutter-health-to-provide-east-bay-cancer-care.html
 
+https://med.stanford.edu/news/all-news/2026/04/st-rose-stanford-collaboration.html
+
 ## 2026-07-11
 
 **Short list of entities to watch:**

@@ -117,4 +117,4 @@ We are in a planning session to define two new agents (A1 and A2) and an AWS inf
 
 ---
 
-_Last updated: 2026-07-19 00:06_
+_Last updated: 2026-07-20 21:40 (no new decisions; awaiting direction on A1 spec review or A2)_
