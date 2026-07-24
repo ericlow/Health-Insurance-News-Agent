@@ -1,6 +1,6 @@
 # AGE-71 — CalOptima's Covered California Entry: Elevance Member Impact and Risk Adjustment Analysis
 
-**Date:** 2026-07-23 (rev. 3 — incorporates SB 260 automatic enrollment; see §0 process note and revision log at end)
+**Date:** 2026-07-23 (rev. 4 — differentiated SB 260 effectuation; CalOptima gain revised up. See §0 process note and revision log at end)
 **Analyst:** Claude (Fable 5), for Eric Low
 **Linear:** [AGE-71](https://linear.app/eric-projects/issue/AGE-71/caloptima-oc-entry-elevance-member-impact-and-risk-adjustment-analysis)
 
@@ -55,7 +55,7 @@ Revisions 1–2 of this analysis omitted [SB 260 (Hurtado, Ch. 845, Statutes of 
 
 CalOptima enters Covered California in Orange County for 2027 as the lowest-cost Silver plan [S4–S6 — MEDIUM]. Under **SB 260, California auto-enrolls everyone losing Medi-Cal into their county's lowest-cost Silver plan** [S10 — MECHANISM] — and **Anthem holds that default slot in Orange County today** [S11 — HIGH]. CalOptima's entry therefore does two things at once: (1) takes modest direct switching share, and (2) **legally redirects Anthem's largest OC acquisition channel — the Medi-Cal churn pipeline — to CalOptima**, doubly locked because CalOptima is also these members' Medi-Cal managed care plan, the statute's alternate default [S10 — MECHANISM].
 
-**Base case (LOW — modeled): CalOptima gains ~6,500–7,500 members in year 1.** Anthem's existing book loses ~1,100–1,500 members to switching (~$12–15M gross premium), **but versus its counterfactual trajectory Anthem is down ~4,400–4,800 members (~$43–47M annualized gross premium) once the severed SB 260 inflow is counted** — roughly 3x the rev-2 estimate of impact. Risk adjustment remains a partial offset (Anthem paid $435.1M into the CA individual pool in BY2024 [S3 — HIGH]; losing/forgoing thin-coded members shrinks that), and the statewide pool barely moves (<0.6% of 2.19M members [S2 — HIGH]). Individual pool only; small group unaffected.
+**Base case (LOW — modeled): CalOptima gains ~7,500 members in year 1 (range 3,050–14,750)** — the auto-assignment pipeline, converted at a continuity-boosted effectuation rate, is its largest component. Anthem's existing book loses ~1,100–1,500 members to switching (~$12–15M gross premium), **but versus its counterfactual trajectory Anthem is down ~3,850–4,250 members (~$38–42M annualized gross premium) once the severed SB 260 inflow is counted** — roughly 3x the rev-2 estimate of impact. Risk adjustment remains a partial offset (Anthem paid $435.1M into the CA individual pool in BY2024 [S3 — HIGH]; losing/forgoing thin-coded members shrinks that), and the statewide pool barely moves (<0.6% of 2.19M members [S2 — HIGH]). Individual pool only; small group unaffected.
 
 ---
 
@@ -79,7 +79,8 @@ Silver tiers: 102,090 (59.8%); CSR Enhanced 87/94: 55,620 (32.6%). Anthem statew
 - Scale: ~112,000 Californians enrolled through this program May 2023–March 2024 [S12 — MEDIUM-LOW].
 - **Orange County's 2026 lowest-cost Silver — the SB 260 default — is Anthem** [S11 — HIGH, parsed from Covered CA's own SB-260 county table].
 - In 2027, CalOptima takes the lowest-cost Silver slot [S4–S6 — MEDIUM] **and** is the "same managed care plan" for the ~819,000 OC Medi-Cal members [S5 — MEDIUM] — it captures the default under *both* prongs of the statute.
-- Pipeline sizing cross-check (LOW): CalOptima claims "up to 15,000" annual OC Medi-Cal transitioners [S5]; scaling the statewide SB 260 run-rate (~134k/yr) by OC's ~5.5% share of Medi-Cal gives ~7,400/yr. The pipeline is plausibly **7.5k–15k/yr**; scenarios use this range with effectuation rates of 20/30/45% (auto-enrollees must pay to activate; many don't — rate is analyst judgment, LOW).
+- Pipeline sizing cross-check (LOW): CalOptima claims "up to 15,000" annual OC Medi-Cal transitioners [S5]; scaling the statewide SB 260 run-rate (~134k/yr) by OC's ~5.5% share of Medi-Cal gives ~7,400/yr. The pipeline is plausibly **7.5k–15k/yr**.
+- **Effectuation is asymmetric (rev 4).** Auto-enrollees activate only by paying the first premium. For CalOptima the auto-assigned member *keeps their existing CalOptima providers* — continuity materially raises conversion — so scenarios use **25/40/60%** effectuation for CalOptima's inbound flow, vs. **20/25/35%** for the counterfactual where Anthem (an unfamiliar carrier with a different network) retains the default slot. Both rates are analyst judgment (LOW); the asymmetry direction is supported by SB 260's own design rationale — continuity of care drives take-up [S5, S10 — MEDIUM].
 
 ## 3. Q1 — How many members does CalOptima gain?
 
@@ -88,11 +89,11 @@ Silver tiers: 102,090 (59.8%); CSR Enhanced 87/94: 55,620 (32.6%). Anthem statew
 | Component | Low | Base | High | Basis |
 |---|---|---|---|---|
 | (a) Molina crosswalk defaults | 350 | 550 | 750 | 770 OC members, 580 Silver [S1 — HIGH]; default-to-lowest-cost-same-tier [S6 — MEDIUM]; retention judgment (LOW) |
-| (b) **SB 260 auto-enrollment flow** | 1,500 | 3,500 | 6,750 | Pipeline 7.5k–15k/yr [S5, S12 — MEDIUM/LOW] × 20/30/45% effectuation (LOW); **default routes to CalOptima by statute [S10, S11]** — certainty of the *routing* is high even though volume is estimated |
+| (b) **SB 260 auto-enrollment flow** | 1,900 | 4,400 | 9,000 | Pipeline 7.5k–15k/yr [S5, S12 — MEDIUM/LOW] × **25/40/60% effectuation** (continuity-boosted, see §2 — LOW); **default routes to CalOptima by statute [S10, S11]** — the *routing* is certain even though volume is estimated |
 | (c) Switchers from incumbents | 800 | 2,500 | 5,000 | 1/3/6% of ~83k contestable non-Kaiser Silver [S1 — HIGH]; price-sensitivity anchor [S8 — MEDIUM] |
-| **Total** | **~2,650** | **~6,500–7,500** | **~12,500** | ~1.6% / ~4% / ~7.3% of OC market |
+| **Total** | **~3,050** | **~7,500** | **~14,750** | ~1.8% / ~4.4% / ~8.6% of OC market |
 
-Headline total is close to rev 2 (~7,000), but the composition matters: rev 2 called (b) "market expansion, not taken from incumbents." **That was wrong.** Under SB 260 the pipeline currently flows to Anthem; in 2027 it flows to CalOptima. Component (b) is a transfer of Anthem's acquisition channel, not new market.
+**Rev 4 note:** the SB 260 auto-assignment is now visibly reflected in CalOptima's number — base gain rises to ~7,500 and the high case to ~14,750 (approaching CalOptima's own "15,000" figure, which now reads as the ceiling of the statutory pipeline rather than marketing). Rev 2 had called (b) "market expansion, not taken from incumbents" — **wrong**: the pipeline currently defaults to Anthem [S11 — HIGH] and transfers to CalOptima by statute. Rev 3 corrected the routing but under-sized the flow by using generic effectuation; rev 4 applies the continuity-boosted rate.
 
 ## 4. Q2 — How many members does Elevance/Anthem lose?
 
@@ -100,13 +101,13 @@ Headline total is close to rev 2 (~7,000), but the composition matters: rev 2 ca
 
 **(i) Direct book loss (switching):** unchanged — low ~400 / **base 1,100–1,500** / high ~3,300 members; ~$4M / **$12–15M** / $33M annualized gross premium at $823 PMPM [S1 — HIGH].
 
-**(ii) Forgone SB 260 inflow (new):** Anthem currently receives OC's auto-enrollment flow as the default carrier [S11 — HIGH]. From 2027 that flow — the same 1,500/3,500/6,750 range as component (b) — routes to CalOptima instead. This inflow was offsetting Anthem's natural attrition; losing it shrinks the book even if no existing member switches.
+**(ii) Forgone SB 260 inflow:** Anthem currently receives OC's auto-enrollment flow as the default carrier [S11 — HIGH]. From 2027 the pipeline routes to CalOptima instead. Anthem's forgone inflow is valued at **Anthem's counterfactual effectuation rate (20/25/35% — LOW)**, which is lower than CalOptima's continuity-boosted rate (§2) — so CalOptima gains more members from this channel than Anthem forgoes; the difference is genuine market expansion unlocked by continuity.
 
 | Scenario | Book loss (i) | Forgone inflow (ii) | **Net vs. counterfactual** | Annualized gross premium swing |
 |---|---|---|---|---|
 | Low | ~400 | ~1,500 | **~1,900** | ~$19M |
-| **Base** | **~1,100–1,500** | **~3,300–3,500** | **~4,400–4,800** | **~$43–47M** |
-| High | ~3,300 | ~6,750 | **~10,000** | ~$99M |
+| **Base** | **~1,100–1,500** | **~2,750** | **~3,850–4,250** | **~$38–42M** |
+| High | ~3,300 | ~5,250 | **~8,550** | ~$84M |
 
 **Rev 2 understated Anthem's exposure by roughly 3x** by counting only (i). Note the framings differ: (i) is visible book shrinkage in 2027; (ii) is growth that silently stops arriving — the kind of loss that shows up as unexplained underperformance against plan a year later.
 
@@ -131,7 +132,7 @@ Rev 3 additions/refinements (LOW unless noted):
 |---|---|---|---|
 | A1 | CalOptima prices meaningfully below next-lowest Silver | LOW (rates publish fall 2026) | High |
 | A2 | Anthem's OC metal mix ≈ statewide mix | LOW (forced by S1 gap) | Medium |
-| ● A3 | SB 260 pipeline 7.5k–15k/yr; effectuation 20/30/45% | LOW (volume); routing itself is statutory [S10, S11 — HIGH] | High — dominates both Q1 and Q2 |
+| ● A3 | SB 260 pipeline 7.5k–15k/yr; effectuation 25/40/60% for CalOptima (continuity-boosted), 20/25/35% Anthem counterfactual | LOW (volumes and rates); routing itself is statutory [S10, S11 — HIGH]; asymmetry direction MEDIUM | High — dominates both Q1 and Q2 |
 | A4 | Kaiser excluded from contestable pool | LOW | Medium |
 | A5 | Molina crosswalk defaults to lowest-cost same-tier | MEDIUM [S6] | Low |
 | A6 | Anthem RA per-member uses exchange-only denominator (upper bound) | LOW | Low-Medium |
@@ -161,3 +162,4 @@ Rev 3 additions/refinements (LOW unless noted):
 - **rev 1** (2026-07-23): initial analysis.
 - **rev 2** (2026-07-23): per-claim citations + confidence levels; RA figures re-verified against CMS primary (Anthem corrected $438.8M → $435.08M).
 - **rev 3** (2026-07-23): SB 260 incorporated after Eric flagged the omission (see §0). Q1 component (b) reclassified from market expansion to statutory default transfer; Q2 adds forgone-inflow effect (base-case Anthem impact ~3x rev 2); Q3 adds SB 260 explanation of Anthem's RA payer position; sources S10–S12 added; assumptions A3/A7/A8 revised/added.
+- **rev 4** (2026-07-23): Eric flagged that CalOptima's membership hadn't visibly moved despite the auto-assignment transfer. Fixed via asymmetric effectuation: CalOptima converts auto-assignments at 25/40/60% (provider continuity), Anthem counterfactual at 20/25/35%. CalOptima base gain ~6,500–7,500 → **~7,500** (high 12,500 → **14,750**); Anthem net-vs-counterfactual base refined to **~3,850–4,250 / ~$38–42M** (still ~3x rev 2). CalOptima gains more than Anthem forgoes; the gap is real market expansion unlocked by continuity.
