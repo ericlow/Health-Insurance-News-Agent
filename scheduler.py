@@ -1,12 +1,14 @@
 import logging
 
+import psycopg2
+
 from agent.scraper import run_scrape
 from agent.kff_monitor import run_monitor as kff_run_monitor, FEED_URL as KFF_FEED_URL
 from agent.cigna_monitor import run_monitor as cigna_run_monitor, FEED_URL as CIGNA_FEED_URL
 from agent.sutter_monitor import run_monitor as sutter_run_monitor, FEED_URL as SUTTER_FEED_URL
 from agent.triage import run_triage
 from agent.summarizer import run_summarizer
-from agent.discord import send_alerts, send_no_alerts, post_health_check, fetch_verdicts_for_articles
+from agent.discord import send_alerts, send_no_alerts, post_health_check, fetch_verdicts_for_articles, post_error
 from config import BECKERS_PAYER_FEED_URL
 
 logging.basicConfig(
@@ -57,4 +59,11 @@ def run_pipeline():
 
 
 if __name__ == '__main__':
-    run_pipeline()
+    try:
+        run_pipeline()
+    except psycopg2.OperationalError as exc:
+        msg = '⚠️ Pipeline failed — could not connect to the database.'
+        if 'Connection refused' in str(exc):
+            msg += ' If running locally, Docker Desktop may not be running.'
+        log.error('[scheduler] %s: %s', msg, exc)
+        post_error(msg)
