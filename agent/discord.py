@@ -79,7 +79,7 @@ def _format_briefing(row):
         "",
         f"Why it matters: {_truncate(why_it_matters, 300)}",
         "",
-        f"🔗 {url}",
+        f"🔗 <{url}>",
         DIVIDER,
     ]
     return "\n".join(lines)
@@ -250,6 +250,18 @@ def fetch_verdicts_for_articles(article_ids: list[int]) -> list[tuple[str, str, 
         return result
     finally:
         release_connection(conn)
+
+
+def post_error(message: str) -> None:
+    """Post a pipeline error to the health check channel without touching the DB. Never raises."""
+    webhook_url = os.environ.get('DISCORD_HEALTH_CHECK_WEBHOOK_URL')
+    if not webhook_url:
+        logging.warning('[discord] DISCORD_HEALTH_CHECK_WEBHOOK_URL not set — cannot post error')
+        return
+    try:
+        requests.post(webhook_url, json={'content': message}, timeout=10)
+    except Exception as exc:
+        logging.warning('[discord] failed to post error to Discord: %s', exc)
 
 
 def post_health_check(label: str, articles: list[tuple[str, str, str]]) -> None:
