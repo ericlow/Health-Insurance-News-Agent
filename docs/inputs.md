@@ -194,3 +194,10 @@ CalOptima is moving into OC. I want an analysis of how many members they will ge
 > the exec is upset that you missed sb260 explain how and why this was missed. update the analysis. summarize the changes between new and old analysis
 
 **Spec impact:** AGE-71 analysis revised (rev 3) to incorporate SB 260 auto-enrollment. AGE-68 (A2 spec) gains a hard requirement: a curated regulatory-mechanism knowledge base ("rules layer") — standing statutes governing member flows cannot be surfaced by news or dataset retrieval and must be maintained as domain memory seeded by expert input.
+
+## 2026-07-29 Meeting with Matt
+Feedback from customers of Matt. 
+
+The Cal Optima news and analysis was not highly valued to the particular team. They only care about the personell changes. The analysis was overwhelming to them and they did not even know what to do with it.  Matt had this boiled down to 5 bullet points, but this was still too much. 
+
+Possibly this could be used down the line during negotiations, but at this time, the return on investment is about information exchange. In this case, the customer team only cared about staffing changes.
