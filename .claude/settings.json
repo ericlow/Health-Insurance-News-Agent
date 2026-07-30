@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(source .venv/bin/activate)",
+      "Bash(source /Users/eric/projects/Health-Insurance-News-Agent/.venv/bin/activate)",
+      "Bash(tmux capture-pane *)",
+      "Bash(tmux list-sessions *)",
+      "Bash(pip show *)",
+      "Bash(launchctl list *)",
+      "mcp__linear__list_issues",
+      "mcp__linear__list_milestones",
+      "mcp__linear__get_issue",
+      "mcp__linear__list_teams",
+      "mcp__claude-in-chrome__tabs_context_mcp",
+      "mcp__claude-in-chrome__read_page"
+    ]
+  }
+}

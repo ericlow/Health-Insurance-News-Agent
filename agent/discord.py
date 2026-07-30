@@ -264,10 +264,16 @@ def post_error(message: str) -> None:
         logging.warning('[discord] failed to post error to Discord: %s', exc)
 
 
-def post_health_check(label: str, articles: list[tuple[str, str, str]]) -> None:
+def post_health_check(
+    label: str,
+    articles: list[tuple[str, str, str]],
+    web_url: str = '',
+    feed_url: str = '',
+) -> None:
     """Post a health check message to the health check Discord channel.
 
     articles: list of (title, url, verdict) tuples; pass [] for a zero-article run.
+    web_url: user-facing news page; feed_url: RSS/API feed being scraped.
     Never raises — a health check failure must not abort the pipeline.
     """
     webhook_url = os.environ.get('DISCORD_HEALTH_CHECK_WEBHOOK_URL')
@@ -279,7 +285,11 @@ def post_health_check(label: str, articles: list[tuple[str, str, str]]) -> None:
     timestamp = now.strftime('%Y-%m-%d %I:%M %p %Z')
     count = len(articles)
     noun = 'article' if count == 1 else 'articles'
-    lines = [f'[{label}] {count} new {noun} — {timestamp}']
+    if web_url and feed_url:
+        header = f'{label} ([web]({web_url}), [feed]({feed_url})) {count} new {noun} — {timestamp}'
+    else:
+        header = f'{label} {count} new {noun} — {timestamp}'
+    lines = [header]
     for title, url, verdict in articles:
         emoji = _VERDICT_EMOJI.get(verdict, '❓')
         lines.append(f'{emoji} [{title}]({url})')

@@ -36,10 +36,14 @@ def run_pipeline():
     # Becker's run_id used as the canonical pipeline run for triage/briefing records.
     flagged_ids = run_triage(combined_ids, beckers_run_id)
 
-    post_health_check("Becker's Payer", fetch_verdicts_for_articles(beckers_new_ids))
-    post_health_check("KFF Health News", fetch_verdicts_for_articles(kff_new_ids))
-    post_health_check("Cigna Newsroom", fetch_verdicts_for_articles(cigna_new_ids))
-    post_health_check("Sutter Health", fetch_verdicts_for_articles(sutter_new_ids))
+    post_health_check("Becker's Payer", fetch_verdicts_for_articles(beckers_new_ids),
+                      web_url='https://www.beckerspayer.com/', feed_url=BECKERS_PAYER_FEED_URL)
+    post_health_check("KFF Health News", fetch_verdicts_for_articles(kff_new_ids),
+                      web_url='https://kffhealthnews.org/', feed_url=KFF_FEED_URL)
+    post_health_check("Cigna Newsroom", fetch_verdicts_for_articles(cigna_new_ids),
+                      web_url='https://newsroom.cigna.com/', feed_url=CIGNA_FEED_URL)
+    post_health_check("Sutter Health", fetch_verdicts_for_articles(sutter_new_ids),
+                      web_url='https://vitals.sutterhealth.org/', feed_url=SUTTER_FEED_URL)
     log.info('[scheduler] %d articles flagged for briefing.', len(flagged_ids))
 
     briefing_ids = run_summarizer(flagged_ids, beckers_run_id)
