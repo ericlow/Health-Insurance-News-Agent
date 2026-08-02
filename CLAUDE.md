@@ -56,6 +56,20 @@ This project follows **spec-driven development**: specs are written and agreed u
 
 Never paraphrase or compress entries in `docs/inputs.md` — the expert's original framing often contains signal that gets lost in synthesis.
 
+### Commit cadence
+
+Commit when the working state changes meaningfully — not on a timer, not after every line.
+
+Commit after:
+- A decision is recorded (ADR written or updated)
+- A spec section is completed
+- A working-session.md update captures new decisions
+- An implementation step passes its own smoke test
+
+Don't commit mid-spec or just to save in-progress work — a half-written spec is noise in the history.
+
+**End-of-session commit always** — whatever state the branch is in, commit before closing so the next session starts clean from a known point. The working-session.md serves as the "why" for any WIP commit.
+
 ### Branch and issue strategy:
 - All implementation work happens on a feature branch, never directly on `main`
 - Before branching: create a Linear issue in the **Agents** team, **Health Insurance News Agent** project, assigned to the relevant phase milestone
