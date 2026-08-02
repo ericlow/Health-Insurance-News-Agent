@@ -146,7 +146,7 @@ def _post_briefings(conn, briefings, webhook_url):
     count = 0
     for row in briefings:
         message = _format_briefing(row)
-        response = requests.post(webhook_url, json={"content": message}, timeout=10)
+        response = requests.post(webhook_url, json={"content": message, "flags": 4}, timeout=10)
         response.raise_for_status()
         _mark_briefings_sent(conn, [row[0]])
         count += 1
@@ -208,7 +208,7 @@ def send_no_alerts(run_id=None):
                 title_reason, title_confidence, title_scope,
                 article_reason, article_confidence, article_scope, article_summary,
             )
-            response = requests.post(webhook_url, json={"content": message}, timeout=10)
+            response = requests.post(webhook_url, json={"content": message, "flags": 4}, timeout=10)
             response.raise_for_status()
             _mark_no_sent(conn, [triage_result_id])
             count += 1
@@ -259,7 +259,7 @@ def post_error(message: str) -> None:
         logging.warning('[discord] DISCORD_HEALTH_CHECK_WEBHOOK_URL not set — cannot post error')
         return
     try:
-        requests.post(webhook_url, json={'content': message}, timeout=10)
+        requests.post(webhook_url, json={'content': message, 'flags': 4}, timeout=10)
     except Exception as exc:
         logging.warning('[discord] failed to post error to Discord: %s', exc)
 
@@ -297,7 +297,7 @@ def post_health_check(
 
     for attempt in range(1, _HEALTH_CHECK_MAX_ATTEMPTS + 1):
         try:
-            resp = requests.post(webhook_url, json={'content': content}, timeout=10)
+            resp = requests.post(webhook_url, json={'content': content, 'flags': 4}, timeout=10)
             resp.raise_for_status()
             return
         except Exception as exc:
