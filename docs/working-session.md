@@ -99,6 +99,16 @@ We are in a planning session to define two new agents (A1 and A2) and an AWS inf
 
 ---
 
+## Decisions made — continued (2026-08-02)
+
+- **psql/pg_dump available**: installed `libpq` via Homebrew (`/opt/homebrew/opt/libpq/bin`); global CLAUDE.md updated. Docker workaround in migration spec is no longer needed.
+- **A2 invocation model**: both — A1-triggered on high-confidence events + manual invocation
+- **A2 spec deferred**: focus is cloud migration first; memory scope decision deferred
+- **AGE-71 handoff**: considered complete
+- **PR #24** (market-impact-analysis skill): already merged
+
+---
+
 ## Outstanding work — pick up here next session
 
 ### NEW (2026-07-23): AGE-71 analysis complete — handoff doc for A2 work
