@@ -30,6 +30,8 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: us-west-1
         run: |
+          aws s3 cp deployment.zip s3://health-insurance-monitor-deploy/deployment.zip
           aws lambda update-function-code \
             --function-name health-insurance-monitor \
-            --zip-file fileb://deployment.zip
+            --s3-bucket health-insurance-monitor-deploy \
+            --s3-key deployment.zip
