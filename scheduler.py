@@ -8,6 +8,7 @@ from agent.cigna_monitor import run_monitor as cigna_run_monitor, FEED_URL as CI
 from agent.sutter_monitor import run_monitor as sutter_run_monitor, FEED_URL as SUTTER_FEED_URL
 from agent.uc_davis_monitor import run_monitor as uc_davis_run_monitor, FEED_URL as UC_DAVIS_FEED_URL
 from agent.ucsd_monitor import run_monitor as ucsd_run_monitor, FEED_URL as UCSD_FEED_URL
+from agent.uci_health_monitor import run_monitor as uci_health_run_monitor, LISTING_URL as UCI_HEALTH_LISTING_URL
 from agent.triage import run_triage
 from agent.summarizer import run_summarizer
 from agent.discord import send_alerts, send_no_alerts, post_health_check, fetch_verdicts_for_articles, post_error
@@ -30,12 +31,13 @@ def run_pipeline():
     _sutter_run_id, sutter_new_ids = sutter_run_monitor()
     _uc_davis_run_id, uc_davis_new_ids = uc_davis_run_monitor()
     _ucsd_run_id, ucsd_new_ids = ucsd_run_monitor()
+    _uci_health_run_id, uci_health_new_ids = uci_health_run_monitor()
 
-    combined_ids = beckers_new_ids + kff_new_ids + cigna_new_ids + sutter_new_ids + uc_davis_new_ids + ucsd_new_ids
+    combined_ids = beckers_new_ids + kff_new_ids + cigna_new_ids + sutter_new_ids + uc_davis_new_ids + ucsd_new_ids + uci_health_new_ids
     log.info(
-        "[scheduler] %d new articles (%d Becker's, %d KFF, %d Cigna, %d Sutter, %d UC Davis, %d UCSD).",
+        "[scheduler] %d new articles (%d Becker's, %d KFF, %d Cigna, %d Sutter, %d UC Davis, %d UCSD, %d UCI Health).",
         len(combined_ids), len(beckers_new_ids), len(kff_new_ids), len(cigna_new_ids), len(sutter_new_ids),
-        len(uc_davis_new_ids), len(ucsd_new_ids),
+        len(uc_davis_new_ids), len(ucsd_new_ids), len(uci_health_new_ids),
     )
 
     # Becker's run_id used as the canonical pipeline run for triage/briefing records.
@@ -53,6 +55,8 @@ def run_pipeline():
                       web_url='https://health.ucdavis.edu/news/', feed_url=UC_DAVIS_FEED_URL)
     post_health_check("UCSD Health", fetch_verdicts_for_articles(ucsd_new_ids),
                       web_url='https://today.ucsd.edu/', feed_url=UCSD_FEED_URL)
+    post_health_check("UCI Health", fetch_verdicts_for_articles(uci_health_new_ids),
+                      web_url=UCI_HEALTH_LISTING_URL, feed_url=UCI_HEALTH_LISTING_URL)
     log.info('[scheduler] %d articles flagged for briefing.', len(flagged_ids))
 
     briefing_ids = run_summarizer(flagged_ids, beckers_run_id)
