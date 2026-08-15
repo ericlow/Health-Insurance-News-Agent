@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 
 log = logging.getLogger(__name__)
 
+from agent.discord import post_error
 from db.connection import get_connection, release_connection
 
 SOURCE = 'health.ucdavis.edu'
@@ -68,7 +69,9 @@ def _extract_body(html: str, url: str) -> str:
     # Warn only if page structure is present but article-body is missing (selector broke).
     # ponytail: warn if chrome changes and selector stops working
     if soup.find('div', class_='news-article-container'):
-        log.warning('[uc-davis-monitor] article-body selector missed on %s, falling back to full text', url)
+        msg = f'⚠️ UC Davis monitor: article-body selector missed on {url} — site may have been redesigned. Falling back to full page text.'
+        log.warning(msg)
+        post_error(msg)
     return soup.get_text(separator='\n', strip=True)
 
 
