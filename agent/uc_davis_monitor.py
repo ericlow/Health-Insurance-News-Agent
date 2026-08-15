@@ -1,7 +1,10 @@
 import feedparser
+import logging
 import requests
 from bs4 import BeautifulSoup
 from datetime import datetime, timezone
+
+log = logging.getLogger(__name__)
 
 from db.connection import get_connection, release_connection
 
@@ -43,7 +46,7 @@ def _fetch_feed() -> list[dict]:
             'url': e.link,
             'title': e.title,
             'published_at': _parse_feed_date(e),
-            'body_text': _strip_html(body_html),
+            'body_text': _extract_body(body_html, e.link),
             'tags': [t.term for t in e.get('tags', [])],
         })
     return entries
@@ -56,8 +59,17 @@ def _parse_feed_date(entry) -> datetime | None:
     return None
 
 
-def _strip_html(html: str) -> str:
-    return BeautifulSoup(html, 'html.parser').get_text(separator='\n', strip=True)
+def _extract_body(html: str, url: str) -> str:
+    soup = BeautifulSoup(html, 'html.parser')
+    body_div = soup.find('div', class_='article-body')
+    if body_div:
+        return body_div.get_text(separator='\n', strip=True)
+    # Some feed entries are already plain article HTML with no page chrome — use as-is.
+    # Warn only if page structure is present but article-body is missing (selector broke).
+    # ponytail: warn if chrome changes and selector stops working
+    if soup.find('div', class_='news-article-container'):
+        log.warning('[uc-davis-monitor] article-body selector missed on %s, falling back to full text', url)
+    return soup.get_text(separator='\n', strip=True)
 
 
 def _already_seen(conn, url: str) -> bool:
