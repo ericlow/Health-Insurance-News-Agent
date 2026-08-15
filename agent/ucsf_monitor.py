@@ -1,14 +1,13 @@
-import requests
 from bs4 import BeautifulSoup
 from datetime import datetime, timezone
 from urllib.parse import urlparse
 
+from agent import http_utils
 from db.connection import get_connection, release_connection
 
 SOURCE = 'ucsf.edu'
 LISTING_URL = 'https://www.ucsf.edu/news'
 BASE_URL = 'https://www.ucsf.edu'
-HEADERS = {'User-Agent': 'Mozilla/5.0 (compatible; HealthInsuranceNewsAgent/1.0)'}
 
 
 def run_monitor() -> tuple[int, list[int]]:
@@ -20,7 +19,10 @@ def run_monitor() -> tuple[int, list[int]]:
         for entry in entries:
             if _already_seen(conn, entry['url']):
                 continue
-            entry['body_text'] = _fetch_article_body(entry['url'])
+            body_text = _fetch_article_body(entry['url'])
+            if body_text is None:
+                continue
+            entry['body_text'] = body_text
             article_id = _insert_article(conn, entry, run_id)
             if article_id:
                 new_ids.append(article_id)
@@ -35,8 +37,7 @@ def run_monitor() -> tuple[int, list[int]]:
 
 
 def _fetch_listing() -> list[dict]:
-    resp = requests.get(LISTING_URL, headers=HEADERS, timeout=30)
-    resp.raise_for_status()
+    resp = http_utils.get(LISTING_URL)
     soup = BeautifulSoup(resp.content, 'html.parser')
     seen = set()
     entries = []
@@ -73,11 +74,9 @@ def _extract_category(card) -> str | None:
 
 def _fetch_article_body(url: str) -> str | None:
     try:
-        # Skip off-domain URLs
         if urlparse(url).netloc != 'www.ucsf.edu':
             return None
-        resp = requests.get(url, headers=HEADERS, timeout=30)
-        resp.raise_for_status()
+        resp = http_utils.get(url)
         soup = BeautifulSoup(resp.content, 'html.parser')
         content = soup.find('div', class_='main-content')
         if not content:
