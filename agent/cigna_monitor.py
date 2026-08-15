@@ -1,13 +1,12 @@
 import feedparser
-import requests
 from bs4 import BeautifulSoup
 from datetime import datetime, timezone
 
+from agent import http_utils
 from db.connection import get_connection, release_connection
 
 SOURCE = 'newsroom.cigna.com'
 FEED_URL = 'https://newsroom.cigna.com/latest-press-releases?pagetemplate=rss'
-HEADERS = {'User-Agent': 'Mozilla/5.0 (compatible; HealthInsuranceNewsAgent/1.0)'}
 MAX_ENTRIES = 5
 
 
@@ -25,6 +24,8 @@ def run_monitor() -> tuple[int, list[int]]:
             if _already_seen(conn, entry['url']):
                 continue
             body_text = _fetch_article_body(entry['url'])
+            if body_text is None:
+                continue
             entry['body_text'] = body_text
             article_id = _insert_article(conn, entry, run_id)
             if article_id:
@@ -40,8 +41,7 @@ def run_monitor() -> tuple[int, list[int]]:
 
 
 def _fetch_feed() -> list[dict]:
-    resp = requests.get(FEED_URL, headers=HEADERS, timeout=30)
-    resp.raise_for_status()
+    resp = http_utils.get(FEED_URL)
     feed = feedparser.parse(resp.content)
     entries = []
     for e in feed.entries[:MAX_ENTRIES]:
@@ -59,8 +59,7 @@ def _fetch_feed() -> list[dict]:
 def _fetch_article_body(url: str) -> str | None:
     """Fetch article body text from the Cigna newsroom article page."""
     try:
-        resp = requests.get(url, headers=HEADERS, timeout=30)
-        resp.raise_for_status()
+        resp = http_utils.get(url)
         soup = BeautifulSoup(resp.content, 'html.parser')
         paragraphs = soup.find_all('p')
         text = '\n'.join(p.get_text(strip=True) for p in paragraphs if p.get_text(strip=True))

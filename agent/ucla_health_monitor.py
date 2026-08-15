@@ -1,14 +1,13 @@
 import re
-import requests
 from bs4 import BeautifulSoup
 from datetime import datetime, timezone
 
+from agent import http_utils
 from db.connection import get_connection, release_connection
 
 SOURCE = 'uclahealth.org'
 LISTING_URL = 'https://www.uclahealth.org/news'
 BASE_URL = 'https://www.uclahealth.org'
-HEADERS = {'User-Agent': 'Mozilla/5.0 (compatible; HealthInsuranceNewsAgent/1.0)'}
 
 _DATE_RE = re.compile(
     r'(January|February|March|April|May|June|July|August|September|October|November|December)'
@@ -25,7 +24,11 @@ def run_monitor() -> tuple[int, list[int]]:
         for entry in entries:
             if _already_seen(conn, entry['url']):
                 continue
-            entry['body_text'], entry['published_at'] = _fetch_article(entry['url'])
+            body_text, published_at = _fetch_article(entry['url'])
+            if body_text is None:
+                continue
+            entry['body_text'] = body_text
+            entry['published_at'] = published_at
             article_id = _insert_article(conn, entry, run_id)
             if article_id:
                 new_ids.append(article_id)
@@ -40,8 +43,7 @@ def run_monitor() -> tuple[int, list[int]]:
 
 
 def _fetch_listing() -> list[dict]:
-    resp = requests.get(LISTING_URL, headers=HEADERS, timeout=30)
-    resp.raise_for_status()
+    resp = http_utils.get(LISTING_URL)
     soup = BeautifulSoup(resp.content, 'html.parser')
     seen = set()
     entries = []
@@ -64,8 +66,7 @@ def _fetch_listing() -> list[dict]:
 
 def _fetch_article(url: str) -> tuple[str | None, datetime | None]:
     try:
-        resp = requests.get(url, headers=HEADERS, timeout=30)
-        resp.raise_for_status()
+        resp = http_utils.get(url)
         soup = BeautifulSoup(resp.content, 'html.parser')
         article = soup.find('article')
         if not article:
