@@ -1,4 +1,5 @@
 import feedparser
+import html as html_lib
 import requests
 from bs4 import BeautifulSoup
 from datetime import datetime, timezone
@@ -45,10 +46,14 @@ def _fetch_feed() -> list[dict]:
             'title': e.title,
             'published_at': _parse_feed_date(e),
             'body_text': None,
-            'category': e.get('dc_subject') or (e.tags[0].term if e.get('tags') else None),
-            'tags': [t.term for t in e.get('tags', [])],
+            'category': _clean_tag(e.tags[0].term) if e.get('tags') else None,
+            'tags': [_clean_tag(t.term) for t in e.get('tags', [])],
         })
     return entries
+
+
+def _clean_tag(term: str) -> str:
+    return html_lib.unescape(term).rstrip(', ').strip()
 
 
 def _parse_feed_date(entry) -> datetime | None:
