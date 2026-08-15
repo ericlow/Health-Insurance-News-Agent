@@ -10,6 +10,7 @@ from agent.uc_davis_monitor import run_monitor as uc_davis_run_monitor, FEED_URL
 from agent.ucsd_monitor import run_monitor as ucsd_run_monitor, FEED_URL as UCSD_FEED_URL
 from agent.uci_health_monitor import run_monitor as uci_health_run_monitor, LISTING_URL as UCI_HEALTH_LISTING_URL
 from agent.ucla_health_monitor import run_monitor as ucla_health_run_monitor, LISTING_URL as UCLA_HEALTH_LISTING_URL
+from agent.ucsf_monitor import run_monitor as ucsf_run_monitor, LISTING_URL as UCSF_LISTING_URL
 from agent.triage import run_triage
 from agent.summarizer import run_summarizer
 from agent.discord import send_alerts, send_no_alerts, post_health_check, fetch_verdicts_for_articles, post_error
@@ -34,12 +35,13 @@ def run_pipeline():
     _ucsd_run_id, ucsd_new_ids = ucsd_run_monitor()
     _uci_health_run_id, uci_health_new_ids = uci_health_run_monitor()
     _ucla_health_run_id, ucla_health_new_ids = ucla_health_run_monitor()
+    _ucsf_run_id, ucsf_new_ids = ucsf_run_monitor()
 
-    combined_ids = beckers_new_ids + kff_new_ids + cigna_new_ids + sutter_new_ids + uc_davis_new_ids + ucsd_new_ids + uci_health_new_ids + ucla_health_new_ids
+    combined_ids = beckers_new_ids + kff_new_ids + cigna_new_ids + sutter_new_ids + uc_davis_new_ids + ucsd_new_ids + uci_health_new_ids + ucla_health_new_ids + ucsf_new_ids
     log.info(
-        "[scheduler] %d new articles (%d Becker's, %d KFF, %d Cigna, %d Sutter, %d UC Davis, %d UCSD, %d UCI Health, %d UCLA Health).",
+        "[scheduler] %d new articles (%d Becker's, %d KFF, %d Cigna, %d Sutter, %d UC Davis, %d UCSD, %d UCI Health, %d UCLA Health, %d UCSF).",
         len(combined_ids), len(beckers_new_ids), len(kff_new_ids), len(cigna_new_ids), len(sutter_new_ids),
-        len(uc_davis_new_ids), len(ucsd_new_ids), len(uci_health_new_ids), len(ucla_health_new_ids),
+        len(uc_davis_new_ids), len(ucsd_new_ids), len(uci_health_new_ids), len(ucla_health_new_ids), len(ucsf_new_ids),
     )
 
     # Becker's run_id used as the canonical pipeline run for triage/briefing records.
@@ -61,6 +63,8 @@ def run_pipeline():
                       web_url=UCI_HEALTH_LISTING_URL, feed_url=UCI_HEALTH_LISTING_URL)
     post_health_check("UCLA Health", fetch_verdicts_for_articles(ucla_health_new_ids),
                       web_url=UCLA_HEALTH_LISTING_URL, feed_url=UCLA_HEALTH_LISTING_URL)
+    post_health_check("UCSF", fetch_verdicts_for_articles(ucsf_new_ids),
+                      web_url=UCSF_LISTING_URL, feed_url=UCSF_LISTING_URL)
     log.info('[scheduler] %d articles flagged for briefing.', len(flagged_ids))
 
     briefing_ids = run_summarizer(flagged_ids, beckers_run_id)
