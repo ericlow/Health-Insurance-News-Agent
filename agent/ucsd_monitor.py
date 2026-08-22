@@ -1,17 +1,16 @@
-import feedparser
-import html as html_lib
 from bs4 import BeautifulSoup
 from datetime import datetime, timezone
 
 from agent import http_utils
 from db.connection import get_connection, release_connection
 
-SOURCE = 'today.ucsd.edu'
-FEED_URL = 'https://today.ucsd.edu/rss/research'
+SOURCE = 'health.ucsd.edu'
+LISTING_URL = 'https://health.ucsd.edu/news/press-releases/'
+BASE_URL = 'https://health.ucsd.edu'
 
 
 def run_monitor() -> tuple[int, list[int]]:
-    entries = _fetch_feed()
+    entries = _fetch_listing()
     conn = get_connection()
     run_id = _open_run(conn, datetime.now(timezone.utc))
     try:
@@ -36,34 +35,28 @@ def run_monitor() -> tuple[int, list[int]]:
         release_connection(conn)
 
 
-def _fetch_feed() -> list[dict]:
-    resp = http_utils.get(FEED_URL)
-    feed = feedparser.parse(resp.content)
+def _fetch_listing() -> list[dict]:
+    resp = http_utils.get(LISTING_URL)
+    soup = BeautifulSoup(resp.content, 'html.parser')
+    seen = set()
     entries = []
-    for e in feed.entries:
+    for a in soup.find_all('a', href=True):
+        href = a['href']
+        if '/news/press-releases/' not in href or href == '/news/press-releases/':
+            continue
+        url = BASE_URL + href if href.startswith('/') else href
+        if url in seen:
+            continue
+        seen.add(url)
         entries.append({
-            'url': e.link,
-            'title': e.title,
-            'published_at': _parse_feed_date(e),
+            'url': url,
+            'title': a.get_text(strip=True),
+            'published_at': None,
             'body_text': None,
-            'category': _clean_tag(e.tags[0].term) if e.get('tags') else None,
-            'tags': [_clean_tag(t.term) for t in e.get('tags', [])],
+            'category': None,
+            'tags': [],
         })
     return entries
-
-
-def _clean_tag(term: str) -> str:
-    return html_lib.unescape(term).rstrip(', ').strip()
-
-
-def _parse_feed_date(entry) -> datetime | None:
-    # UCSD feed uses updated/updated_parsed (dc:date normalized by feedparser)
-    from time import mktime
-    if entry.get('updated_parsed'):
-        return datetime.fromtimestamp(mktime(entry.updated_parsed), tz=timezone.utc)
-    if entry.get('published_parsed'):
-        return datetime.fromtimestamp(mktime(entry.published_parsed), tz=timezone.utc)
-    return None
 
 
 def _fetch_article_body(url: str) -> str | None:
@@ -87,7 +80,7 @@ def _open_run(conn, started_at: datetime) -> int:
     with conn.cursor() as cur:
         cur.execute(
             "INSERT INTO scrape_runs (source, started_at, status) VALUES (%s, %s, 'running') RETURNING id",
-            (FEED_URL, started_at),
+            (LISTING_URL, started_at),
         )
         run_id = cur.fetchone()[0]
     conn.commit()

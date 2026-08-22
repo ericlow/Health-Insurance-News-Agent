@@ -7,7 +7,7 @@ from agent.kff_monitor import run_monitor as kff_run_monitor, FEED_URL as KFF_FE
 from agent.cigna_monitor import run_monitor as cigna_run_monitor, FEED_URL as CIGNA_FEED_URL
 from agent.sutter_monitor import run_monitor as sutter_run_monitor, FEED_URL as SUTTER_FEED_URL
 from agent.uc_davis_monitor import run_monitor as uc_davis_run_monitor, FEED_URL as UC_DAVIS_FEED_URL
-from agent.ucsd_monitor import run_monitor as ucsd_run_monitor, FEED_URL as UCSD_FEED_URL
+from agent.ucsd_monitor import run_monitor as ucsd_run_monitor, LISTING_URL as UCSD_LISTING_URL
 from agent.uci_health_monitor import run_monitor as uci_health_run_monitor, LISTING_URL as UCI_HEALTH_LISTING_URL
 from agent.ucla_health_monitor import run_monitor as ucla_health_run_monitor, LISTING_URL as UCLA_HEALTH_LISTING_URL
 from agent.ucsf_monitor import run_monitor as ucsf_run_monitor, LISTING_URL as UCSF_LISTING_URL
@@ -68,7 +68,7 @@ def run_pipeline():
     post_health_check("UC Davis Health", fetch_verdicts_for_articles(uc_davis_new_ids),
                       web_url='https://health.ucdavis.edu/news/', feed_url=UC_DAVIS_FEED_URL)
     post_health_check("UCSD Health", fetch_verdicts_for_articles(ucsd_new_ids),
-                      web_url='https://today.ucsd.edu/', feed_url=UCSD_FEED_URL)
+                      web_url=UCSD_LISTING_URL, feed_url=UCSD_LISTING_URL)
     post_health_check("UCI Health", fetch_verdicts_for_articles(uci_health_new_ids),
                       web_url=UCI_HEALTH_LISTING_URL, feed_url=UCI_HEALTH_LISTING_URL)
     post_health_check("UCLA Health", fetch_verdicts_for_articles(ucla_health_new_ids),
