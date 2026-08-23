@@ -14,6 +14,7 @@ from agent.ucsf_monitor import run_monitor as ucsf_run_monitor, LISTING_URL as U
 from agent.sharp_monitor import run_monitor as sharp_run_monitor, LISTING_URL as SHARP_LISTING_URL
 from agent.scripps_monitor import run_monitor as scripps_run_monitor, LISTING_URL as SCRIPPS_LISTING_URL
 from agent.providence_monitor import run_monitor as providence_run_monitor, LISTING_URL as PROVIDENCE_LISTING_URL
+from agent.city_of_hope_monitor import run_monitor as city_of_hope_run_monitor, FEED_URL as CITY_OF_HOPE_FEED_URL
 from agent.triage import run_triage
 from agent.summarizer import run_summarizer
 from agent.discord import send_alerts, send_no_alerts, post_health_check, fetch_verdicts_for_articles, post_error
@@ -42,16 +43,18 @@ def run_pipeline():
     _sharp_run_id, sharp_new_ids = sharp_run_monitor()
     _scripps_run_id, scripps_new_ids = scripps_run_monitor()
     _providence_run_id, providence_new_ids = providence_run_monitor()
+    _city_of_hope_run_id, city_of_hope_new_ids = city_of_hope_run_monitor()
 
     combined_ids = (beckers_new_ids + kff_new_ids + cigna_new_ids + sutter_new_ids + uc_davis_new_ids
                     + ucsd_new_ids + uci_health_new_ids + ucla_health_new_ids + ucsf_new_ids
-                    + sharp_new_ids + scripps_new_ids + providence_new_ids)
+                    + sharp_new_ids + scripps_new_ids + providence_new_ids + city_of_hope_new_ids)
     log.info(
         "[scheduler] %d new articles (%d Becker's, %d KFF, %d Cigna, %d Sutter, %d UC Davis, %d UCSD,"
-        " %d UCI Health, %d UCLA Health, %d UCSF, %d Sharp, %d Scripps, %d Providence).",
+        " %d UCI Health, %d UCLA Health, %d UCSF, %d Sharp, %d Scripps, %d Providence, %d City of Hope).",
         len(combined_ids), len(beckers_new_ids), len(kff_new_ids), len(cigna_new_ids), len(sutter_new_ids),
         len(uc_davis_new_ids), len(ucsd_new_ids), len(uci_health_new_ids), len(ucla_health_new_ids),
         len(ucsf_new_ids), len(sharp_new_ids), len(scripps_new_ids), len(providence_new_ids),
+        len(city_of_hope_new_ids),
     )
 
     # Becker's run_id used as the canonical pipeline run for triage/briefing records.
@@ -81,6 +84,8 @@ def run_pipeline():
                       web_url=SCRIPPS_LISTING_URL, feed_url=SCRIPPS_LISTING_URL)
     post_health_check("Providence CA", fetch_verdicts_for_articles(providence_new_ids),
                       web_url=PROVIDENCE_LISTING_URL, feed_url=PROVIDENCE_LISTING_URL)
+    post_health_check("City of Hope", fetch_verdicts_for_articles(city_of_hope_new_ids),
+                      web_url='https://www.cityofhope.org/newsroom', feed_url=CITY_OF_HOPE_FEED_URL)
     log.info('[scheduler] %d articles flagged for briefing.', len(flagged_ids))
 
     briefing_ids = run_summarizer(flagged_ids, beckers_run_id)
