@@ -15,6 +15,7 @@ from agent.sharp_monitor import run_monitor as sharp_run_monitor, LISTING_URL as
 from agent.scripps_monitor import run_monitor as scripps_run_monitor, LISTING_URL as SCRIPPS_LISTING_URL
 from agent.providence_monitor import run_monitor as providence_run_monitor, LISTING_URL as PROVIDENCE_LISTING_URL
 from agent.hoag_monitor import run_monitor as hoag_run_monitor, LISTING_URL as HOAG_LISTING_URL
+from agent.john_muir_monitor import run_monitor as john_muir_run_monitor, LISTING_URL as JOHN_MUIR_LISTING_URL
 from agent.triage import run_triage
 from agent.summarizer import run_summarizer
 from agent.discord import send_alerts, send_no_alerts, post_health_check, fetch_verdicts_for_articles, post_error
@@ -44,16 +45,18 @@ def run_pipeline():
     _scripps_run_id, scripps_new_ids = scripps_run_monitor()
     _providence_run_id, providence_new_ids = providence_run_monitor()
     _hoag_run_id, hoag_new_ids = hoag_run_monitor()
+    _john_muir_run_id, john_muir_new_ids = john_muir_run_monitor()
 
     combined_ids = (beckers_new_ids + kff_new_ids + cigna_new_ids + sutter_new_ids + uc_davis_new_ids
                     + ucsd_new_ids + uci_health_new_ids + ucla_health_new_ids + ucsf_new_ids
-                    + sharp_new_ids + scripps_new_ids + providence_new_ids + hoag_new_ids)
+                    + sharp_new_ids + scripps_new_ids + providence_new_ids + hoag_new_ids + john_muir_new_ids)
     log.info(
         "[scheduler] %d new articles (%d Becker's, %d KFF, %d Cigna, %d Sutter, %d UC Davis, %d UCSD,"
-        " %d UCI Health, %d UCLA Health, %d UCSF, %d Sharp, %d Scripps, %d Providence, %d Hoag).",
+        " %d UCI Health, %d UCLA Health, %d UCSF, %d Sharp, %d Scripps, %d Providence, %d Hoag, %d John Muir).",
         len(combined_ids), len(beckers_new_ids), len(kff_new_ids), len(cigna_new_ids), len(sutter_new_ids),
         len(uc_davis_new_ids), len(ucsd_new_ids), len(uci_health_new_ids), len(ucla_health_new_ids),
-        len(ucsf_new_ids), len(sharp_new_ids), len(scripps_new_ids), len(providence_new_ids), len(hoag_new_ids),
+        len(ucsf_new_ids), len(sharp_new_ids), len(scripps_new_ids), len(providence_new_ids),
+        len(hoag_new_ids), len(john_muir_new_ids),
     )
 
     # Becker's run_id used as the canonical pipeline run for triage/briefing records.
@@ -85,6 +88,8 @@ def run_pipeline():
                       web_url=PROVIDENCE_LISTING_URL, feed_url=PROVIDENCE_LISTING_URL)
     post_health_check("Hoag Health", fetch_verdicts_for_articles(hoag_new_ids),
                       web_url='https://www.hoag.org/news/', feed_url=HOAG_LISTING_URL)
+    post_health_check("John Muir Health", fetch_verdicts_for_articles(john_muir_new_ids),
+                      web_url=JOHN_MUIR_LISTING_URL, feed_url=JOHN_MUIR_LISTING_URL)
     log.info('[scheduler] %d articles flagged for briefing.', len(flagged_ids))
 
     briefing_ids = run_summarizer(flagged_ids, beckers_run_id)
