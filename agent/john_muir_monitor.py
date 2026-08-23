@@ -40,21 +40,28 @@ def _fetch_listing() -> list[dict]:
     soup = BeautifulSoup(resp.content, 'html.parser')
     seen = set()
     entries = []
-    for a in soup.find_all('a', href=True):
-        href = a['href']
-        if '/press-room/Press-releases/' not in href:
+    for ul in soup.find_all('ul', class_='article-detail'):
+        a = ul.find('li', class_='title') and ul.find('li', class_='title').find('a', href=True)
+        if not a or '/Press-releases/' not in a['href']:
             continue
         title = a.get_text(strip=True)
         if not title or title.lower() == 'more...':
             continue
-        url = BASE_URL + href if href.startswith('/') else href
+        url = BASE_URL + a['href'] if a['href'].startswith('/') else a['href']
         if url in seen:
             continue
         seen.add(url)
+        published_at = None
+        date_span = ul.find('span', class_='date')
+        if date_span:
+            try:
+                published_at = datetime.strptime(date_span.get_text(strip=True), '%B %d, %Y').replace(tzinfo=timezone.utc)
+            except ValueError:
+                pass
         entries.append({
             'url': url,
             'title': title,
-            'published_at': None,
+            'published_at': published_at,
             'body_text': None,
             'category': None,
             'tags': [],
