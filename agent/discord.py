@@ -69,7 +69,7 @@ def _format_briefing(row):
     _, what_happened, who, impact, why_it_matters, title, url = row
     lines = [
         DIVIDER,
-        f"📌 {title}",
+        f"📌 {_truncate(title, 200)}",
         "",
         f"What happened: {_truncate(what_happened, 400)}",
         "",
@@ -82,7 +82,7 @@ def _format_briefing(row):
         f"🔗 <{url}>",
         DIVIDER,
     ]
-    return "\n".join(lines)
+    return _truncate("\n".join(lines), _DISCORD_MAX_CHARS)
 
 
 def _format_no_article(title, url, article_flag,
@@ -104,9 +104,9 @@ def _format_no_article(title, url, article_flag,
 
     lines = [f"[{title}]({url})", label]
     if reason:
-        lines.append(f"Reason: {reason}")
+        lines.append(f"Reason: {_truncate(reason, 300)}")
     if summary:
-        lines.append(f"Summary: {summary}")
+        lines.append(f"Summary: {_truncate(summary, 400)}")
     meta = " | ".join(filter(None, [
         f"Confidence: {confidence}" if confidence else None,
         f"Scope: {scope}" if scope else None,
@@ -290,9 +290,14 @@ def post_health_check(
     else:
         header = f'{label} {count} new {noun} — {timestamp}'
     lines = [header]
-    for title, url, verdict in articles:
+    for i, (title, url, verdict) in enumerate(articles):
         emoji = _VERDICT_EMOJI.get(verdict, '❓')
-        lines.append(f'{emoji} [{title}]({url})')
+        line = f'{emoji} [{title}]({url})'
+        if len('\n'.join(lines + [line])) > _DISCORD_MAX_CHARS:
+            remaining = len(articles) - i
+            lines.append(f'… and {remaining} more')
+            break
+        lines.append(line)
     content = '\n'.join(lines)
 
     for attempt in range(1, _HEALTH_CHECK_MAX_ATTEMPTS + 1):
