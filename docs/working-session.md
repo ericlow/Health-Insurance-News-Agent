@@ -14,12 +14,16 @@
   - AGE-91 is In Review in Linear
 - [ ] After Eric validates: merge PR, mark AGE-91 Done, confirm GH Actions deploy, trigger Lambda, verify Discord
 
-#### Hoag Health (AGE-83) + City of Hope (AGE-84) — Blocked, research pending
-- Both blocked by JS rendering / Cloudflare protection on their newsroom pages
-- A background research task was running when Eric signed off to check PR Newswire / Business Wire
-  - If PR Newswire/Business Wire feeds exist: implement RSS monitors for both
-  - If not: document as unsupported in Linear, close issues
-- **Check the background agent result first thing next session** before doing anything else
+#### Hoag Health (AGE-83) + City of Hope (AGE-84) — Google News RSS approach
+- Direct newsroom scraping blocked (Hoag: Astro SPA, City of Hope: Cloudflare)
+- Background research confirmed: **Google News RSS works for both**
+  - Hoag: `https://news.google.com/rss/search?q=Hoag+Health&hl=en-US&gl=US&ceid=US:en`
+  - City of Hope: `https://news.google.com/rss/search?q=City+of+Hope+hospital&hl=en-US&gl=US&ceid=US:en`
+  - Both return 10+ recent items; includes their own wire releases (PR Newswire, GlobeNewswire) + third-party coverage
+  - Notable: Hoag feed item "Blue Shield of California Members Have Network Access to Hoag Hospitals and Providers" — exactly the kind of signal this system is built for
+  - Google-wrapped URLs redirect to canonical; body text requires follow-on fetch from canonical source
+  - PR Newswire has no company-specific RSS; Business Wire timed out; no Hoag newsroom subdomains
+- **Claude implemented both overnight** — see AGE-83 and AGE-84 Linear issues and PRs for status
 
 #### Lambda schedule — 1am run removal (Eric's action)
 - Eric is doing this in AWS Console UI (IAM user lacks EventBridge permissions)
