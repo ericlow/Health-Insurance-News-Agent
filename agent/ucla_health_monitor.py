@@ -16,10 +16,10 @@ _DATE_RE = re.compile(
 
 
 def run_monitor() -> tuple[int, list[int]]:
-    entries = _fetch_listing()
     conn = get_connection()
     run_id = _open_run(conn, datetime.now(timezone.utc))
     try:
+        entries = _fetch_listing()
         new_ids = []
         for entry in entries:
             if _already_seen(conn, entry['url']):
@@ -37,7 +37,8 @@ def run_monitor() -> tuple[int, list[int]]:
         return run_id, new_ids
     except Exception as exc:
         _fail_run(conn, run_id, str(exc))
-        raise
+        print(f'[ucla-health-monitor] failed: {exc}')
+        return run_id, []
     finally:
         release_connection(conn)
 
