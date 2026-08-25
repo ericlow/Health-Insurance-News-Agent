@@ -37,6 +37,88 @@
 
 ---
 
+## AWS deployment — what happened (the whirlwind, explained)
+
+Getting `/analysis` from "registered command" to "actually responds" took several
+detours. Here's the full story so it makes sense in hindsight.
+
+### The plan
+Make the Lambda reachable from Discord. Discord pushes an HTTP POST to a public URL
+when a command runs, so we needed (a) the code on a Lambda and (b) a public HTTPS
+endpoint. To avoid needing new AWS permissions, we split the work: **create the
+function shell in the console** (needs privileges Eric has as root) and **push the
+code via CLI** (`update-function-code`, which the existing `.env` key already had).
+
+### Detour 1 — Discord command registration 403
+Registering `/analysis` failed with 403. Cause: the bot existed but **wasn't in the
+server** (the OAuth2 invite hadn't been completed). Diagnosis: `GET /users/@me/guilds`
+returned an empty list. Fix: opened the bot invite URL, added it to the server,
+re-ran registration → 201 Created.
+
+### Detour 2 — packaging PyNaCl for Lambda
+The signature-verification library **PyNaCl has a compiled C extension**. Installed on
+a Mac, its binary won't run on Lambda (Amazon Linux) — it fails at import. Fix: built
+the zip with the Linux wheel explicitly (`pip install --platform manylinux2014_x86_64
+--only-binary=:all: --python-version 3.12`). Verified the native `_sodium*.so` was in
+the package before shipping. (This is documented in `infra/analyst/README.md`.)
+
+### Surprise — the CLI key could do more than expected
+CLAUDE.md said the key was update-code-only. In practice it could also set function
+config, env vars, create a Function URL, and add resource permissions. So most
+provisioning happened over CLI without console clicking.
+
+### Detour 3 — the Function URL 403 that wasn't our code (the big one)
+We first tried a **Lambda Function URL** (simpler than API Gateway — one fewer moving
+part). Set auth type NONE, added a public-invoke permission. But every request to the
+URL returned **403 from AWS's auth layer**, before our handler ran. Waiting for
+propagation didn't help.
+
+**Diagnosis:** we invoked the Lambda *directly* (`aws lambda invoke`, bypassing the
+URL) with a synthetic event. It returned our handler's correct `401 invalid request
+signature` — proving the **code and PyNaCl were fine**, and the block was purely the
+URL's auth layer. (This "invoke directly to isolate code from endpoint" trick is the
+key diagnostic.)
+
+**Hypothesis chase:**
+- Guessed an AWS Organizations SCP (policy blocking public Lambda URLs). But the
+  Organizations console showed **no org exists** ("Create an organization") — so not
+  an SCP.
+- Conclusion: the account has **Lambda block-public-access enabled** — AWS turns this
+  on by default for accounts that never used public Function URLs (this account only
+  ran the monitor, which uses EventBridge, no URLs). It's not toggleable via the
+  installed CLI.
+
+### Resolution — pivot to API Gateway
+API Gateway is public and **not subject to the Function-URL block** — and it's what
+the spec called for originally. But the existing key lacked API Gateway permissions.
+
+We chose to do this via **Terraform** (reproducible infra-as-code) rather than more
+CLI commands. Established the division of labor: **infra = Terraform (run
+occasionally); code deploys = GitHub Actions `update-function-code` (per merge)** —
+do *not* put `terraform apply` in the per-merge pipeline (it would need create-level
+creds in CI for no benefit).
+
+To keep the permission grant small, Terraform manages **only the API Gateway**
+(additive), referencing the existing Lambda via a data source — instead of the whole
+stack, which would have needed `iam:CreateRole` / `lambda:CreateFunction`. Eric
+attached one inline policy (`analyst-apigateway`: apigateway:* + a few lambda perms)
+and the apply created 5 resources. `curl` returned our handler's 401 → endpoint good.
+Deleted the dead Function URL. Eric pasted the API Gateway URL into Discord's
+Interactions Endpoint → verified → `/analysis` returns the stub. **Live.**
+
+### Decisions & conclusions
+- **Function URLs are unusable in this account** → always use API Gateway for public
+  Lambda endpoints. (Saved to memory: `project-lambda-url-block`.)
+- **Native deps (PyNaCl) must be packaged with the Linux wheel** for Lambda.
+- **Split provisioning vs code-deploy:** console/Terraform for infra (needs privilege),
+  `update-function-code` for code (narrow perms, per-merge via GHA).
+- **Terraform owns the gateway only, for now** — folding the Lambda/role into
+  Terraform later would need broader IAM and is deferred.
+- **Diagnostic:** direct `aws lambda invoke` isolates code correctness from
+  endpoint/auth problems — reach for it first next time an endpoint 403s.
+
+---
+
 ## What's running in production (monitors — all merged and deployed)
 
 | Source | Approach |
