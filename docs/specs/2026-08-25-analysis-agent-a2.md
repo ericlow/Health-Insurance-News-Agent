@@ -285,6 +285,7 @@ Manual/integration (verified in Discord):
 | Model | `claude-opus-4-8` | TRD §9: quality matters, cost per run not a constraint |
 | Rules layer in V1 | Omitted | V1 is plumbing; rules layer is the V2 intelligence layer |
 | Finalize step | Deferred to V2 | No clean consolidated artifact in V1 |
+| Public endpoint | API Gateway HTTP API (not Lambda Function URL) | Function URLs are 403-blocked by this account's Lambda public-access setting; see `infra/analyst/README.md` |
 
 ---
 
