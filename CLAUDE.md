@@ -216,3 +216,31 @@ Run a single test:
 ```bash
 pytest tests/path/to/test_file.py::test_function_name
 ```
+
+## AWS / CloudWatch
+
+Lambda function: `health-insurance-monitor`, region: `us-west-1`, account: `494883819786`.
+
+AWS credentials are in `.env` (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`). Use them directly to query CloudWatch without needing console login:
+
+```bash
+source .env
+
+# List recent log streams
+AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
+  aws logs describe-log-streams \
+  --log-group-name /aws/lambda/health-insurance-monitor \
+  --region us-west-1 \
+  --order-by LastEventTime --descending --max-items 5 \
+  --query 'logStreams[].{name:logStreamName, last:lastEventTimestamp}' --output table
+
+# Fetch a specific stream (replace $STREAM with name from above)
+AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
+  aws logs get-log-events \
+  --log-group-name /aws/lambda/health-insurance-monitor \
+  --region us-west-1 \
+  --log-stream-name "$STREAM" \
+  --query 'events[].message' --output text
+```
+
+IAM user is `github-actions-deploy` — has Lambda and CloudWatch read access.
