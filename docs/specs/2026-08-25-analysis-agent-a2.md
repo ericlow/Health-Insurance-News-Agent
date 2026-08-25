@@ -1,7 +1,7 @@
 # Analysis Agent A2 — Feature Spec
 
-_Status: draft — pending Eric review 2026-08-26_
-_Last updated: 2026-08-25_
+_Status: ready for implementation_
+_Last updated: 2026-08-26_
 
 ---
 
@@ -9,7 +9,7 @@ _Last updated: 2026-08-25_
 
 AGE-71 (CalOptima OC entry analysis) revealed that analyst Matt missed SB 260's alternate-default pathway in his first two drafts — a 2019 statute that generates no recent headlines and appears in no dataset. The miss was caught only because Matt reviewed his own work a third time. The goal of A2 is to let Matt trigger structured analysis on demand, without having to do the full research loop himself.
 
-V1 is intentionally minimal: one tool (fetch the article), Claude reasoning, Discord response. The toolset expands in subsequent iterations once the end-to-end flow is verified working.
+V1 is intentionally minimal: one tool (fetch a URL), an agentic Claude tool-use loop, Discord response. The toolset expands in subsequent iterations once the end-to-end flow is verified working. **V1 deliberately omits the regulatory rules layer** — meaning V1 will not, on its own, catch the SB-260 class of miss that motivated the project. V1 is the plumbing (Discord ↔ Lambda ↔ Claude ↔ Neon); the intelligence (rules layer, web search, structured-data tools) lands in V2 once the loop is proven. See Out of Scope.
 
 Full design context: `docs/a2/prd.md`, `docs/a2/trd.md`, `docs/a2/Aug_24_agent_discussion.md`, `docs/a2/live-simulation-aug24.md`.
 
@@ -17,18 +17,18 @@ Full design context: `docs/a2/prd.md`, `docs/a2/trd.md`, `docs/a2/Aug_24_agent_d
 
 ## User Story
 
-As Matt (Elevance account analyst), I want to paste a news article URL into Discord and ask "how does this affect Anthem?" so that I get a structured analysis without doing the research loop myself.
+As Matt (Elevance account analyst), I want to drop one or more news article URLs (or just a question) into Discord and ask "how does this affect Anthem?" so that I get a structured analysis without doing the research loop myself.
 
 ---
 
 ## Acceptance Criteria
 
-1. Matt can trigger a new analysis with `/analysis <url> <question>`
+1. Matt can trigger a new analysis with `/analysis <free text>`, where the text may contain zero, one, or many URLs plus a question
 2. Discord shows a thinking spinner within 3 seconds
-3. The agent fetches the article, runs analysis, and posts findings inline — including a conversation ID
+3. The agent decides which URLs (if any) to fetch, fetches them via a tool, runs analysis, and posts findings inline — including a conversation ID
 4. Matt can continue the conversation with `/analysis <id> <follow-up>`
 5. The agent loads full prior history and responds in context
-6. If the URL is unreachable, the agent attempts analysis from URL + question alone and notes the failure
+6. If a URL is unreachable, the fetch tool returns an error the agent handles in-loop; analysis still completes and notes the gap
 
 ---
 
@@ -40,44 +40,99 @@ As Matt (Elevance account analyst), I want to paste a news article URL into Disc
 table: a2_conversations
 columns:
   id:         SERIAL PRIMARY KEY
-  url:        TEXT NOT NULL
-  question:   TEXT NOT NULL
-  messages:   JSONB NOT NULL DEFAULT '[]'   # full Claude messages array
+  messages:   JSONB NOT NULL DEFAULT '[]'   # full Claude messages array — the only state
   created_at: TIMESTAMPTZ NOT NULL DEFAULT now()
   updated_at: TIMESTAMPTZ NOT NULL DEFAULT now()
 ```
 
+The `messages` array is the complete conversation state. The article body, Matt's
+question, tool calls, and tool results all live inside it (article text lands as a
+`tool_result` block). Nothing is stored separately.
+
 ### Execution Model
 
 ```
-Matt: /analysis <url> <question>
+Matt: /analysis <free text with 0+ URLs>
   → Discord API Gateway → Lambda A
-      Lambda A: verify signature, return {type: 5}, invoke Lambda B async
-  → Lambda B: fetch URL, run Claude, post to Discord via interaction follow-up
-      save conversation to Neon (id, url, question, messages)
-  → Matt sees analysis + "Conversation ID: 42"
+      Lambda A: verify signature, return {type: 5},
+                invoke Lambda B async with {interaction_token, input_text}
+  → Lambda B:
+      1. INSERT empty conversation → get id
+      2. build messages = [{role: user, content: input_text}]
+      3. run Claude tool-use loop (fetch_url tool), max 10 tool calls
+      4. UPDATE conversation messages
+      5. PATCH Discord @original with analysis + "Conversation ID: <id>"
 
-Matt: /analysis 42 <follow-up>
-  → Lambda A: verify signature, return {type: 5}, invoke Lambda B async (conversation_id=42)
-  → Lambda B: load messages from Neon, append follow-up, run Claude, post to Discord
-      save updated messages to Neon
+Matt: /analysis <id> <follow-up>
+  → Lambda A: verify signature, return {type: 5},
+              invoke Lambda B async with {interaction_token, conversation_id, input_text}
+  → Lambda B:
+      1. SELECT messages FROM a2_conversations WHERE id = <id>  (404 → error message)
+      2. append {role: user, content: follow-up}
+      3. run Claude tool-use loop
+      4. UPDATE conversation messages
+      5. PATCH Discord @original with updated analysis
 ```
+
+Ordering constraint: the conversation row is INSERTed **before** the Discord post,
+so the SERIAL `id` is known and can be included in the message.
+
+The `interaction_token` (valid 15 minutes) is generated by Discord and received only
+by Lambda A. It must be passed in the async invoke payload so Lambda B can PATCH the
+response. If the loop exceeds 15 minutes the token expires and the post fails — a
+known ceiling, acceptable at V1 volume.
+
+### The `fetch_url` Tool
+
+```yaml
+name: fetch_url
+description: Fetch the readable text of a web page for analysis.
+input_schema:
+  url: string   # the URL to fetch
+returns:
+  on success: the page's readable text (via existing agent.http_utils + BeautifulSoup)
+  on failure: {"error": "<status or reason>"}   # Claude decides how to proceed in-loop
+```
+
+The tool wraps the existing `agent.http_utils.get` (realistic User-Agent, retry on
+5xx/429). No Jina / Wayback fallback chain in V1 — a blocked URL returns an error
+string and Claude notes the gap. (The full 403 retry chain is a V2 item.)
+
+### Agent Loop
+
+- Model: `claude-opus-4-8` (TRD §9: quality over cost for A2)
+- Max 10 tool calls per turn, then the loop forces a final text answer (runaway guard)
+- System prompt encodes: Elevance/Anthem perspective, confidence tagging, output format
+- On any unhandled exception, Lambda B PATCHes "Analysis failed: <reason>" to the token
+  (otherwise Matt watches the spinner until Discord times it out)
+
+### Output Format
+
+Every factual claim carries a confidence tag: **[HIGH]** (from fetched primary source),
+**[MED]** (secondary/inferred), **[LOW]** (analyst estimate/projection). Claude writes
+freeform prose — no forced section headers — but tags each claim and ends with
+`Conversation ID: <id>`.
+
+Output that exceeds Discord's 2000-char limit is split across multiple sequential
+messages (not truncated — truncation loses analysis content).
 
 ### Discord Interaction Contract
 
 - Lambda A receives Discord interaction POST via API Gateway
-- Signature verification: Ed25519 using `DISCORD_PUBLIC_KEY` env var
+- Signature verification: Ed25519 using `DISCORD_PUBLIC_KEY`, on the **raw request body**
 - Ping response (type 1): `{"type": 1}`
-- Slash command response (type 2): `{"type": 5}` (deferred — shows thinking spinner)
-- Lambda B posts result via: `PATCH https://discord.com/api/webhooks/{DISCORD_APPLICATION_ID}/{interaction_token}/messages/@original`
+- Slash command response (type 2): `{"type": 5}` (deferred — thinking spinner)
+- Lambda B posts via: `PATCH https://discord.com/api/webhooks/{DISCORD_APPLICATION_ID}/{interaction_token}/messages/@original`
+- Command registration: single string option `input` (Matt types everything into one field)
 
-### Command Parsing
+### Command Routing (Lambda A)
 
-| Input shape | Behavior |
+| First token of `input` | Behavior |
 |---|---|
-| `/analysis <url> <text>` | New analysis — first token starts with `http` |
-| `/analysis <integer> <text>` | Continuation — first token is a whole number |
-| Anything else | Error: post usage instructions to Discord |
+| Integer (`42`) | Continuation — load conversation 42, rest is the follow-up |
+| Anything else | New analysis — full text passed to Claude, which extracts any URLs |
+
+`input.split()[0].isdigit()` is the entire routing decision. URL detection is Claude's job.
 
 ### Environment Variables
 
@@ -85,33 +140,85 @@ Matt: /analysis 42 <follow-up>
 |---|---|
 | `DISCORD_APPLICATION_ID` | Constructs follow-up webhook URL |
 | `DISCORD_PUBLIC_KEY` | Ed25519 signature verification |
-| `ANTHROPIC_API_KEY` | Claude API |
+| `ANTHROPIC_API_KEY` | Claude API (existing) |
 | `DATABASE_URL` | Neon connection (existing) |
 
 ---
 
 ## Behavioral Specs (Gherkin)
 
+### Lambda A — gate (signature, ping, routing)
+
+```gherkin
+Scenario: Discord endpoint verification ping
+  Given Discord sends an interaction of type 1 (PING)
+  When Lambda A receives it
+  Then Lambda A returns {"type": 1}
+  And Lambda B is not invoked
+
+Scenario: Request with an invalid signature is rejected
+  Given an interaction POST whose Ed25519 signature does not match the raw body
+  When Lambda A verifies the signature
+  Then Lambda A returns HTTP 401
+  And Lambda B is not invoked
+
+Scenario: Request with a valid signature is processed
+  Given an interaction POST with a valid Ed25519 signature
+  When Lambda A verifies the signature
+  Then verification passes and routing proceeds
+
+Scenario: Routing a new analysis vs a continuation
+  Given the input "42 what about the MA book?"
+  When Lambda A inspects the first token
+  Then it routes to continuation for conversation 42
+  And given the input "https://x.com/a how does this affect Anthem?"
+  Then it routes to a new analysis
+```
+
 ### New analysis
 
 ```gherkin
-Scenario: Matt triggers a new analysis
-  Given Matt types /analysis https://example.com/article "how does this affect Anthem?"
+Scenario: Matt triggers a new analysis with one URL
+  Given Matt types /analysis https://example.com/article how does this affect Anthem?
   When Lambda A receives the Discord interaction
   Then Lambda A returns {type: 5} within 3 seconds
-  And Lambda B fetches the article URL
-  And Lambda B runs Claude with the article content and Matt's question
+  And Lambda B runs the Claude loop, which calls fetch_url on the URL
   And Lambda B posts the analysis inline to the Discord channel
   And the response includes "Conversation ID: <integer>"
   And the conversation is saved to a2_conversations with the messages array
 
-Scenario: URL is unreachable (403 or timeout)
-  Given Matt types /analysis https://blocked.com/article "how does this affect Anthem?"
-  When Lambda B fetches the URL and receives a 403 or timeout
-  Then Lambda B posts analysis based on URL and question context alone
-  And the response notes that the article body could not be fetched
-  And the response still includes a Conversation ID
-  And the conversation is saved to a2_conversations
+Scenario: Matt submits multiple URLs
+  Given Matt types /analysis https://a.com/x https://b.com/y compare these for Anthem
+  When Lambda B runs the Claude loop
+  Then fetch_url is called for each URL the agent chooses to fetch
+  And the analysis incorporates content from the fetched pages
+  And the response includes a Conversation ID
+
+Scenario: Generic analysis with no URL
+  Given Matt types /analysis what is the exposure if CalOptima enters OC?
+  When Lambda B runs the Claude loop
+  Then the loop completes without calling fetch_url
+  And Lambda B posts an analysis based on reasoning alone
+  And the response includes a Conversation ID
+
+Scenario: Tool-call loop hits the guard
+  Given the Claude loop has made 10 fetch_url calls in one turn
+  When the agent attempts an 11th tool call
+  Then the loop stops and forces a final text answer
+  And Lambda B posts whatever analysis was reached
+
+Scenario: A submitted URL is unreachable
+  Given Matt types /analysis https://blocked.com/article how does this affect Anthem?
+  When fetch_url returns {"error": "403 Forbidden"}
+  Then Claude continues the loop and notes the article could not be fetched
+  And Lambda B posts an analysis that flags the gap
+  And the response includes a Conversation ID
+
+Scenario: Lambda B fails unexpectedly
+  Given Lambda B raises an unhandled exception during the loop
+  When the exception propagates to the handler
+  Then Lambda B PATCHes "Analysis failed: <reason>" to the interaction token
+  And Matt does not see an indefinite thinking spinner
 ```
 
 ### Follow-up
@@ -119,20 +226,45 @@ Scenario: URL is unreachable (403 or timeout)
 ```gherkin
 Scenario: Matt asks a follow-up question
   Given conversation 42 exists in a2_conversations with prior messages
-  When Matt types /analysis 42 "what about the MA book specifically?"
+  When Matt types /analysis 42 what about the MA book specifically?
   Then Lambda A returns {type: 5} within 3 seconds
   And Lambda B loads conversation 42 from Neon
   And Lambda B appends Matt's follow-up to the message history
-  And Lambda B runs Claude with the full conversation history
+  And Lambda B runs the Claude loop with full conversation history
   And Lambda B posts the updated analysis inline to Discord
   And the updated messages array is saved to a2_conversations
 
 Scenario: Invalid conversation ID
   Given conversation 99999 does not exist in a2_conversations
-  When Matt types /analysis 99999 "follow-up question"
+  When Matt types /analysis 99999 follow-up question
   Then Lambda B posts "No conversation found with ID 99999"
   And no new conversation is created
 ```
+
+### Output
+
+```gherkin
+Scenario: Analysis exceeds Discord's message limit
+  Given the final analysis text is longer than 2000 characters
+  When Lambda B posts to Discord
+  Then the text is split into ordered messages each <= 2000 characters
+  And no content is truncated
+```
+
+---
+
+## Test Plan
+
+Pure/DB-testable (failing-test-first, real pytest):
+- Command routing: `isdigit()` new-vs-continuation split
+- Conversation load/save round-trip against local Postgres (`DATABASE_URL_LOCAL`)
+- Output chunking: a >2000-char string splits into ordered <2000-char messages
+- Signature verification: valid signature passes, tampered body fails
+
+Manual/integration (verified in Discord):
+- Full new-analysis loop with a live URL
+- Follow-up on an existing conversation
+- Unreachable-URL gap handling
 
 ---
 
@@ -140,25 +272,32 @@ Scenario: Invalid conversation ID
 
 | Question | Decision | Rationale |
 |---|---|---|
-| Tool set | One tool: fetch URL only | Start minimal; validate end-to-end before expanding |
-| Conversation ID | Integer (SERIAL primary key) | Simple, no nickname machinery needed |
-| Discord response location | Inline same channel | Threads add complexity; not needed for V1 |
-| Discord ack | Thinking spinner only (type 5) | No text ack; Lambda B posts all content |
-| URL fetch failure | Attempt analysis with URL+question context, note error inline | Better than hard stop; Claude can still reason from headline/URL |
+| Fetch: tool or pre-fetch? | Agentic tool (`fetch_url`) in a Claude loop | Supports 0/1/many URLs and generic analysis; V2 tools slot into the same loop |
+| Tool set | One tool: `fetch_url` | Start minimal; validate loop before expanding |
+| Conversation ID | Integer (SERIAL primary key) | Simple, no nickname machinery |
+| Schema `url`/`question` columns | Removed | Redundant — both live in `messages[0]` |
+| Command shape | Single `input` string option; `isdigit()` routes | Claude parses URLs; no heuristic needed |
+| Discord response location | Inline (edit deferred @original) | Threads add complexity; not needed for V1 |
+| URL fetch failure | Tool returns error string; Claude handles in-loop | No special-case code; cleaner than pre-fetch handling |
+| Loop guard | Max 10 tool calls, then force final answer | Runaway-cost insurance |
+| Long output | Split into sequential <2000-char messages | Truncation loses analysis content |
+| Output format | Confidence-tagged claims [HIGH]/[MED]/[LOW], freeform prose (no forced sections) | Per-claim confidence is a project requirement; freeform lets Claude fit the event |
+| Model | `claude-opus-4-8` | TRD §9: quality matters, cost per run not a constraint |
+| Rules layer in V1 | Omitted | V1 is plumbing; rules layer is the V2 intelligence layer |
 | Finalize step | Deferred to V2 | No clean consolidated artifact in V1 |
-| Conversation retrieval for follow-up | Integer ID only — Matt provides it | No vector search or nickname lookup in V1 |
 
 ---
 
 ## Out of Scope (V1)
 
-- Human-readable nicknames for conversations
-- Vector search / fuzzy conversation retrieval
-- `lookup_regulatory_rules`, `search_web`, `search_articles` tools
+- Regulatory rules layer / `lookup_regulatory_rules` tool — **V1 will not catch the SB-260 class of miss**
+- `search_web`, `search_articles` tools
+- 403 retry chain (Jina / Wayback / Bing) — blocked URL just returns an error
+- Human-readable nicknames; vector search / fuzzy conversation retrieval
 - Finalize step (clean consolidated artifact)
 - Discord threads
-- Article embeddings (Voyage AI)
-- Backfill of existing articles
+- Article embeddings (Voyage AI); backfill of existing articles
+- Concurrency safety (two simultaneous turns on one conversation) — Matt won't do this at V1 volume
 
 ---
 
@@ -169,4 +308,4 @@ Scenario: Invalid conversation ID
 | `PyNaCl` | `1.5.0` | Discord Ed25519 signature verification |
 | `anthropic` | current installed | Claude API |
 | `psycopg2-binary` | current installed | Neon connection |
-| `requests` | current installed | URL fetch |
+| `requests` / `beautifulsoup4` | current installed | `fetch_url` implementation |
