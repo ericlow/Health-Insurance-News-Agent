@@ -55,7 +55,7 @@ Known data-source map (also in the skill): Covered CA Active Member Profile XLSX
 
 ## 5. What blocks A2 implementation (SDD: spec before code)
 
-Per AGE-68, two decisions remain that AGE-71 could not answer — **resolve these with Eric first, then write `docs/specs/analysis-agent-a2.md`, then implement**:
+Per AGE-68, two decisions remain that AGE-71 could not answer — **resolve these with Eric first, then write `docs/specs/2026-08-25-analysis-agent-a2.md`, then implement**:
 - **Invocation model**: manual, A1-triggered, or both?
 - **Conversation memory scope**: cross-session memory vs. fresh-with-DB-access?
 - (Smaller: A1 interface relationship; article search filters.)
@@ -75,6 +75,6 @@ Also relevant: AGE-62 (financial materiality rubric for triage) is still open �
 1. Read this file, the AGE-71 report postscript, and AGE-68.
 2. Merge PR #24 (skill) if Eric approves.
 3. Working session with Eric: the two open A2 decisions (§5) + optionally seed the AGE-62 rubric from AGE-71.
-4. Write `docs/specs/analysis-agent-a2.md` (new Linear-linked branch per repo policy), encoding the tiered pipeline of §3 with the $3–5/analysis cost budget as a success metric.
+4. Write `docs/specs/2026-08-25-analysis-agent-a2.md` (new Linear-linked branch per repo policy), encoding the tiered pipeline of §3 with the $3–5/analysis cost budget as a success metric.
 5. Implement per spec.
 6. October 2026: re-run AGE-71 against final 2027 rates (consider a scheduled reminder).
