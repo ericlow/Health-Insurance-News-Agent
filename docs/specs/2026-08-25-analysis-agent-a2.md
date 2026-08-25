@@ -147,6 +147,34 @@ messages (not truncated — truncation loses analysis content).
 
 ## Behavioral Specs (Gherkin)
 
+### Lambda A — gate (signature, ping, routing)
+
+```gherkin
+Scenario: Discord endpoint verification ping
+  Given Discord sends an interaction of type 1 (PING)
+  When Lambda A receives it
+  Then Lambda A returns {"type": 1}
+  And Lambda B is not invoked
+
+Scenario: Request with an invalid signature is rejected
+  Given an interaction POST whose Ed25519 signature does not match the raw body
+  When Lambda A verifies the signature
+  Then Lambda A returns HTTP 401
+  And Lambda B is not invoked
+
+Scenario: Request with a valid signature is processed
+  Given an interaction POST with a valid Ed25519 signature
+  When Lambda A verifies the signature
+  Then verification passes and routing proceeds
+
+Scenario: Routing a new analysis vs a continuation
+  Given the input "42 what about the MA book?"
+  When Lambda A inspects the first token
+  Then it routes to continuation for conversation 42
+  And given the input "https://x.com/a how does this affect Anthem?"
+  Then it routes to a new analysis
+```
+
 ### New analysis
 
 ```gherkin
@@ -159,12 +187,25 @@ Scenario: Matt triggers a new analysis with one URL
   And the response includes "Conversation ID: <integer>"
   And the conversation is saved to a2_conversations with the messages array
 
+Scenario: Matt submits multiple URLs
+  Given Matt types /analysis https://a.com/x https://b.com/y compare these for Anthem
+  When Lambda B runs the Claude loop
+  Then fetch_url is called for each URL the agent chooses to fetch
+  And the analysis incorporates content from the fetched pages
+  And the response includes a Conversation ID
+
 Scenario: Generic analysis with no URL
   Given Matt types /analysis what is the exposure if CalOptima enters OC?
   When Lambda B runs the Claude loop
   Then the loop completes without calling fetch_url
   And Lambda B posts an analysis based on reasoning alone
   And the response includes a Conversation ID
+
+Scenario: Tool-call loop hits the guard
+  Given the Claude loop has made 10 fetch_url calls in one turn
+  When the agent attempts an 11th tool call
+  Then the loop stops and forces a final text answer
+  And Lambda B posts whatever analysis was reached
 
 Scenario: A submitted URL is unreachable
   Given Matt types /analysis https://blocked.com/article how does this affect Anthem?
@@ -198,6 +239,16 @@ Scenario: Invalid conversation ID
   When Matt types /analysis 99999 follow-up question
   Then Lambda B posts "No conversation found with ID 99999"
   And no new conversation is created
+```
+
+### Output
+
+```gherkin
+Scenario: Analysis exceeds Discord's message limit
+  Given the final analysis text is longer than 2000 characters
+  When Lambda B posts to Discord
+  Then the text is split into ordered messages each <= 2000 characters
+  And no content is truncated
 ```
 
 ---
