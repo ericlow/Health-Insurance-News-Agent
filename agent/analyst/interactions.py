@@ -1,4 +1,4 @@
-"""A2 Discord interactions handler — walking skeleton (AGE-94).
+"""Analyst Discord interactions handler — walking skeleton (AGE-94).
 
 Lambda Function URL entry point. Verifies Discord's Ed25519 signature, answers
 the verification PING, and returns a stub message for the /analysis command.

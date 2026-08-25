@@ -1,4 +1,4 @@
-"""Tests for the A2 Discord interactions stub (AGE-94).
+"""Tests for the Analyst Discord interactions stub (AGE-94).
 
 Generates a real Ed25519 keypair so signature verification is exercised end to
 end without needing Discord's actual public key.
@@ -7,7 +7,7 @@ import json
 
 from nacl.signing import SigningKey
 
-from agent.a2 import interactions
+from agent.analyst import interactions
 
 
 def _event(body: str, signing_key: SigningKey, timestamp: str = "1700000000"):
