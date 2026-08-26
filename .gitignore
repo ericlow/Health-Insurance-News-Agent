@@ -227,3 +227,7 @@ config.json
 claude_pyrojects.key
 claude_pyrojects.config
 claude_pyrojects.manifest
+# Terraform
+infra/analyst/terraform/terraform.tfvars
+infra/analyst/terraform/*.tfstate
+infra/analyst/terraform/*.tfstate.backup
