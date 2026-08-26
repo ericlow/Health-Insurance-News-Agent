@@ -9,22 +9,27 @@ log = logging.getLogger()
 DISCORD_API = "https://discord.com/api/v10"
 
 
-def parse_discord(event: dict) -> tuple[str, str, int | None]:
+def parse_discord(event: dict) -> tuple[str, str, int | None, str]:
     """Extract Discord interaction fields from the raw Lambda event payload."""
-    return event["interaction_token"], event["input_text"], event.get("conversation_id")
+    return (
+        event["interaction_token"],
+        event["input_text"],
+        event.get("conversation_id"),
+        event.get("channel_id", ""),
+    )
 
 
-def patch_status(token: str, text: str):
-    """Post a status update as a new followup message so history is preserved."""
-    app_id = os.environ["DISCORD_APPLICATION_ID"]
+def post_channel_message(channel_id: str, text: str):
+    """Post a message directly to a Discord channel using the bot token."""
     try:
         requests.post(
-            f"{DISCORD_API}/webhooks/{app_id}/{token}",
+            f"{DISCORD_API}/channels/{channel_id}/messages",
+            headers={"Authorization": f"Bot {os.environ['DISCORD_BOT_TOKEN']}"},
             json={"content": text},
             timeout=10,
         )
     except Exception:
-        log.exception("Failed to post Discord status")
+        log.exception("Failed to post channel message")
 
 
 def send_discord(token: str, content: str):
