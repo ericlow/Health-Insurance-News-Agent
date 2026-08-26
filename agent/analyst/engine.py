@@ -19,7 +19,7 @@ from agent.analyst.tools import fetch_url, search_web
 log = logging.getLogger()
 log.setLevel(logging.INFO)
 
-MAX_TOOL_CALLS = 10
+MAX_TOOL_CALLS = 20
 MODEL = "claude-opus-4-8"
 
 SYSTEM_PROMPT = """You are an expert health insurance industry analyst at Elevance Health \

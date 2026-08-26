@@ -25,7 +25,7 @@ def post_channel_message(channel_id: str, text: str):
         requests.post(
             f"{DISCORD_API}/channels/{channel_id}/messages",
             headers={"Authorization": f"Bot {os.environ['DISCORD_BOT_TOKEN']}"},
-            json={"content": text},
+            json={"content": text, "flags": 4},
             timeout=10,
         )
     except Exception:
@@ -38,9 +38,9 @@ def send_discord(token: str, content: str):
     chunks = split(content)
     base = f"{DISCORD_API}/webhooks/{app_id}/{token}"
     try:
-        requests.patch(f"{base}/messages/@original", json={"content": chunks[0]}, timeout=10)
+        requests.patch(f"{base}/messages/@original", json={"content": chunks[0], "flags": 4}, timeout=10)
         for chunk in chunks[1:]:
-            requests.post(base, json={"content": chunk}, timeout=10)
+            requests.post(base, json={"content": chunk, "flags": 4}, timeout=10)
     except Exception:
         log.exception("Failed to send Discord response")
 
