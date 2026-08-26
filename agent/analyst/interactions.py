@@ -102,6 +102,7 @@ def handler(event, context):
         input_text = next((o["value"] for o in options if o["name"] == "input"), "")
         token = interaction.get("token", "")
         interaction_id = interaction.get("id", "")
+        channel_id = interaction.get("channel_id", "")
 
         parts = input_text.split()
         if parts and parts[0].isdigit():
@@ -109,6 +110,7 @@ def handler(event, context):
             payload = {
                 "mode": "engine",
                 "interaction_token": token,
+                "channel_id": channel_id,
                 "input_text": " ".join(parts[1:]),
                 "conversation_id": conversation_id,
             }
@@ -117,6 +119,7 @@ def handler(event, context):
             payload = {
                 "mode": "engine",
                 "interaction_token": token,
+                "channel_id": channel_id,
                 "input_text": input_text,
             }
 

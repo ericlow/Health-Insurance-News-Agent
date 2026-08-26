@@ -14,7 +14,7 @@ from urllib.parse import urlparse
 import anthropic
 
 from agent.analyst import persistence
-from agent.analyst.discord import parse_discord, patch_status, send_discord
+from agent.analyst.discord import parse_discord, post_channel_message, send_discord
 from agent.analyst.tools import fetch_url, search_web
 
 log = logging.getLogger()
@@ -73,7 +73,7 @@ def _status_text(tool_name: str, tool_input: dict) -> str:
     return f"Running: {tool_name}"
 
 
-def _run_loop(messages: list, token: str) -> str:
+def _run_loop(messages: list, token: str, channel_id: str) -> str:
     """Run the Claude tool-use loop until Claude produces a final text response or hits the tool call limit."""
     client = anthropic.Anthropic()
     total_tool_calls = 0
@@ -100,7 +100,7 @@ def _run_loop(messages: list, token: str) -> str:
                 total_tool_calls += 1
                 status = _status_text(block.name, block.input)
                 log.info("[B] tool call %d: %s", total_tool_calls, status)
-                patch_status(token, status)
+                post_channel_message(channel_id, status)
                 result = _TOOL_DISPATCH[block.name](block.input)
                 result_str = result if isinstance(result, str) else json.dumps(result)
                 log.info("[B] tool result len=%d", len(result_str))
@@ -114,7 +114,7 @@ def _run_loop(messages: list, token: str) -> str:
 
 def handler(event, context):
     """Lambda B entry point: load or create a conversation, run the tool loop, and send the result to Discord."""
-    token, input_text, conversation_id = parse_discord(event)
+    token, input_text, conversation_id, channel_id = parse_discord(event)
 
     db = None
     try:
@@ -130,7 +130,7 @@ def handler(event, context):
             conversation_id = persistence.create_conversation(db, messages)
 
         log.info("[B] start: cid=%s input=%r", conversation_id, input_text[:80])
-        analysis = _run_loop(messages, token)
+        analysis = _run_loop(messages, token, channel_id)
         log.info("[B] analysis complete len=%d", len(analysis))
         persistence.update_conversation(db, conversation_id, messages)
         send_discord(token, f"{analysis}\n\nConversation ID: {conversation_id}")
