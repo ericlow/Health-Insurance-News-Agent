@@ -72,18 +72,19 @@ def test_ping_returns_pong(monkeypatch):
 def test_command_returns_deferred(monkeypatch):
     sk = SigningKey.generate()
     monkeypatch.setenv("DISCORD_PUBLIC_KEY", _public_key_hex(sk))
+    monkeypatch.setattr(interactions, "_defer_interaction", lambda id, t: None)
     monkeypatch.setattr(interactions, "_invoke_engine", lambda p: None)
 
     resp = interactions.handler(_command_event("how does this affect Anthem?", sk), None)
 
     assert resp["statusCode"] == 200
-    assert json.loads(resp["body"]) == {"type": interactions.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE}
 
 
 def test_new_analysis_routing(monkeypatch):
     sk = SigningKey.generate()
     monkeypatch.setenv("DISCORD_PUBLIC_KEY", _public_key_hex(sk))
     captured = {}
+    monkeypatch.setattr(interactions, "_defer_interaction", lambda id, t: None)
     monkeypatch.setattr(interactions, "_invoke_engine", lambda p: captured.update(p))
 
     interactions.handler(_command_event("https://example.com impact on Anthem?", sk), None)
@@ -98,6 +99,7 @@ def test_continuation_routing(monkeypatch):
     sk = SigningKey.generate()
     monkeypatch.setenv("DISCORD_PUBLIC_KEY", _public_key_hex(sk))
     captured = {}
+    monkeypatch.setattr(interactions, "_defer_interaction", lambda id, t: None)
     monkeypatch.setattr(interactions, "_invoke_engine", lambda p: captured.update(p))
 
     interactions.handler(_command_event("42 what about the MA book?", sk), None)

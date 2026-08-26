@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS triage_results (
     discord_no_sent_at  TIMESTAMPTZ
 );
 
-CREATE TABLE IF NOT EXISTS a2_conversations (
+CREATE TABLE IF NOT EXISTS conversations (
     id         SERIAL PRIMARY KEY,
     messages   JSONB NOT NULL DEFAULT '[]',
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),

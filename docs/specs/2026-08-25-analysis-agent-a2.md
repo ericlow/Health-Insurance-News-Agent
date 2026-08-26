@@ -37,7 +37,7 @@ As Matt (Elevance account analyst), I want to drop one or more news article URLs
 ### Data Model
 
 ```yaml
-table: a2_conversations
+table: conversations
 columns:
   id:         SERIAL PRIMARY KEY
   messages:   JSONB NOT NULL DEFAULT '[]'   # full Claude messages array — the only state
@@ -67,7 +67,7 @@ Matt: /analysis <id> <follow-up>
   → Lambda A: verify signature, return {type: 5},
               invoke Lambda B async with {interaction_token, conversation_id, input_text}
   → Lambda B:
-      1. SELECT messages FROM a2_conversations WHERE id = <id>  (404 → error message)
+      1. SELECT messages FROM conversations WHERE id = <id>  (404 → error message)
       2. append {role: user, content: follow-up}
       3. run Claude tool-use loop
       4. UPDATE conversation messages
@@ -205,7 +205,7 @@ Scenario: Matt triggers a new analysis with one URL
   And Lambda B runs the Claude loop, which calls fetch_url on the URL
   And Lambda B posts the analysis inline to the Discord channel
   And the response includes "Conversation ID: <integer>"
-  And the conversation is saved to a2_conversations with the messages array
+  And the conversation is saved to conversations with the messages array
 
 Scenario: Matt submits multiple URLs
   Given Matt types /analysis https://a.com/x https://b.com/y compare these for Anthem
@@ -245,17 +245,17 @@ Scenario: Lambda B fails unexpectedly
 
 ```gherkin
 Scenario: Matt asks a follow-up question
-  Given conversation 42 exists in a2_conversations with prior messages
+  Given conversation 42 exists in conversations with prior messages
   When Matt types /analysis 42 what about the MA book specifically?
   Then Lambda A returns {type: 5} within 3 seconds
   And Lambda B loads conversation 42 from Neon
   And Lambda B appends Matt's follow-up to the message history
   And Lambda B runs the Claude loop with full conversation history
   And Lambda B posts the updated analysis inline to Discord
-  And the updated messages array is saved to a2_conversations
+  And the updated messages array is saved to conversations
 
 Scenario: Invalid conversation ID
-  Given conversation 99999 does not exist in a2_conversations
+  Given conversation 99999 does not exist in conversations
   When Matt types /analysis 99999 follow-up question
   Then Lambda B posts "No conversation found with ID 99999"
   And no new conversation is created

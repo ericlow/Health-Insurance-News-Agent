@@ -7,65 +7,73 @@
 Coming back cold? Read in this order:
 
 1. **This file** — current status and outstanding work.
-2. **`docs/specs/2026-08-25-analysis-agent-a2.md`** — AnalystAgent spec (ready for implementation, AGE-95 done).
-3. **`docs/specs/2026-08-25-analyst-search-web.md`** — search_web spec (ready for implementation, AGE-96 in progress).
-4. **`infra/analyst/README.md`** — deploy steps, env vars, IAM requirement for self-invocation.
-5. **Code:** `agent/analyst/interactions.py` (Lambda A), `agent/analyst/engine.py` (Lambda B), `agent/analyst/tools.py` (fetch_url + search_web).
+2. **`docs/specs/2026-08-25-analysis-agent-a2.md`** — AnalystAgent spec.
+3. **`infra/analyst/README.md`** — deploy steps, env vars, Terraform import instructions.
+4. **Code:** `agent/analyst/interactions.py` (Lambda A), `agent/analyst/engine.py` (Lambda B), `agent/analyst/tools/` (fetch_url + search_web), `agent/analyst/persistence.py`, `agent/analyst/discord.py`.
+5. **`docs/a2/sequence-diagrams.md`** — network and function-level sequence diagrams.
 
 ---
 
 ## Outstanding work — pick up here next session
 
-1. **Jina Reader fallback in `fetch_url`** (AGE-96 branch) — implement step 2 of the fallback chain in `agent/analyst/tools.py`. When standard fetch fails (403, PDF, JS-only), retry via `https://r.jina.ai/<url>` with `JINA_API_KEY`. Validation plan: IRS 1040 PDF (standard = binary, Jina = readable markdown) + a Becker's Payer article (standard = 403/empty, Jina = readable). This is the next thing to implement.
+1. **GitHub Actions deploy workflow** — analyst Lambda is deployed manually via CLI; needs a CI/CD workflow like the news monitor has.
 
-2. **PR for AGE-95** — branch `ericlow/age-95-analystagent-real-engine-deferred-response-claude-tool-loop`. All tests pass. Ready to PR against main.
+2. **Terraform for analyst Lambda** — IAM policy and env vars are currently manual; move to Terraform so infra is reproducible. Files drafted in `infra/analyst/terraform/` (worktree branch `worktree-agent-a9c54340449002e4a`) — needs import + apply.
 
-3. **PR for AGE-96** — worktree `.claude/worktrees/age-96-search-web-spec`, branch `ericlow/age-96-finish-search_web-spec-promote-from-draft-to-ready-for`. Needs Jina fallback (item 1) before PR.
+3. **Lambda A cold-start time** — currently ~2.7s on cold start (close to Discord's 3s limit). Split into two separate Lambda functions (A and B) to eliminate heavy deps from Lambda A and reduce cold-start risk.
 
-4. **Engine wiring after AGE-95 merges** — update `engine.py` to import `fetch_url` and `search_web` from `tools.py`, add `search_web` to the `TOOLS` list.
+4. **Add logging** to `interactions.py` and `engine.py` — no application-level log statements; CloudWatch only shows boto3/anthropic HTTP logs.
 
-5. **Ops (Eric's actions):**
-   - Apply `db/schema.sql` to Neon (`psql $DATABASE_URL -f db/schema.sql`) — creates `a2_conversations`
-   - Add Lambda env vars: `DISCORD_APPLICATION_ID`, `ANTHROPIC_API_KEY`, `DATABASE_URL` to `analyst-handler`
-   - Add IAM inline policy to `analyst-handler` execution role: `lambda:InvokeFunction` on itself (see `infra/analyst/README.md`)
-   - Delete 1am EventBridge rule (still pending from prior session)
-   - Rotate Jina API key (was shared in chat)
+5. **Rotate Jina API key** — key has appeared in chat logs; rotate at jina.ai and update Lambda env var.
 
-6. **Prior carry-overs:** A1 spec review, update TDD/PRD, merge AGE-70 PR.
+6. **PR for AGE-95/96** — branch `ericlow/age-95-analystagent-real-engine-deferred-response-claude-tool-loop`. Ready to PR against main.
+
+7. **Prior carry-overs:** A1 spec review, update TDD/PRD, merge AGE-70 PR.
 
 ---
 
 ## What shipped this session (2026-08-26)
 
-### AGE-95 — AnalystAgent real engine
-- **`agent/analyst/interactions.py`**: returns type 5 deferred, `isdigit()` routing, async self-invokes engine mode via boto3
-- **`agent/analyst/engine.py`**: Claude Opus tool-use loop, `fetch_url`, Neon `a2_conversations` CRUD, Discord PATCH, 10-tool-call guard, >2000-char split
-- **`db/schema.sql`**: added `a2_conversations` table
-- **Tests**: 13 pass (routing, deferred type, signature verification, split, fetch_url, DB round-trip skipped pending local DB)
-- **Branch:** `ericlow/age-95-analystagent-real-engine-deferred-response-claude-tool-loop`
+### AnalystAgent end-to-end — live and working
 
-### AGE-96 — search_web spec + tool
-- **`docs/specs/2026-08-25-analyst-search-web.md`**: promoted draft → ready for implementation; Jina field names confirmed live (`data[].description` → snippet); PDF limitation noted
-- **`agent/analyst/tools.py`**: `fetch_url` + `search_web` (Jina, top 5, `{title, url, snippet}`)
-- **Live validated**: 5 results for "CalOptima Covered California 2027"; fetch_url returned 7,726 chars from caloptima.org
-- **Tests**: 9 pass (7 mocked + 2 live)
-- **Worktree:** `.claude/worktrees/age-96-search-web-spec`
-- **Branch:** `ericlow/age-96-finish-search_web-spec-promote-from-draft-to-ready-for`
+**Architecture refactor:**
+- `engine.py` → orchestration only (`_run_loop`, `handler`)
+- `persistence.py` → Neon CRUD (`conn`, `create/load/update_conversation`)
+- `discord.py` → Discord I/O (`parse_discord`, `send_discord`, `split`)
+- `agent/analyst/tools/` → package with `fetch_url.py` + `search_web.py`
+
+**Key fixes shipped:**
+- `conversations` table (renamed from `a2_conversations`)
+- Jina Reader fallback in `fetch_url` (403/PDF → `r.jina.ai`)
+- `search_web` wired into engine TOOLS + dispatch
+- System prompt: research protocol (search first, read ≥3 URLs, cite sources)
+- `json.dumps` for list tool results (was `str()`)
+- Lambda A: sends type 5 directly to Discord via HTTP, then invokes Lambda B synchronously — no threading, no freeze race
+- Lambda timeout: 600 seconds
+- `dist-info` kept in zip (anthropic SDK needs `importlib.metadata`)
+- Lambda env vars set: `DISCORD_APPLICATION_ID`, `ANTHROPIC_API_KEY`, `DATABASE_URL`, `JINA_API_KEY`
+- IAM self-invocation policy added
+- EventBridge 1am (UTC+8) rule deleted
+- Neon schema applied
+
+**Validated live:** Costco/SCAN Medicare Advantage analysis ran end-to-end — 3+ Anthropic API calls, multi-chunk Discord response, conversation ID returned.
 
 ---
 
 ## Architecture state
 
-Single Lambda `analyst-handler` serves two roles:
-- **Lambda A** (Discord gateway): verify signature → type 5 → async self-invoke with `{"mode": "engine", ...}`
-- **Lambda B** (engine): Claude tool-loop → Neon → Discord PATCH
+```
+Discord → API Gateway → Lambda A (interactions.py)
+                          ├─ POST /interactions/{id}/{token}/callback (type 5, direct HTTP)
+                          └─ boto3 invoke Event → Lambda B (engine.py)
+                                                    ├─ Claude tool loop (search_web + fetch_url)
+                                                    ├─ Neon (persistence.py)
+                                                    └─ Discord PATCH (discord.py)
+```
 
-Tools live in `agent/analyst/tools.py`. Engine imports from there. `search_web` not yet wired into engine (waiting for AGE-95 merge).
-
-Fetch fallback chain (per A2 spec):
-- Step 1: standard `http_utils.get` + BeautifulSoup ✅ implemented
-- Step 2: Jina Reader (`r.jina.ai`) ⬅ next to implement (PDFs + paywalls)
-- Steps 3-4: Wayback / Bing — deferred
+Tools fallback chain:
+- `fetch_url`: standard BS4 → Jina Reader (`r.jina.ai`) ✅
+- `search_web`: Jina Search (`s.jina.ai`) ✅
 
 ---
 
@@ -90,4 +98,4 @@ Fetch fallback chain (per A2 spec):
 
 ---
 
-_Last updated: 2026-08-26 — AGE-95 engine implemented, AGE-96 search_web implemented, Jina fallback next._
+_Last updated: 2026-08-26 — AnalystAgent live end-to-end. First real analysis: Costco/SCAN MA partnership._

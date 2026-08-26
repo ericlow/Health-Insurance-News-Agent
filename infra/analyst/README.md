@@ -24,7 +24,7 @@ NONE` and a public resource policy. API Gateway is the public entrance instead.
 | Lambda `analyst-handler` | Handler `agent.analyst.interactions.handler`, python3.12 / x86_64 | Console + CLI (not yet in Terraform) |
 | API Gateway HTTP API | Public endpoint, `POST /` → Lambda proxy | Terraform (this dir) |
 | Discord app `AgentAnalyst` | Slash command + interactions endpoint | Discord Developer Portal |
-| Neon DB | `a2_conversations` table — conversation state | `db/schema.sql` |
+| Neon DB | `conversations` table — conversation state | `db/schema.sql` |
 | Endpoint URL | `https://6scddpumv6.execute-api.us-west-1.amazonaws.com/` | Terraform output |
 
 ## One-time setup (after AGE-95)
@@ -44,7 +44,8 @@ aws lambda update-function-configuration --function-name analyst-handler \
     DISCORD_PUBLIC_KEY=$DISCORD_PUBLIC_KEY,
     DISCORD_APPLICATION_ID=$DISCORD_APPLICATION_ID,
     ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY,
-    DATABASE_URL=$DATABASE_URL
+    DATABASE_URL=$DATABASE_URL,
+    JINA_API_KEY=$JINA_API_KEY
   }" --region us-west-1
 ```
 
@@ -76,15 +77,21 @@ pip install --platform manylinux2014_x86_64 --implementation cp --python-version
   --only-binary=:all: --target /tmp/analyst-build \
   PyNaCl anthropic psycopg2-binary requests beautifulsoup4 lxml
 
-mkdir -p /tmp/analyst-build/agent/analyst
+mkdir -p /tmp/analyst-build/agent/analyst/tools
 cp agent/__init__.py /tmp/analyst-build/agent/
 cp agent/http_utils.py /tmp/analyst-build/agent/
 cp agent/analyst/__init__.py \
    agent/analyst/interactions.py \
    agent/analyst/engine.py \
+   agent/analyst/persistence.py \
+   agent/analyst/discord.py \
    /tmp/analyst-build/agent/analyst/
+cp agent/analyst/tools/__init__.py \
+   agent/analyst/tools/fetch_url.py \
+   agent/analyst/tools/search_web.py \
+   /tmp/analyst-build/agent/analyst/tools/
 
-( cd /tmp/analyst-build && zip -r -q analyst.zip . -x "*.dist-info/*" )
+( cd /tmp/analyst-build && zip -r -q analyst.zip . )
 
 aws lambda update-function-code --function-name analyst-handler \
   --zip-file fileb:///tmp/analyst-build/analyst.zip --region us-west-1
