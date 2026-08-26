@@ -14,6 +14,19 @@ def parse_discord(event: dict) -> tuple[str, str, int | None]:
     return event["interaction_token"], event["input_text"], event.get("conversation_id")
 
 
+def patch_status(token: str, text: str):
+    """Patch the deferred message in place with a short status update."""
+    app_id = os.environ["DISCORD_APPLICATION_ID"]
+    try:
+        requests.patch(
+            f"{DISCORD_API}/webhooks/{app_id}/{token}/messages/@original",
+            json={"content": text},
+            timeout=10,
+        )
+    except Exception:
+        log.exception("Failed to patch Discord status")
+
+
 def send_discord(token: str, content: str):
     """Send content back to Discord, patching the deferred reply and posting overflow chunks."""
     app_id = os.environ["DISCORD_APPLICATION_ID"]
