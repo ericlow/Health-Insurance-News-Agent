@@ -40,6 +40,44 @@ the Discord Developer Portal if lost. The endpoint URL is a Terraform output (re
 
 ---
 
+## Next spec — the engine + research behavior (DECIDE HERE, then write)
+
+Where we left off: individual tools are now spec'd — `fetch_url`
+(`docs/specs/2026-08-25-analysis-agent-a2.md`) and `search_web`
+(`docs/specs/2026-08-25-analyst-search-web.md`, Jina). The next spec is **not another
+tool.**
+
+**Key insight — the research workflow is emergent behavior, not a component.**
+"Do a search → explore the hit results → summarize → analyze" is simply what the agent
+*does* once the engine runs the Claude tool-loop with `fetch_url` + `search_web` in it:
+
+```
+search_web("...")  →  read the 5 snippets  →  fetch_url on the 2-3 promising ones
+  →  read those bodies  →  synthesize a confidence-tagged analysis
+```
+
+Nobody codes that sequence — Opus decides it turn by turn. So there's no "workflow"
+component to build; there are two things left to spec:
+
+1. **The engine (AGE-95)** — the tool-loop machinery: deferred Discord response
+   (type 5) + run the Opus loop + save conversation state to Neon. This is the
+   prerequisite; nothing runs without it, and it's the biggest remaining piece. Much of
+   it is already described in the AnalystAgent V1 spec — the engine spec may just be its
+   implementation plan or a thin extension.
+2. **The system prompt** — what makes the research *good* vs. flailing: how to phrase
+   searches, how many hits to explore, when to stop, weighting primary sources over
+   blogs, confidence tagging, and when to ask Matt.
+
+**Open decision to make first next session:** fold the "search/explore/summarize/
+analyze" research behavior *into* the engine spec (as its Gherkin acceptance criteria +
+a system-prompt section), or pull it out as a standalone "research behavior" spec?
+- **Recommendation:** fold it into the engine spec. Write the workflow as Gherkin
+  ("given an event with no URL, the agent searches, fetches the top hits, and produces a
+  tagged analysis") plus the system-prompt section. The behavior rides on the machinery
+  that executes it, so keeping them in one spec avoids drift.
+
+---
+
 ## AnalystAgent — walking skeleton LIVE (2026-08-25)
 
 `/analysis` works end-to-end: Discord → API Gateway → Lambda → response
