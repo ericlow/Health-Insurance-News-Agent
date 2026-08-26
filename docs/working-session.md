@@ -2,6 +2,28 @@
 
 ---
 
+## How to resume this later (where everything lives)
+
+Coming back cold? Read in this order:
+
+1. **This file** — current status, outstanding work, and the AWS deployment narrative below.
+2. **`docs/specs/2026-08-25-analysis-agent-a2.md`** — the AnalystAgent spec: what it is,
+   every design decision + rationale, Gherkin scenarios, what's V1 vs deferred.
+3. **`docs/a2/`** — the design *discussion* history behind the spec (`Aug_24_agent_discussion.md`
+   has the decisions and the two still-open questions; `trd.md`/`prd.md` the fuller design;
+   `live-simulation-aug24.md` the CalOptima dry-run; `opus-review-brief.md` the review).
+4. **`infra/analyst/README.md`** — how to redeploy code + infra, and the Discord setup.
+5. **Code:** `agent/analyst/` (handler + command registration), `tests/test_analyst_interactions.py`.
+   **Infra:** `infra/analyst/` (Terraform). **History:** PRs #44 (stub), #45 (Terraform).
+6. **Assistant memory** `project-lambda-url-block` — the Function-URL-blocked lesson (loads
+   automatically in a new session).
+
+That set is enough to reconstruct both *what we built* and *why*. The one thing not in git:
+live secrets/IDs (`.env`, gitignored) — Discord app ID, bot token, guild ID. Recoverable from
+the Discord Developer Portal if lost. The endpoint URL is a Terraform output (reproducible).
+
+---
+
 ## Outstanding work — pick up here next session
 
 1. **AnalystAgent real engine** (create AGE-95) — replace the stub with the deferred
