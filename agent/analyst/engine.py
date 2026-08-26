@@ -9,11 +9,12 @@ Invoked asynchronously by Lambda A (interactions.handler) with:
 """
 import json
 import logging
+from urllib.parse import urlparse
 
 import anthropic
 
 from agent.analyst import persistence
-from agent.analyst.discord import parse_discord, send_discord
+from agent.analyst.discord import parse_discord, patch_status, send_discord
 from agent.analyst.tools import fetch_url, search_web
 
 log = logging.getLogger()
@@ -63,7 +64,16 @@ _TOOL_DISPATCH = {
 }
 
 
-def _run_loop(messages: list) -> str:
+def _status_text(tool_name: str, tool_input: dict) -> str:
+    if tool_name == "search_web":
+        return f'Searching: "{tool_input.get("query", "")}"'
+    if tool_name == "fetch_url":
+        url = tool_input.get("url", "")
+        return f"Reading: {urlparse(url).netloc or url}"
+    return f"Running: {tool_name}"
+
+
+def _run_loop(messages: list, token: str) -> str:
     """Run the Claude tool-use loop until Claude produces a final text response or hits the tool call limit."""
     client = anthropic.Anthropic()
     total_tool_calls = 0
@@ -88,11 +98,16 @@ def _run_loop(messages: list) -> str:
         for block in resp.content:
             if block.type == "tool_use":
                 total_tool_calls += 1
+                status = _status_text(block.name, block.input)
+                log.info("[B] tool call %d: %s", total_tool_calls, status)
+                patch_status(token, status)
                 result = _TOOL_DISPATCH[block.name](block.input)
+                result_str = result if isinstance(result, str) else json.dumps(result)
+                log.info("[B] tool result len=%d", len(result_str))
                 tool_results.append({
                     "type": "tool_result",
                     "tool_use_id": block.id,
-                    "content": result if isinstance(result, str) else json.dumps(result),
+                    "content": result_str,
                 })
         messages.append({"role": "user", "content": tool_results})
 
@@ -114,7 +129,9 @@ def handler(event, context):
             messages = [{"role": "user", "content": input_text}]
             conversation_id = persistence.create_conversation(db, messages)
 
-        analysis = _run_loop(messages)
+        log.info("[B] start: cid=%s input=%r", conversation_id, input_text[:80])
+        analysis = _run_loop(messages, token)
+        log.info("[B] analysis complete len=%d", len(analysis))
         persistence.update_conversation(db, conversation_id, messages)
         send_discord(token, f"{analysis}\n\nConversation ID: {conversation_id}")
     except Exception as e:

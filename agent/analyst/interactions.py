@@ -79,6 +79,7 @@ def _invoke_engine(payload: dict):
 def handler(event, context):
     # Engine mode: async self-invocation from Lambda A
     if event.get("mode") == "engine":
+        log.info("[A] engine mode → delegating")
         from agent.analyst import engine
         return engine.handler(event, context)
 
@@ -88,6 +89,7 @@ def handler(event, context):
     body = _raw_body(event)
 
     if not _verify_signature(os.environ["DISCORD_PUBLIC_KEY"], signature, timestamp, body):
+        log.warning("[A] invalid signature")
         return _response(401, {"error": "invalid request signature"})
 
     interaction = json.loads(body)
@@ -103,21 +105,26 @@ def handler(event, context):
 
         parts = input_text.split()
         if parts and parts[0].isdigit():
+            conversation_id = int(parts[0])
             payload = {
                 "mode": "engine",
                 "interaction_token": token,
                 "input_text": " ".join(parts[1:]),
-                "conversation_id": int(parts[0]),
+                "conversation_id": conversation_id,
             }
         else:
+            conversation_id = None
             payload = {
                 "mode": "engine",
                 "interaction_token": token,
                 "input_text": input_text,
             }
 
+        log.info("[A] command: cid=%s input=%r", conversation_id, input_text[:80])
         _defer_interaction(interaction_id, token)
+        log.info("[A] deferred interaction %s", interaction_id)
         _invoke_engine(payload)
+        log.info("[A] engine invoked async")
         return _response(200, {})
 
     return _response(200, {"type": PONG})
