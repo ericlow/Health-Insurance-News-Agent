@@ -32,6 +32,18 @@ def post_channel_message(channel_id: str, text: str):
         log.exception("Failed to post channel message")
 
 
+def delete_original(token: str):
+    """Delete the deferred @original placeholder message."""
+    app_id = os.environ["DISCORD_APPLICATION_ID"]
+    try:
+        requests.delete(
+            f"{DISCORD_API}/webhooks/{app_id}/{token}/messages/@original",
+            timeout=10,
+        )
+    except Exception:
+        log.exception("Failed to delete original message")
+
+
 def send_discord(token: str, content: str):
     """Send content back to Discord, patching the deferred reply and posting overflow chunks."""
     app_id = os.environ["DISCORD_APPLICATION_ID"]
