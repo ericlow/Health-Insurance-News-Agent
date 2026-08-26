@@ -94,9 +94,29 @@ returns:
   on failure: {"error": "<status or reason>"}   # Claude decides how to proceed in-loop
 ```
 
-The tool wraps the existing `agent.http_utils.get` (realistic User-Agent, retry on
-5xx/429). No Jina / Wayback fallback chain in V1 — a blocked URL returns an error
-string and Claude notes the gap. (The full 403 retry chain is a V2 item.)
+**Standard path.** The tool wraps the existing `agent.http_utils.get` — a realistic
+`User-Agent` header and retry on 5xx/429 — then extracts readable text with
+BeautifulSoup. This handles the large majority of newsroom / trade-press pages.
+
+**Fallback chain (for blocked or unreachable URLs).** When the standard fetch fails
+(403, Cloudflare challenge, JS-only page, 404), `fetch_url` walks this chain
+*internally* before giving up — the agent sees either clean text or a final
+structured error, never the intermediate attempts:
+
+| Step | Method | Handles | Notes |
+|---|---|---|---|
+| 1 | Realistic `User-Agent` (standard path) | simple bot checks | always tried first |
+| 2 | **Jina Reader** (`r.jina.ai/<url>`) | JS-rendered pages, most Cloudflare | needs `JINA_API_KEY`; confirmed against Becker's Payer |
+| 3 | Wayback Machine (`web.archive.org/web/*/<url>`) | most trade press | snapshot may be hours behind |
+| 4 | Bing cache | last automated option | |
+| 5 | Structured failure | — | returns `{"error": ...}`; Claude notes the gap and continues |
+
+**V1 vs. next.** V1 ships **step 1 + step 5** (standard fetch, else structured
+error). Steps 2–4 (Jina → Wayback → Bing) are the specified fallback to add
+immediately after the loop is proven — the chain is designed here so it slots in
+without redesign. Jina is the highest-value addition (Becker's and similar paywalled
+trade press are otherwise unreachable). See TRD §4.2 for the full rationale and the
+`JINA_API_KEY` handling.
 
 ### Agent Loop
 
@@ -293,7 +313,7 @@ Manual/integration (verified in Discord):
 
 - Regulatory rules layer / `lookup_regulatory_rules` tool — **V1 will not catch the SB-260 class of miss**
 - `search_web`, `search_articles` tools
-- 403 retry chain (Jina / Wayback / Bing) — blocked URL just returns an error
+- Fallback chain steps 2–4 (Jina / Wayback / Bing) — **specified** (see The `fetch_url` Tool) but not in the V1 build; V1 blocked URL returns a structured error. Add Jina first.
 - Human-readable nicknames; vector search / fuzzy conversation retrieval
 - Finalize step (clean consolidated artifact)
 - Discord threads
