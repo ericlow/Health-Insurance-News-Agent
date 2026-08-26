@@ -1,0 +1,17 @@
+# Copy this to terraform.tfvars and fill in real values.
+# terraform.tfvars is gitignored — never commit real secrets.
+
+discord_public_key     = "your-discord-public-key-hex"
+discord_application_id = "your-discord-application-id"
+discord_bot_token      = "your-discord-bot-token"
+anthropic_api_key      = "sk-ant-..."
+database_url           = "postgresql://user:password@host/dbname?sslmode=require"
+jina_api_key           = "jina_..."
+
+# Optional overrides (defaults match the deployed function):
+# region              = "us-west-1"
+# account_id          = "494883819786"
+# function_name       = "analyst-handler"
+# execution_role_name = "analyst-handler-role-d7xn9ce7"
+# timeout             = 600
+# memory_size         = 128
