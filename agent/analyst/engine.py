@@ -13,7 +13,7 @@ import logging
 import anthropic
 
 from agent.analyst import persistence
-from agent.analyst.discord import parse_discord, post_channel_message, send_discord
+from agent.analyst.discord import delete_original, parse_discord, post_channel_message, send_discord, split
 from agent.analyst.tools import fetch_url, search_web
 
 log = logging.getLogger()
@@ -86,7 +86,10 @@ def _run_loop(messages: list, token: str, channel_id: str) -> str:
     total_tool_calls = 0
 
     while True:
-        kwargs = {"tools": TOOLS} if total_tool_calls < MAX_TOOL_CALLS else {}
+        at_limit = total_tool_calls >= MAX_TOOL_CALLS
+        if at_limit:
+            post_channel_message(channel_id, f"Reached research limit ({MAX_TOOL_CALLS} tool calls). Writing analysis...")
+        kwargs = {"tools": TOOLS} if not at_limit else {}
         resp = client.messages.create(
             model=MODEL,
             max_tokens=4096,
@@ -157,11 +160,13 @@ def handler(event, context):
             conversation_id = persistence.create_conversation(db, messages)
 
         log.info("[B] start: cid=%s input=%r", conversation_id, input_text[:80])
-        send_discord(token, f"Thinking: {input_text}")
+        post_channel_message(channel_id, f"**Analyzing:** {input_text}")
         analysis = _run_loop(messages, token, channel_id)
         log.info("[B] analysis complete len=%d", len(analysis))
         persistence.update_conversation(db, conversation_id, messages)
-        send_discord(token, f"{analysis}\n\nConversation ID: {conversation_id}")
+        delete_original(token)
+        for chunk in split(f"{analysis}\n\nConversation ID: {conversation_id}"):
+            post_channel_message(channel_id, chunk)
     except Exception as e:
         log.exception("Engine failed: %s", e)
         send_discord(token, f"Analysis failed: {e}")
