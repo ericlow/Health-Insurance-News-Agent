@@ -15,16 +15,16 @@ def parse_discord(event: dict) -> tuple[str, str, int | None]:
 
 
 def patch_status(token: str, text: str):
-    """Patch the deferred message in place with a short status update."""
+    """Post a status update as a new followup message so history is preserved."""
     app_id = os.environ["DISCORD_APPLICATION_ID"]
     try:
-        requests.patch(
-            f"{DISCORD_API}/webhooks/{app_id}/{token}/messages/@original",
+        requests.post(
+            f"{DISCORD_API}/webhooks/{app_id}/{token}",
             json={"content": text},
             timeout=10,
         )
     except Exception:
-        log.exception("Failed to patch Discord status")
+        log.exception("Failed to post Discord status")
 
 
 def send_discord(token: str, content: str):
