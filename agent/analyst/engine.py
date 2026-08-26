@@ -9,7 +9,6 @@ Invoked asynchronously by Lambda A (interactions.handler) with:
 """
 import json
 import logging
-from urllib.parse import urlparse
 
 import anthropic
 
@@ -65,12 +64,17 @@ _TOOL_DISPATCH = {
 
 
 def _search_result_summary(result_str: str) -> str:
-    """Format search results as a readable list of titles + URLs."""
     try:
         results = json.loads(result_str)
         if not isinstance(results, list):
             return ""
-        lines = [f"- [{r.get('title', r.get('url', ''))}]({r.get('url', '')})" for r in results[:5]]
+        lines = []
+        for r in results[:5]:
+            line = f"- [{r.get('title', r.get('url', ''))}]({r.get('url', '')})"
+            meta = " — ".join(filter(None, [r.get("date", ""), r.get("snippet", "")]))
+            if meta:
+                line += f"\n  {meta}"
+            lines.append(line)
         return "\n".join(lines)
     except (json.JSONDecodeError, AttributeError):
         return ""
@@ -110,7 +114,7 @@ def _run_loop(messages: list, token: str, channel_id: str) -> str:
                     status = f'Searching: "{block.input.get("query", "")}"'
                 elif block.name == "fetch_url":
                     url = block.input.get("url", "")
-                    status = f"Reading: {urlparse(url).netloc or url}"
+                    status = f"Reading: {url}"
                 else:
                     status = f"Running: {block.name}"
                 log.info("[B] tool call %d: %s", total_tool_calls, status)
@@ -125,7 +129,7 @@ def _run_loop(messages: list, token: str, channel_id: str) -> str:
                     if summary:
                         post_channel_message(channel_id, f"Found:\n{summary}")
                 elif block.name == "fetch_url":
-                    post_channel_message(channel_id, f"Retrieved {len(result_str):,} chars from {urlparse(block.input.get('url','')).netloc}")
+                    post_channel_message(channel_id, f"Retrieved {len(result_str):,} chars")
 
                 tool_results.append({
                     "type": "tool_result",
@@ -153,6 +157,7 @@ def handler(event, context):
             conversation_id = persistence.create_conversation(db, messages)
 
         log.info("[B] start: cid=%s input=%r", conversation_id, input_text[:80])
+        send_discord(token, f"Thinking: {input_text}")
         analysis = _run_loop(messages, token, channel_id)
         log.info("[B] analysis complete len=%d", len(analysis))
         persistence.update_conversation(db, conversation_id, messages)
