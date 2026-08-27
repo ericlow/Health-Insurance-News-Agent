@@ -14,7 +14,7 @@ import re
 import anthropic
 
 from agent.analyst import persistence
-from agent.analyst.discord import delete_original, parse_discord, post_channel_message, send_discord, split
+from agent.analyst.discord import create_thread, delete_original, parse_discord, post_channel_message, send_discord, split
 from agent.analyst.tools import fetch_url, lookup_regulatory_rules, search_web
 
 log = logging.getLogger()
@@ -131,16 +131,53 @@ def _cite(analysis: str, fetched_urls: list[str]) -> str:
     return annotated + footer
 
 
-def _run_loop(messages: list, token: str, channel_id: str) -> str:
-    """Run the Claude tool-use loop until Claude produces a final text response or hits the tool call limit."""
+FACT_CHECK_SYSTEM_PROMPT = """You are an independent fact-checker reviewing an analyst's draft. \
+You did not write this analysis and have no stake in it being correct. Your job is to disprove it.
+
+Post your verification work to Discord as you go. Do not work silently. \
+Every check — confirmed, corrected, or removed — gets a note in the thread.
+
+Step 1 — URL verification: fetch each URL in the source list. If a URL is \
+unreachable or returns empty/error content, post immediately:
+  "⚠ URL unreachable: [url] — citation dropped"
+and treat any claim citing it as unverified.
+
+Step 2 — Claim verification: for every factual claim — numeric and prose — search \
+for primary sources. For each claim post your reasoning:
+  - Confirmed: "✓ [claim] — confirmed by [source]"
+  - Corrected: "✗ [claim] — wrong. Correct: [X] per [source]. Updated in analysis."
+  - Removed: "✗ [claim] — could not verify. Removed from analysis."
+
+Pay particular attention to:
+- Specific numbers: membership counts, percentages, revenue figures, dates
+- Causal claims: "X gives Y an advantage Z cannot replicate"
+- Absolutes: "cannot," "will," "only"
+- Market definitions and geographic scope
+
+If you find no issues, post: "✓ All findings verified."
+
+After verification, rewrite the analysis incorporating all corrections and removals. \
+Return the corrected analysis as your final text response."""
+
+
+def _run_loop(messages: list, token: str, channel_id: str) -> tuple[str, list[str], str | None]:
+    """Run the Claude tool-use loop. Returns (analysis, fetched_urls, last_message_id)."""
     client = anthropic.Anthropic()
     total_tool_calls = 0
     fetched_urls: list[str] = []
+    seen_urls: set[str] = set()
+    last_message_id: str | None = None
+
+    def _post(cid: str, text: str) -> None:
+        nonlocal last_message_id
+        mid = post_channel_message(cid, text)
+        if mid is not None:
+            last_message_id = mid
 
     while True:
         at_limit = total_tool_calls >= MAX_TOOL_CALLS
         if at_limit:
-            post_channel_message(channel_id, f"Reached research limit ({MAX_TOOL_CALLS} tool calls). Writing analysis...")
+            _post(channel_id, f"Reached research limit ({MAX_TOOL_CALLS} tool calls). Writing analysis...")
         kwargs = {"tools": TOOLS} if not at_limit else {}
         resp = client.messages.create(
             model=MODEL,
@@ -155,12 +192,12 @@ def _run_loop(messages: list, token: str, channel_id: str) -> str:
 
         if resp.stop_reason != "tool_use":
             text = next((b["text"] for b in content_blocks if b.get("type") == "text"), "")
-            return _cite(text, fetched_urls)
+            return text, fetched_urls, last_message_id
 
         # Post any reasoning text Claude emitted alongside the tool calls.
         for block in content_blocks:
             if block.get("type") == "text" and block.get("text", "").strip():
-                post_channel_message(channel_id, block["text"].strip())
+                _post(channel_id, block["text"].strip())
 
         tool_results = []
         for block in resp.content:
@@ -170,12 +207,14 @@ def _run_loop(messages: list, token: str, channel_id: str) -> str:
                     status = f'Searching: "{block.input.get("query", "")}"'
                 elif block.name == "fetch_url":
                     url = block.input.get("url", "")
-                    fetched_urls.append(url)
+                    if url not in seen_urls:
+                        seen_urls.add(url)
+                        fetched_urls.append(url)
                     status = f"Reading: {url}"
                 else:
                     status = f"Running: {block.name}"
                 log.info("[B] tool call %d: %s", total_tool_calls, status)
-                post_channel_message(channel_id, status)
+                _post(channel_id, status)
 
                 result = _TOOL_DISPATCH[block.name](block.input)
                 result_str = result if isinstance(result, str) else json.dumps(result)
@@ -184,9 +223,66 @@ def _run_loop(messages: list, token: str, channel_id: str) -> str:
                 if block.name == "search_web":
                     summary = _search_result_summary(result_str)
                     if summary:
-                        post_channel_message(channel_id, f"Found:\n{summary}")
+                        _post(channel_id, f"Found:\n{summary}")
                 elif block.name == "fetch_url":
-                    post_channel_message(channel_id, f"Retrieved {len(result_str):,} chars")
+                    _post(channel_id, f"Retrieved {len(result_str):,} chars")
+
+                tool_results.append({
+                    "type": "tool_result",
+                    "tool_use_id": block.id,
+                    "content": result_str,
+                })
+        messages.append({"role": "user", "content": tool_results})
+
+
+def _fact_check(draft: str, fetched_urls: list[str], thread_id: str, channel_id: str) -> tuple[str, list[str]]:
+    """Run the fact-checker tool loop. Returns (corrected_analysis, all_fetched_urls)."""
+    client = anthropic.Anthropic()
+    total_tool_calls = 0
+    fc_urls: list[str] = []
+    seen_urls: set[str] = set(fetched_urls)
+
+    numbered = "\n".join(f"({i + 1}) {url}" for i, url in enumerate(fetched_urls))
+    messages = [{"role": "user", "content": (
+        f"Here is the draft analysis:\n\n{draft}\n\n"
+        f"Analyst sources:\n{numbered}\n\nBegin verification."
+    )}]
+
+    while True:
+        at_limit = total_tool_calls >= MAX_TOOL_CALLS
+        kwargs = {"tools": TOOLS} if not at_limit else {}
+        resp = client.messages.create(
+            model=MODEL,
+            max_tokens=4096,
+            system=FACT_CHECK_SYSTEM_PROMPT,
+            messages=messages,
+            **kwargs,
+        )
+
+        content_blocks = [b.model_dump() for b in resp.content]
+        messages.append({"role": "assistant", "content": content_blocks})
+
+        if resp.stop_reason != "tool_use":
+            text = next((b["text"] for b in content_blocks if b.get("type") == "text"), draft)
+            return text, fetched_urls + fc_urls
+
+        for block in content_blocks:
+            if block.get("type") == "text" and block.get("text", "").strip():
+                post_channel_message(thread_id, block["text"].strip())
+
+        tool_results = []
+        for block in resp.content:
+            if block.type == "tool_use":
+                total_tool_calls += 1
+                if block.name == "fetch_url":
+                    url = block.input.get("url", "")
+                    if url not in seen_urls:
+                        seen_urls.add(url)
+                        fc_urls.append(url)
+                log.info("[FC] tool call %d: %s", total_tool_calls, block.name)
+
+                result = _TOOL_DISPATCH[block.name](block.input)
+                result_str = result if isinstance(result, str) else json.dumps(result)
 
                 tool_results.append({
                     "type": "tool_result",
@@ -215,11 +311,23 @@ def handler(event, context):
 
         log.info("[B] start: cid=%s input=%r", conversation_id, input_text[:80])
         post_channel_message(channel_id, f"**Analyzing:** {input_text}")
-        analysis = _run_loop(messages, token, channel_id)
-        log.info("[B] analysis complete len=%d", len(analysis))
+        analysis, fetched_urls, last_msg_id = _run_loop(messages, token, channel_id)
+        log.info("[B] analysis complete len=%d urls=%d last_msg=%s", len(analysis), len(fetched_urls), last_msg_id)
         persistence.update_conversation(db, conversation_id, messages)
+
+        thread_id = create_thread(channel_id, last_msg_id, input_text[:100]) if last_msg_id else None
+        if thread_id:
+            for chunk in split(f"**Draft analysis:**\n\n{analysis}"):
+                post_channel_message(thread_id, chunk)
+
+        effective_thread = thread_id or channel_id
+        post_channel_message(effective_thread, "Verifying findings...")
+        final_analysis, all_urls = _fact_check(analysis, fetched_urls, effective_thread, channel_id)
+        log.info("[FC] complete len=%d urls=%d", len(final_analysis), len(all_urls))
+
+        cited = _cite(final_analysis, all_urls)
         delete_original(token)
-        for chunk in split(f"{analysis}\n\nConversation ID: {conversation_id}"):
+        for chunk in split(f"{cited}\n\nConversation ID: {conversation_id}"):
             post_channel_message(channel_id, chunk)
     except Exception as e:
         log.exception("Engine failed: %s", e)

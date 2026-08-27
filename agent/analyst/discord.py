@@ -19,17 +19,40 @@ def parse_discord(event: dict) -> tuple[str, str, int | None, str]:
     )
 
 
-def post_channel_message(channel_id: str, text: str):
-    """Post a message directly to a Discord channel using the bot token."""
+def post_channel_message(channel_id: str, text: str) -> str | None:
+    """Post a message directly to a Discord channel using the bot token. Returns the message snowflake ID or None."""
     try:
-        requests.post(
+        resp = requests.post(
             f"{DISCORD_API}/channels/{channel_id}/messages",
             headers={"Authorization": f"Bot {os.environ['DISCORD_BOT_TOKEN']}"},
             json={"content": text, "flags": 4},
             timeout=10,
         )
+        try:
+            return resp.json().get("id")
+        except Exception:
+            return None
     except Exception:
         log.exception("Failed to post channel message")
+        return None
+
+
+def create_thread(channel_id: str, message_id: str, name: str) -> str | None:
+    """Create a Discord thread on a specific message. Returns thread_id or None on failure."""
+    try:
+        resp = requests.post(
+            f"{DISCORD_API}/channels/{channel_id}/messages/{message_id}/threads",
+            headers={"Authorization": f"Bot {os.environ['DISCORD_BOT_TOKEN']}"},
+            json={"name": name[:100], "auto_archive_duration": 1440},
+            timeout=10,
+        )
+        try:
+            return resp.json().get("id")
+        except Exception:
+            return None
+    except Exception:
+        log.exception("Failed to create thread")
+        return None
 
 
 def delete_original(token: str):
