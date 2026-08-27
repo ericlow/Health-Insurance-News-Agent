@@ -7,6 +7,7 @@ on:
       - 'agent/analyst/**'
       - 'agent/__init__.py'
       - 'agent/http_utils.py'
+      - 'docs/regulatory-rules.md'
   workflow_dispatch:
 
 jobs:
@@ -28,12 +29,15 @@ jobs:
       - name: Package
         run: |
           mkdir -p package/agent/analyst/tools
+          mkdir -p package/docs
           cp agent/__init__.py agent/http_utils.py package/agent/
           cp agent/analyst/__init__.py agent/analyst/interactions.py \
              agent/analyst/engine.py agent/analyst/persistence.py \
              agent/analyst/discord.py package/agent/analyst/
           cp agent/analyst/tools/__init__.py agent/analyst/tools/fetch_url.py \
+             agent/analyst/tools/lookup_regulatory_rules.py \
              agent/analyst/tools/search_web.py package/agent/analyst/tools/
+          cp docs/regulatory-rules.md package/docs/regulatory-rules.md
           cd package && zip -r ../analyst.zip .
 
       - name: Deploy
