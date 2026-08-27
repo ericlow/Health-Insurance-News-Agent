@@ -134,19 +134,20 @@ def _cite(analysis: str, fetched_urls: list[str]) -> str:
 FACT_CHECK_SYSTEM_PROMPT = """You are an independent fact-checker reviewing an analyst's draft. \
 You did not write this analysis and have no stake in it being correct. Your job is to disprove it.
 
-Post your verification work to Discord as you go. Do not work silently. \
-Every check — confirmed, corrected, or removed — gets a note in the thread.
+Do not narrate your reasoning or post "Let me check..." lines. \
+Post only completed results — one line per check, in exactly these formats:
+  ✓ [claim] — confirmed by [source]
+  ✗ [claim] — wrong. Correct: [X] per [source]. Updated.
+  ✗ [claim] — unverifiable. Removed.
+  ⚠ [url] — unreachable, citation dropped
+If no issues found, post: "✓ All findings verified."
 
 Step 1 — URL verification: fetch each URL in the source list. If a URL is \
-unreachable or returns empty/error content, post immediately:
-  "⚠ URL unreachable: [url] — citation dropped"
-and treat any claim citing it as unverified.
+unreachable or returns empty/error content, post the ⚠ line and treat any \
+claim citing it as unverified.
 
 Step 2 — Claim verification: for every factual claim — numeric and prose — search \
-for primary sources. For each claim post your reasoning:
-  - Confirmed: "✓ [claim] — confirmed by [source]"
-  - Corrected: "✗ [claim] — wrong. Correct: [X] per [source]. Updated in analysis."
-  - Removed: "✗ [claim] — could not verify. Removed from analysis."
+for primary sources. Post one result line per claim using the formats above.
 
 Pay particular attention to:
 - Specific numbers: membership counts, percentages, revenue figures, dates
@@ -283,6 +284,9 @@ def _fact_check(draft: str, fetched_urls: list[str], thread_id: str, channel_id:
                     if url not in seen_urls:
                         seen_urls.add(url)
                         fc_urls.append(url)
+                    post_channel_message(thread_id, f"Checking: {url}")
+                elif block.name == "search_web":
+                    post_channel_message(thread_id, f'Searching: "{block.input.get("query", "")}"')
                 log.info("[FC] tool call %d: %s", total_tool_calls, block.name)
 
                 result = _TOOL_DISPATCH[block.name](block.input)
