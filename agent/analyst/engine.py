@@ -9,6 +9,7 @@ Invoked asynchronously by Lambda A (interactions.handler) with:
 """
 import json
 import logging
+import re
 
 import anthropic
 
@@ -106,10 +107,35 @@ def _search_result_summary(result_str: str) -> str:
         return ""
 
 
+def _cite(analysis: str, fetched_urls: list[str]) -> str:
+    """Add inline citation numbers to the analysis and append a sources footer."""
+    if not fetched_urls:
+        return analysis
+    numbered = "\n".join(f"({i + 1}) {url}" for i, url in enumerate(fetched_urls))
+    resp = anthropic.Anthropic().messages.create(
+        model=MODEL,
+        max_tokens=2048,
+        messages=[{"role": "user", "content": (
+            "Add inline citation numbers to this analysis using the numbered sources below. "
+            "Insert (1), (2), etc. immediately after the claim each source supports. "
+            "Only cite sources that directly support a specific claim. "
+            "Return only the annotated analysis text, unchanged except for added citation numbers.\n\n"
+            f"Analysis:\n{analysis}\n\nSources:\n{numbered}"
+        )}],
+    )
+    annotated = resp.content[0].text.strip()
+    used = sorted({int(m) for m in re.findall(r'\((\d+)\)', annotated) if 1 <= int(m) <= len(fetched_urls)})
+    if not used:
+        return analysis
+    footer = "\n\n**Sources**\n" + "\n".join(f"({n}) <{fetched_urls[n - 1]}>" for n in used)
+    return annotated + footer
+
+
 def _run_loop(messages: list, token: str, channel_id: str) -> str:
     """Run the Claude tool-use loop until Claude produces a final text response or hits the tool call limit."""
     client = anthropic.Anthropic()
     total_tool_calls = 0
+    fetched_urls: list[str] = []
 
     while True:
         at_limit = total_tool_calls >= MAX_TOOL_CALLS
@@ -128,7 +154,8 @@ def _run_loop(messages: list, token: str, channel_id: str) -> str:
         messages.append({"role": "assistant", "content": content_blocks})
 
         if resp.stop_reason != "tool_use":
-            return next((b["text"] for b in content_blocks if b.get("type") == "text"), "")
+            text = next((b["text"] for b in content_blocks if b.get("type") == "text"), "")
+            return _cite(text, fetched_urls)
 
         # Post any reasoning text Claude emitted alongside the tool calls.
         for block in content_blocks:
@@ -143,6 +170,7 @@ def _run_loop(messages: list, token: str, channel_id: str) -> str:
                     status = f'Searching: "{block.input.get("query", "")}"'
                 elif block.name == "fetch_url":
                     url = block.input.get("url", "")
+                    fetched_urls.append(url)
                     status = f"Reading: {url}"
                 else:
                     status = f"Running: {block.name}"
