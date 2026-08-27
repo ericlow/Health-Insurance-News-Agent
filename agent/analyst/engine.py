@@ -14,7 +14,7 @@ import anthropic
 
 from agent.analyst import persistence
 from agent.analyst.discord import delete_original, parse_discord, post_channel_message, send_discord, split
-from agent.analyst.tools import fetch_url, search_web
+from agent.analyst.tools import fetch_url, lookup_regulatory_rules, search_web
 
 log = logging.getLogger()
 log.setLevel(logging.INFO)
@@ -32,11 +32,31 @@ Tag every factual claim with a confidence level:
 [LOW] — analyst estimate or projection
 
 Focus on: network impacts, membership effects, competitive dynamics, regulatory implications. \
-Be direct and specific. Start every analysis with search_web to locate relevant sources. \
+Be direct and specific.
+
+Start every analysis by calling lookup_regulatory_rules. Read every mechanism it returns \
+and consider whether it applies before doing anything else. Then use search_web to locate \
+relevant sources and fetch_url to read primary data.
+
+Tag regulatory mechanism claims as [MECHANISM] — established program rule verifiable in \
+statute or regulation, not requiring a source URL.
 Before drawing conclusions, read at least 3 URLs with fetch_url. \
 Cite the source URL for each factual claim."""
 
 TOOLS = [
+    {
+        "name": "lookup_regulatory_rules",
+        "description": (
+            "Read the standing regulatory mechanisms that govern member flows "
+            "across CA, NV, CO, MO, WI, NY, and NJ. Call this first, before "
+            "any web search or data fetch. Returns the full rules document."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+        },
+    },
     {
         "name": "fetch_url",
         "description": "Fetch the readable text of a web page for analysis.",
@@ -58,6 +78,7 @@ TOOLS = [
 ]
 
 _TOOL_DISPATCH = {
+    "lookup_regulatory_rules": lambda inp: lookup_regulatory_rules(),
     "fetch_url": lambda inp: fetch_url(inp["url"]),
     "search_web": lambda inp: search_web(inp["query"]),
 }
