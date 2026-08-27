@@ -35,6 +35,10 @@ least 3 URLs with fetch_url.
 Tag regulatory mechanism claims as [MECHANISM] — established program rule verifiable in \
 statute or regulation, not requiring a source URL.
 
+Do not state specific membership counts, revenue figures, or market share numbers unless \
+you fetched them from a primary source in this session. Omit the figure rather than recall \
+it from memory.
+
 Write the final analysis in this exact structure:
 
 1. A single bold verdict line — risk level and one-sentence strategic read. Example: \
@@ -116,10 +120,13 @@ def _cite(analysis: str, fetched_urls: list[str]) -> str:
         model=MODEL,
         max_tokens=2048,
         messages=[{"role": "user", "content": (
-            "Add inline citation numbers to this analysis using the numbered sources below. "
-            "Insert (1), (2), etc. immediately after the claim each source supports. "
-            "Only cite sources that directly support a specific claim. "
-            "Return only the annotated analysis text, unchanged except for added citation numbers.\n\n"
+            "You are a fact-checker. Review this analysis against the numbered sources below.\n\n"
+            "Rules:\n"
+            "- For each factual claim, check whether it is directly stated in one of the sources.\n"
+            "- If yes: insert the source number immediately after the claim, like (1) or (2).\n"
+            "- If no: append [unverified] immediately after the claim instead of a citation number.\n"
+            "- Do not change any wording. Only add (N) or [unverified] tags.\n"
+            "- Return only the annotated analysis text.\n\n"
             f"Analysis:\n{analysis}\n\nSources:\n{numbered}"
         )}],
     )
