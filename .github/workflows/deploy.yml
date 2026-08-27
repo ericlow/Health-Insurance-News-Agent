@@ -16,7 +16,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -r requirements.txt --target ./package \
+          grep -vE "^(playwright|boto3|responses|pytest|claude-pyrojects)" requirements.txt \
+            | pip install -r /dev/stdin --target ./package \
             --platform manylinux2014_x86_64 --python-version 3.12 --only-binary :all:
 
       - name: Package
