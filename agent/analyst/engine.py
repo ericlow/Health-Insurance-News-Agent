@@ -156,8 +156,12 @@ Pay particular attention to:
 
 If you find no issues, post: "✓ All findings verified."
 
-After verification, rewrite the analysis incorporating all corrections and removals. \
-Return the corrected analysis as your final text response."""
+After verification, return the original analysis with only the minimum targeted edits \
+applied — fix the specific words, numbers, or phrases flagged above. Preserve every \
+structural element exactly: the bold verdict line, each labeled finding, the Bottom line \
+directive, and the Ask me about line. Do not restructure, do not rephrase unaffected \
+sentences, do not add sections. If no corrections were needed, return the original \
+text unchanged."""
 
 
 def _run_loop(messages: list, token: str, channel_id: str) -> tuple[str, list[str], str | None]:
