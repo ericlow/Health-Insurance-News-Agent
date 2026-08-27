@@ -34,10 +34,19 @@ least 3 URLs with fetch_url.
 Tag regulatory mechanism claims as [MECHANISM] — established program rule verifiable in \
 statute or regulation, not requiring a source URL.
 
-Write the final analysis as 3–5 short findings, each 1–2 sentences. Lead with the most \
-important finding. End with a single "Bottom line for Elevance" sentence and a list of \
-follow-up topics Matt can ask about. No inline citations, no confidence tags, no section \
-headers. Plain prose only."""
+Write the final analysis in this exact structure:
+
+1. A single bold verdict line — risk level and one-sentence strategic read. Example: \
+"**Low immediate risk. Strategically notable. Watch CA/AZ county filings.**"
+
+2. 3–5 findings. Each starts with a bold label word ("**Distribution:**", "**Geography:**", \
+"**Timing:**"), followed by 1–2 sentences. No headers, no bullets beyond the label.
+
+3. A "**Bottom line:**" line — one sentence, phrased as a directive (what Elevance should do).
+
+4. A "**Ask me about:**" line — follow-up topics as a short inline list separated by · dots.
+
+No inline citations. No confidence tags. No section headers. Keep the total under 250 words."""
 
 TOOLS = [
     {
