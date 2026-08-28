@@ -1,0 +1,307 @@
+
+Contract termination cause narrative: Provider-initiaited contract termination with intent to
+renegotiate.
+Enrollee impact of termination: Santa Clara Valley MC_NON-ER Bed Days &
+Admits.docx
+Terminating Hospital Services
+Services pertaining to the terminating hospital.
+High-level specialty (such as Bariatric Surgery, Spine Surgery, etc.) : No
+Tertiary or Quaternary Care Services: Yes, Lucile Packard although focussed on pediatrics.
+Oncology Services: Yes, As HCID notes offered at terminating hospitals and
+and all the alternates listed in this filing: El Caminos
+(x2) Good Sam Lucile Packard and Washington
+Burn Services: Yes, All alternates offer some level of burn services.
+Transplant Services: No
+Any in-patient or out-patient services that are available at the Terminating Hospital, but not available at the
+Alternate Hospitals:
+The Plan does not anticipate any problems with the ability of the alternate hospitals to provide the same out-
+patient and/or in-patient services available at the terminating facility. If there is a service identified that is a
+covered benefit and only available at the terminating hospital the Plan will make every effort to ensure services
+are provided at the terminating hospital. When a covered service is not available or accessible at a participating
+network hospital or specialty facility in the Plan’s’ network members will be allowed to receive that service at a
+non-participating hospital as appropriate; reimbursement at in-network benefit level.
+PPO enrollees who reside within a 15 mile radius of the Terminating Hospital
+Total # of PPO enrollees within 15 miles: 47,230
+All of the Alternate Hospitals are in-network facilities Yes
+for PPO enrollees:
+The Plan's PPO providers can admit or provide for Yes
+medically necessary services at the Alternate Hospitals:
+Services Comparison
+Services offered by the terminating hospital with that of the Alternate Hospitals comparison.
+Justification how enrollees will access the missing If there is a service identified that is a covered benefit
+service(s) post-termination: and only available at the terminating hospital the Plan
+will make every effort to ensure services are provided
+at the terminating hospital. When a covered service is
+not available or accessible at a participating network
+hospital or specialty facility in the Plan’s’ network
+members will be allowed to receive that service at a
+non-participating hospital as appropriate;
+reimbursement at in-network benefit level.
+Services
+Hospital Enrollees
+SANTA CLARA VALLEY MEDICAL CENTER (106430883) Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y 3,348 terminating
+EL CAMINO HEALTH (106430763) Y Y Y Y Y Y Y Y Y Y Y Y 0 alternate
+EL CAMINO HOSPITAL LOS GATOS (106430743) Y Y Y Y Y Y Y Y Y Y Y Y 0 alternate
+GOOD SAMARITAN HOSPITAL-SAN JOSE (106430779) Y Y Y Y Y Y Y Y Y Y Y Y Y 0 alternate
+LUCILE PACKARD CHILDREN'S HOSPITAL STANFORD
+Y Y Y Y Y Y Y Y Y Y Y 0 alternate
+(106434040)
+WASHINGTON HOSPITAL - FREMONT (106010987) Y Y Y Y Y Y Y Y Y Y 0 alternate
+noitacifitsuJ
+emiT/evirD
+demrifnoC
+yticapaC
+metsyS
+latipsoH
+emaS
+secivreS
+noitrobA
+latanoeN
+etucA
+cirtaideP
+etucA
+cirtaihcysP
+etucA
+secivreS
+nruB
+UCI
+yranoroC
+noitaziretehtaC
+traeH
+sisylaidomeH
+mooR
+yrevileD
+robaL
+UCI
+latanoeN
+yregrus
+orueN
+yregruS
+traeHnepO
+UCI
+cirtaideP nacS
+TEP
+yparehT
+noitaidaR
+Alternate Hospital: EL CAMINO HEALTH (106430763)
+Drive Time: 23
+Drive Distance: 11
+Timely Access Justification Required: No
+Timely Access Justification: Not Applicable
+Capacity Confirmed to Serve Additional Enrollees: Not Applicable
+Capacity Justification: Not Applicable
+Same Hospital System as Terminating: No
+Same Hospital System Justification: Not Applicable
+Date Contract Terminates: 1/1/9999
+Termination Notice Days: 180
+Notice of Contract Termination: No
+Potential Increase for PPO/POS: No
+Evergreen: Yes
+Alternate Hospital: EL CAMINO HOSPITAL LOS GATOS (106430743)
+Drive Time: 8
+Drive Distance: 5
+Timely Access Justification Required: No
+Timely Access Justification: Not Applicable
+Capacity Confirmed to Serve Additional Enrollees: Not Applicable
+Capacity Justification: Not Applicable
+Same Hospital System as Terminating: No
+Same Hospital System Justification: Not Applicable
+Date Contract Terminates: 1/1/9999
+Termination Notice Days: 180
+Notice of Contract Termination: No
+Potential Increase for PPO/POS: No
+Evergreen: Yes
+Alternate Hospital: GOOD SAMARITAN HOSPITAL-SAN JOSE (106430779)
+Drive Time: 10
+Drive Distance: 5
+Timely Access Justification Required: No
+Timely Access Justification: Not Applicable
+Capacity Confirmed to Serve Additional Enrollees: Not Applicable
+Capacity Justification: Not Applicable
+Same Hospital System as Terminating: No
+Same Hospital System Justification: Not Applicable
+Date Contract Terminates: 1/1/9999
+Termination Notice Days: 180
+Notice of Contract Termination: No
+Potential Increase for PPO/POS: No
+Evergreen: Yes
+Alternate Hospital: LUCILE PACKARD CHILDREN'S HOSPITAL STANFORD (106434040)
+Drive Time: 29
+Drive Distance: 20
+Timely Access Justification Required: No
+Timely Access Justification: Not Applicable
+Capacity Confirmed to Serve Additional Enrollees: Not Applicable
+Capacity Justification: Not Applicable
+Same Hospital System as Terminating: No
+Same Hospital System Justification: Not Applicable
+Date Contract Terminates: 1/1/9999
+Termination Notice Days: 180
+Notice of Contract Termination: No
+Potential Increase for PPO/POS: No
+Evergreen: Yes
+Alternate Hospital: WASHINGTON HOSPITAL - FREMONT (106010987)
+Drive Time: 29
+Drive Distance: 18
+Timely Access Justification Required: No
+Timely Access Justification: Not Applicable
+Capacity Confirmed to Serve Additional Enrollees: Not Applicable
+Capacity Justification: Not Applicable
+Same Hospital System as Terminating: No
+Same Hospital System Justification: Not Applicable
+Date Contract Terminates: 1/1/9999
+Termination Notice Days: 180
+Notice of Contract Termination: No
+Potential Increase for PPO/POS: No
+Evergreen: Yes
+Number of Enrollees Received by Alternate Hospitals
+Receiving Hospital Number of Enrollees
+GOOD SAMARITAN HOSPITAL-SAN JOSE 0
+EL CAMINO HEALTH 0
+EL CAMINO HOSPITAL LOS GATOS 0
+WASHINGTON HOSPITAL - FREMONT 0
+LUCILE PACKARD CHILDREN'S HOSPITAL STANFORD 0
+Bed Days
+Plan Enrollees at Terminating Hospital for the most recently completed Calendar Year
+Total # of Bed Days Utilized: 460
+Total # of Admits: 54
+Plan PPO Enrollees at Terminating Hospital for the most recently completed Calendar Year
+Total # of Bed Days Utilized: 449
+Total # of Admits: 48
+Enrollee Timely Access
+Are there enrollees who have a residence or workplace within 15 miles or 30 minutes of a contracted hospital
+prior to termination, but would have a residence or workplace beyond 15 miles or 30 minutes of a contracted
+hospital post-termination? No
+Enrollees by Product
+Government Entities That
+Must Approve Enrollee
+Product Number of Enrollees Notice
+HMO (incl. POS) 3348 Not Applicable
+Total:3348
+Government Entities That Must Approve Enrollee Notice
+Provider Contract COC Provisions: No document uploaded
+Enrollees by County/Zip Code
+Method enrollees entered: County
+County Number of Enrollees
+Santa Clara 3348
+Total:3348
+General Info
+Waiver Request
+Notice to enrollees is required at least 60 days prior to the contract termination. (Health and Saf. Code §
+1373.65(b); Title 20 CCR § 130067.1.3(e).) The Plan may apply for a waiver from the 60-day notice
+requirement if: (i) there is a sudden closure of a contracted provider; (ii) a notice timing conflict exists with
+another jurisdictional agency; or (iii) other good-cause circumstances exist.
+Is the Plan requesting a waiver from the 60-day No
+enrollee notice requirement?
+Cause of Late Enrollee Notice: No document uploaded
+Continuity of Care (COC)
+Will the Plan implement its Department-Approved Yes
+Continuity of Care policy?
+COC Policy Explanation: No document uploaded
+Has the Plan reached a Continuity of Care agreement Yes
+with the Terminating Provider Group that specifies
+reimbursement rates for Completion of Covered
+Services under § 1373.96?
+Confirmation of Notices
+The Plan confirms that it will provide a notice, approved by the Department of Managed Health Care, of the
+contract termination to the following:
+- All enrollees who have utilized the Terminating Hospital at least once within the past 12 Yes
+months and those who have an authorized appointment/procedure/service at the
+Terminating Hospital post-termination:
+- All contracted providers and provider groups that may be affected by contract termination, Yes
+including, but not limited to, primary utilizers of the Terminating Hospital:
+- Any other enrollees or providers the Plan has identified to receive a notice: Yes
+Enrollee Access
+Provider groups are displayed in the order they were submitted:
+Provider Group Santa Clara IPA (RBO)
+Contacted Provider Group Yes
+Name of Contact • Aimee Quigley, Network Development
+Phone Number 650-773-5954
+Email Address Unanswered
+Provider Group Expressed Concerns No
+- Provider Group Concerns Not Applicable
+Health System NOT PART OF HEALTH SYSTEM
+Same Hospital System Justification Unanswered
+Direct Contract No
+- Termination Date Unanswered
+- EverGreen No
+- Continue to refer enrollees to the Terminating Hospital Unanswered
+- Plan enrollees will not be redirected and will be allowed
+Unanswered
+continued access
+- Notices will not be sent to enrollees assigned to the specified
+Unanswered
+provider group
+Block Transfer filed for this group No
+- Filing Number Not Applicable
+- The Plan will submit a timely Block Transfer filing prior to the
+No
+termination
+Routine Access to the Terminating Hospital No
+- Able to refer their enrollees for comparable services within
+Unanswered
+network
+Provides PCP/Hospitalist admitting privileges Yes
+- PCP/Hospitalist admitting privilege justification Unanswered
+Arrange Care if problem admitting at the Alternate Hospital The contracted group will admit directly to the
+alternate hospitals.
+Bed Days Utilized at
+# of Plan Enrollees Terminating Hospital
+Provider Group Info Assigned to Provider During the Most # of Non-ER Admits
+Group Recently Completed
+Calendar Year
+3348 11 6
+# of Enrollees Assigned
+# of PCPs with Active % of PCPs with Active
+to PCPs with Active
+Admitting Privileges at Admitting Privileges at
+Admitting Privileges at
+the Alternate the Alternate
+the Alternate
+Hospital(s) Hospital(s)
+Hospital(s)
+0 0 0
+# of Enrollees assigned
+# of PCPs without % of PCPs without
+to PCPs without Active
+Active Admitting Active Admitting
+Admitting Privileges at
+Privileges at the Privileges at the
+the Alternate
+Alternate Hospital(s) Alternate Hospital(s)
+Hospital(s)
+0 0 0
+# of Specialists with % of Specialists with # of Specialists with
+Active Admitting Active Admitting Active Admitting
+Privileges at Privileges at the Privileges at Alternate
+Terminating Hospital(s) Terminating Hospital(s) Hospital)(s)
+9586 100 0
+% of Specialists with
+Active Admitting
+Privileges at the
+Alternative Hospital
+0
+Selected specialties:
+Alternate hospitals:
+# of PCPs (and or Notice of
+Hospitalists) Who # of Specialists contract Potential cost
+Alternate Hospital(s) Provider Group Admit to Alternate Who Admit to Date Contract Termination termination increase for Evergreen
+Will Use Hospital Alternate Hospital Terminates/Renews notice days sent/received? PPO/POS? Contract?
+EL CAMINO HEALTH 54 270 01/01/9999 180 No No Yes
+EL CAMINO HOSPITAL LOS GATOS 49 247 01/01/9999 180 No No Yes
+GOOD SAMARITAN HOSPITAL-SAN JOSE 76 243 01/01/9999 180 No No Yes
+LUCILE PACKARD CHILDREN'S 13 25 01/01/9999 180 No No Yes
+HOSPITAL STANFORD
+WASHINGTON HOSPITAL - FREMONT 5 24 01/01/9999 180 No No Yes
+Narrow Network
+Is the Terminating Provider Group part of a “narrow network” product offered by the Plan? Yes
+A “narrow network” product is one that offers a more limited choice of provider groups compared to the other products offered by the Plan.
+Narrow network entries are displayed in the order they were submitted:
+Name of Narrow Network Pathway EPO Exchange Network
+Number of Enrollees in the Narrow Network
+0
+Product
+Alternate Hospitals in the Area EL CAMINO HEALTH (MOUNTAIN VIEW)
+EL CAMINO HOSPITAL LOS GATOS (LOS GATOS)
+GOOD SAMARITAN HOSPITAL-SAN JOSE (SAN JOSE)
+Provider Groups that Admit to the Terminating
+Hospital as Part of the Product

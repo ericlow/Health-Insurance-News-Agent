@@ -1,0 +1,593 @@
+Government Business Division
+Policies and Procedures
+Section (Primary Department) SUBJECT (Document Title)
+Health Care Management Continuity of Care/Transition Assistance - CA
+Effective Date Date of Last Review Date of Last Revision Dept. Approval Date
+03/30/2023 05/31/2023 05/31/2023
+Department Approval/Signature:
+Policy applies to health plans operating in the following State(s). Applicable products noted below.
+Products ☐ Arkansas ☐ Iowa ☐ Nevada ☐ Tennessee
+☒ Medicaid/CHIP ☒ California ☐ Kentucky ☐ New Jersey ☐ Texas
+☐ Medicare/SNP ☐ Colorado ☐ Louisiana ☐ New York – Empire ☐ Virginia
+☐ MMP/Duals ☐ District of Columbia ☐ Maryland ☐ New York (WNY) ☐ Washington
+☐ Florida ☐ Minnesota ☐ North Carolina ☐ West Virginia
+☐ Georgia ☐ Missouri ☐ Ohio ☐ Wisconsin
+☐ Indiana ☐ Nebraska ☐ South Carolina
+POLICY:
+Anthem Medicaid (Anthem) is responsible for providing Access to Care, Continuity of Care
+(COC) and coordination of services for medically necessary medical and mental health services
+and durable medical equipment.
+Members who are, or will be, receiving excluded services will be disenrolled from Anthem in
+order to be eligible for the services. Anthem is responsible for ensuring continuation and
+coordination of services until the member is disenrolled from the plan, unless stated
+otherwise.
+This policy describes the continuity of care (COC) procedures and processes to be followed by
+Anthem for members who are transitioning from Medi-Cal Fee-For-Service (FFS) or another
+health plan to enroll as an Anthem member.
+DEFINITIONS:
+Assessment: A new assessment is considered completed if the member has
+been seen in-person and/or via synchronous telehealth by a network provider and this
+provider has reviewed the member’s current condition and completed a new treatment plan
+that includes assessment of the services specified in the pre-transition active prior treatment
+authorization.
+Basic Case Management: a collaborative process of assessment, planning, facilitation and
+advocacy for options and services to meet an individual’s health need and provided by a
+collaborative effort between the Medical Management staff, the primary care provider and
+other professionals who have an active role in managing members’ health care condition and
+needs. Services are provided by the Primary Care Physician (PCP) or by a PCP-supervised
+Physician Assistant (PA), Nurse practitioner (NP), or Certified Nurse Midwife, as the Medical
+Home. Coordination of carved out and linked services are considered basic case management
+services.
+Page 1 of 14
+The internal policies and procedures outlined herein are to be used for the Government Business Division
+For Internal Use Only. Company Confidential. Do Not Copy.
+CA_UMXX_029
+Government Business Division
+Policies and Procedures
+Section (Primary Department) SUBJECT (Document Title)
+Health Care Management Continuity of Care/Transition Assistance - CA
+Care Coordination: services, which are included in Basic Case Management, Complex Case
+Management, Comprehensive Medical Case Management Services, Person Centered Planning
+and Discharge Planning, and are, included as part of a functioning Medical Home.
+Continued Access to Care/Continuity of Care: All members have the right to continue
+receiving Medi-Cal services covered under the MCPs contract, including mental health when
+transitioning to an MCP even in circumstances in which the member does not continue
+receiving services from their pre-existing provider. Anthem must arrange for continuity of care
+for covered services without delay to the member with a network provider, or if there is no
+network provider to provide the covered service with and OON provider. The process of
+authorizing continuation of health care services with a terminating/ non-participating provider
+under specified conditions, and for up to 12 months from member enrollment with a plan of
+care to transition the member in-network. If a member changes managed care plans (MCP) by
+choice following the initial enrollment, or if the member loses and then later regains MCP
+eligibility during the 12 -month COC period, the 12 month continuity of care period for a pre-
+existing provider may start over one time. For example, if a member enrolls in an MCP on
+January 1, 2023, but then later changes to another health plan by choice on April 1, 2023,
+then the 12 month COC may start over one time and the member may see the provider until
+April of the following year.
+If the member changes MCPs or loses and then regains MCP eligibility a second time (or
+more), the continuity of care period does not start over meaning that the member does not
+have the right to a new twelve months of continuity of care. If the member returns to Medi-
+Cal FFS and later re-enrolls in an MCP, the continuity of care period does not start over
+Durable Medical Equipment (DME): Equipment that is medically necessary as defined by 22
+CCR section 51160 that a provider prescribes for a member that the member uses in the
+home, in the community, or in a facility that is used as a home.
+Medical Exemption Request (MER): A MER is a request for temporary exemption from MCP
+enrollment into an MCP only until a member’s condition has stabilized to a level that would
+enable the member to transfer to a network provider of the same specialty without
+deleterious medical effects. Medical Exemption Requests (MER). Anthem is required to
+consider MERS that have been denied as automatic continuity of care requests to allow
+members to complete courses of treatment with OON providers.
+Pre-existing relationship: means the member has seen a Primary Care Provider; Specialist; or
+select ancillary provider (including PT/OT/ST/BHT/RT) for a non-emergency visit, at least once
+during the 12 months prior to the date of their initial enrollment with Anthem
+Page 2 of 14
+The internal policies and procedures outlined herein are to be used for the Government Business Division
+For Internal Use Only. Company Confidential. Do Not Copy.
+CA_UMXX_029
+Government Business Division
+Policies and Procedures
+Section (Primary Department) SUBJECT (Document Title)
+Health Care Management Continuity of Care/Transition Assistance - CA
+PROCEDURE:
+I. Continuity of Care Requirements
+Anthem will provide COC in the following situations:
+• Members transitioning from Medi-Cal FFS or from another health plan to
+enroll as an Anthem member
+Members who meet the COC requirements may request COC for up to 12
+months after the enrollment date with Anthem if a pre-existing relationship
+exists with that provider.
+II. COC Provider Protections in HSC section 1373.96:
+• Additional protections for members include being able to continue seeing a
+terminated or nonparticipating provider, at a member, authorized
+representative, or provider’s request, to complete covered services for
+specific conditions outline below.
+• COC protections extend to Primary Care Providers; Specialists and select
+ancillary providers including physical therapy (PT); occupational therapy
+(OT); respiratory therapy (RT); behavioral health treatment (BHT); and
+speech therapy (ST) providers. COC protections do not extend to all other
+ancillary providers such as radiology; laboratory; dialysis centers; Non-
+Emergency Medical Transportation (NEMT); Non-Medical Transportation
+(NMT); other ancillary services, with the exception of a prior treatment
+authorization; and non-enrolled Medi-Cal Providers, Anthem is not required
+to authorize ongoing treatment with a provider when the provider’s
+termination is based on reasons relating to medical disciplinary cause or
+reason, as defined by California Business and Professions Code Section
+805(a)(6), or fraud or other criminal activity.
+III. Qualifying Conditions: The medical conditions that may qualify a member for
+continued Access to Care /Continuity of Care, past the normal 12 month period, may
+include, but are not limited to:
+• An acute condition. An acute condition is a medical condition that involves
+a sudden onset of symptoms due to an illness, injury, or other medical
+problem that requires prompt medical attention and that has a limited
+duration. Completion of covered services shall be provided for the duration
+of the acute condition.
+• A serious chronic condition. A serious chronic condition is a medical
+condition due to a disease, illness, or other medical problem or medical
+disorder that is serious in nature and that persists without full cure or
+worsens over an extended period of time or requires ongoing treatment to
+maintain remission or prevent deterioration. Completion of covered
+Page 3 of 14
+The internal policies and procedures outlined herein are to be used for the Government Business Division
+For Internal Use Only. Company Confidential. Do Not Copy.
+CA_UMXX_029
+Government Business Division
+Policies and Procedures
+Section (Primary Department) SUBJECT (Document Title)
+Health Care Management Continuity of Care/Transition Assistance - CA
+services shall be provided for a period of time necessary to complete a
+course of treatment and to arrange for a safe transfer to another provider,
+as determined by the health care service plan in consultation with the
+enrollee and the terminated provider or nonparticipating provider and
+consistent with good professional practice. Completion of covered services
+under this paragraph shall not exceed 12 months from the contract
+termination date or 12 months from the effective date of coverage for a
+newly covered enrollee.
+• Pregnancy. HSC section 1373.96 requires Anthem to, at the request of a
+member, authorized representative, or provider, provide for the
+completion of covered Services relating to pregnancy, during pregnancy,
+and immediately after the delivery (the post-partum period, which is 12
+months), and care of a newborn child between birth and age 36 months, by
+a terminated or non-participating health plan provider. For the duration of
+the pregnancy and immediate postpartum period of 12 months. For
+purposes of an individual who presents written documentation of being
+diagnosed with a maternal mental health condition from the individual’s
+treating health care Provider, completion of Covered Services for the
+maternal mental health condition must not exceed 12 months from the
+diagnosis or from the end of pregnancy, whichever occurs later.
+• Terminal illness. HSC section 1373.96 requires Anthem to, at the request of
+a member, authorized representative, or provider, provide for the
+completion of covered services of a member with a terminal illness. A
+terminal illness is an incurable or irreversible condition that has a high
+probability of causing death within one year or less. Completion of covered
+services must be provided for the duration of a terminal illness, even if it
+exceeds 12 months from the contract termination date or 12 months from
+the effective date of coverage for a new Member.
+Care of a newborn child between the ages of birth and 36 months.
+Completion of covered services under this paragraph shall not exceed 12
+months from the contract termination date or 12 months from the effective
+date of coverage for a newly covered enrollee. Surgery or other procedure
+authorized by Anthem Medicaid and is scheduled to occur within 180 days
+of the contract’s termination or within 180 days of the effective date of
+coverage for a newly covered enrollee
+IV. Processing Continuity of Care Requests:
+Anthem members are notified of their right to request continued Access to Care at the
+time of enrollment (through their Evidence of Coverage), whenever their provider
+terminates (through their member notification letter), or during a time of transition
+into Anthem from a Fee-for-Service (FFS) Medi-Cal program. Members, member
+advocates, caregivers, providers, or terminating providers may contact Anthem to
+Page 4 of 14
+The internal policies and procedures outlined herein are to be used for the Government Business Division
+For Internal Use Only. Company Confidential. Do Not Copy.
+CA_UMXX_029
+Government Business Division
+Policies and Procedures
+Section (Primary Department) SUBJECT (Document Title)
+Health Care Management Continuity of Care/Transition Assistance - CA
+request continued Access to Care on behalf of the members. Customer Care Center
+representatives may refer new enrollees requesting continued Access to Care directly
+to the Medical Management Department
+A. Acceptance of Requests: Anthem must accept COC requests from the
+Member, providers or authorized representative. Requests must be
+accepted over the telephone, according to the requestor’s preference, and
+must not require the requestor to complete and submit a paper or online
+form if the requester prefers to make the request by telephone.
+B. Retroactive Requests: Anthem must retroactively approve a COC request
+and reimburse providers for services that were already provided if the
+request meets the following COC requirements:
+• Provider must be willing to accept Anthem contract rates or
+Medi-Cal FFS rates
+• Requested services occurred after the member’s enrollment
+with Anthem
+• Have dates of service within 30 calendar days of the first
+service for which the provider requests retroactive
+reimbursement (i.e. the first date of service is not more than 30
+calendar days from the date of the reimbursement request.
+C. Requirements for Case Completion/Notification: The COC process begins
+when Anthem receives the COC request. The request will begin to be
+processed within 5 working days from the COC request and completed
+based on the below:
+• 30 calendar days for non-urgent requests;
+• 15 calendar days if the Member’s medical condition requires
+more immediate attention, such as upcoming appointments or
+other pressing care needs; or
+• As soon as possible, but no longer than three calendar days for
+urgent requests (i.e., there is identified risk of harm to the
+Member)
+Anthem will allow continued access for up to 12 months from date of
+enrollment to an out of network provider when they have been seen within
+the previous 12 months if the following requirements are met:
+• The provider meets Anthem’s applicable professional standards
+and has no disqualifying quality-of-care issues. Under these
+circumstances, a quality-of-care issue means Anthem can
+document its concerns with the provider’s quality of care to the
+Page 5 of 14
+The internal policies and procedures outlined herein are to be used for the Government Business Division
+For Internal Use Only. Company Confidential. Do Not Copy.
+CA_UMXX_029
+Government Business Division
+Policies and Procedures
+Section (Primary Department) SUBJECT (Document Title)
+Health Care Management Continuity of Care/Transition Assistance - CA
+extent that the provider would not be eligible to provide
+services to any other Anthem members.
+• The provider is a California State Plan approve provider. (Refer
+to list of suspended or ineligible providers)
+• The provider supplies the MCP with all relevant treatment
+information, for the purposes of determining COC, medical
+necessity, as well as a current treatment plan, as long as it is
+allowable under federal and state privacy laws and regulations.
+• The provider is willing to accept Anthem’s contract rates or
+Medi-Cal FFS rates per H&S code section 1373.9(d)(2).
+• Anthem is not required to authorize ongoing treatment with a
+provider when the provider’s termination is based on reasons
+relating to medical disciplinary cause or reason, as defined by
+California Business and Professions Code Section 805(a)(6), or
+fraud or other criminal activity.
+If Anthem is not able to come to an agreement with the terminated
+provider or non-participating provider, or if the member, authorized
+representative, or provider does not submit a request for the completion of
+covered services by said provider, Anthem is not required to continue the
+provider’s services. In addition to the reimbursement rate, the
+terminating/non-participating provider must agree to the following:
+• Continue to accept reimbursement of the Anthem-negotiated
+rate as payment in full.
+• Adhere to Anthem’s policies and procedures, including but not
+limited to, those regarding referrals, pre-authorization and
+treatment plan approval from Anthem. Provider questions about
+reimbursement rates outside the continued Access to Care
+program are referred to Network Support.
+All Out-of-Network providers will be provided information on how they can
+obtain the Anthem clinical protocols and evidence-based practice
+guidelines.
+D. Validating Pre-Existing Relationship:
+Anthem must determine if the member has a pre-existing relationship with
+the provider. This may be determined by using FFS utilization data or claims
+data from an MCPA member, authorized representative or provider may
+also provide information to Anthem that demonstrates a pre-existing
+relationship with a provider. A member’s self-attestation of a pre-existing
+relationship is not sufficient to provide proof of a relationship with a
+Page 6 of 14
+The internal policies and procedures outlined herein are to be used for the Government Business Division
+For Internal Use Only. Company Confidential. Do Not Copy.
+CA_UMXX_029
+Government Business Division
+Policies and Procedures
+Section (Primary Department) SUBJECT (Document Title)
+Health Care Management Continuity of Care/Transition Assistance - CA
+provider, instead, actual documentation must be provided, A pre-existing
+relationship means the member has seen an out-of-network primary care
+provider , a specialist or select ancillary provider (including PT/OT/ST/RT or
+BHT for a non-emergency visit at least once during the 12 months prior to
+the date of his or her initial enrollment with Anthem
+Following identification of a pre-existing relationship, Anthem will
+determine if the provider is a network provider. If the provider is a network
+provider, then Anthem will allow the member to continue seeing the
+provider. If the provider is not a network provider, Anthem will contact the
+provider and make a good faith effort to enter into a contract, letter of
+agreement, single-case agreement, or other form of relationship to
+establish continuity of care for the member.
+E. Member Notifications:
+1) Assessment and Determination/Notification:
+If the UM/CM Nurse cannot approve the request, the request is
+referred to a Peer Clinical Reviewer (PCR) or Medical Director for
+determination.
+The UM/CM Nurse may determine that the member is not
+eligible for continued Access to Care for non-clinical reasons.
+Non-clinical reasons may include:
+• Treating physician is a contracted provider, no request is
+needed.
+• Member, Provider or authorized representative
+withdraws the request.
+• Other Health Insurance is primary.
+• Date of service is prior to the member’s effective date
+with Anthem Medicaid.
+• Course of treatment has been completed.
+• Services rendered are covered under a global fee.
+• Requested services are not a covered benefit with
+Anthem Medicaid.
+2) Member Acknowledgement Notifications: Anthem will provide
+acknowledgement of the COC request within the timeframes
+specified below using member’s known preference of
+communication or by notifying the member using one of these
+methods in the following order: telephone call, text message,
+email and then notice by mail:
+Page 7 of 14
+The internal policies and procedures outlined herein are to be used for the Government Business Division
+For Internal Use Only. Company Confidential. Do Not Copy.
+CA_UMXX_029
+Government Business Division
+Policies and Procedures
+Section (Primary Department) SUBJECT (Document Title)
+Health Care Management Continuity of Care/Transition Assistance - CA
+• Non-Urgent requests within 7 calendar days
+• Urgent Requests within 3 calendar days, but as soon as
+possible given the members condition.
+The acknowledgement will include the following:
+• Notification to the member that the COC request has
+been received The date of receipt of the request
+• The estimated timeframe for resolution
+3) Member Denial Notification: For COC requests that are denied,
+Anthem will include the following information in the notice:
+• A statement of Anthem’s decision
+• A clear and concise explanation of the reason for the
+denial
+• The member’s right to file a grievance or appeal.
+If Anthem and the OON provider are unable to reach an
+agreement because they cannot agree to a rate, or
+Anthem has documented quality of care issues with the
+provider, Anthem will offer the member a network
+provider alternative. If the member does not make a
+choice, the member must be referred to a network
+provider. If the member disagrees with the COC
+determination, the member maintains the right to file a
+grievance.
+4) Member Approval Notification:
+For COC requests that are approved, Anthem will include the
+following information in the notice:
+• A statement of Anthem’s decision
+• The duration of the COC arrangement
+• The process that will occur to transition the member’s
+care at the end of the COC period
+• The member’s right to choose a different in network
+provider
+Anthem will attempt to notify the member of the continuity of
+care decision via the member’s preferred method of
+communication or by telephone.
+If the provider meets all necessary requirements, including
+entering into an LOA or contract with Anthem, Anthem will
+Page 8 of 14
+The internal policies and procedures outlined herein are to be used for the Government Business Division
+For Internal Use Only. Company Confidential. Do Not Copy.
+CA_UMXX_029
+Government Business Division
+Policies and Procedures
+Section (Primary Department) SUBJECT (Document Title)
+Health Care Management Continuity of Care/Transition Assistance - CA
+allow the member to have access to that provider for the length
+of the COC period unless the provider is only willing to work with
+Anthem for a shorter timeframe. In this case, Anthem will allow
+the member to have access to that provider for the shorter
+period of time.
+When the COC agreement has been established, Anthem will
+work with the provider to establish a plan of care for the
+member. At any time, members may change their provider to a
+network provider regardless of whether or not a COC
+relationship has been established.
+The MCP must notify the member within 30 calendar days
+before the end of the COC period, using the member’s preferred
+method of communication. The notification will include the
+process that will occur to transition the member’s care to a
+network provider at the end of the COC period. This process
+includes engaging with the member and provider before the end
+of the continuity of care period to ensure continuity of services
+through the transition to a new provider.
+5) Provider Notification: If continued Access to Care will be
+provided, Anthem notifies the terminating/non-participating
+provider of the following:
+• Specific services authorized to be provided by the
+terminating/non-participating provider.
+• Frequency and duration of authorized services.
+• Provider reimbursement rate.
+• Billing instructions for the provider.
+• Toll free telephone number and address for the UM/CM
+department.
+• Toll free telephone number for Customer Care to verify
+benefits.
+• Requirements on not referring to other OON providers if
+Anthem has in network providers available.
+• Anthem will work with the approved OON provider and
+communicate its requirements on letters of agreements,
+including referral and authorization processes, to ensure
+that the OON provider does not refer the member to
+another OON provider without authorization from
+Anthem. If there is no in-network provider, Anthem will
+Page 9 of 14
+The internal policies and procedures outlined herein are to be used for the Government Business Division
+For Internal Use Only. Company Confidential. Do Not Copy.
+CA_UMXX_029
+Government Business Division
+Policies and Procedures
+Section (Primary Department) SUBJECT (Document Title)
+Health Care Management Continuity of Care/Transition Assistance - CA
+facilitate the referral, if medically necessary, if Anthem
+does not have an appropriate provider within its
+network.
+F. Scheduled Specialist Appointments:
+At the member, provider or authorized representatives request, Anthem
+will allow transitioning members to keep authorized and scheduled
+specialist appointments with OON providers when COC has been
+established and the appointments occur during the 12-month COC period.
+If COC has not been established, but Anthem is unable to arrange a
+specialist appointment with a network provider on or before the member’s
+scheduled appointment with the OON provider, we will make a good faith
+effort to allow the member to keep their appointment with the OON
+provider. However, since the appointment with the OON provider occurs
+after the member’s transition to Anthem, it does not establish the requisite
+pre-existing provider relationship for the member to submit a COC request.
+G. Continuity of Medi-Cal Covered Services and Prior Treatment
+Authorizations:
+• Following a member’s transition from Medi-Cal FFs to Anthem
+or from another MCP, active prior treatment authorizations for
+services remain in effect for 90 days and must be honored
+without a request by the member, authorized representative or
+provider. Anthem will use the Treatment Authorization Request
+(TAR) data or Prior Authorization data to identify prior treatment
+authorizations, including authorized procedures and surgeries,
+and existing authorizations for DME and medical supplies.
+• Anthem will arrange for services authorized under the active
+prior treatment authorization with a network provider, or if no
+network provider is available, with an OON provider. After 90
+days, the active treatment authorization remains in effect for
+the duration of the treatment authorization or until completion
+of a new assessment by Anthem, whichever is shorter. If Anthem
+does not complete a new assessment, the active treatment
+authorization remains in effect and after 90 days, Anthem may
+reassess the member’s prior treatment authorization at any
+time.
+• Durable Medical Equipment Rentals and Medical Supplies:
+Anthem will allow transitioning members to keep their existing
+DME rentals and medical supplies from their existing provider,
+under the previous Prior Authorization for a minimum of 90 days
+following enrollment with an MCP and until the new MCP is able
+Page 10 of 14
+The internal policies and procedures outlined herein are to be used for the Government Business Division
+For Internal Use Only. Company Confidential. Do Not Copy.
+CA_UMXX_029
+Government Business Division
+Policies and Procedures
+Section (Primary Department) SUBJECT (Document Title)
+Health Care Management Continuity of Care/Transition Assistance - CA
+to reassess the new equipment or supplies are in possession of
+the member and ready to use.
+• Continuity of DME and medical supplies will be honored without
+a request by the member, authorized representative or provider.
+• If DME or medical supplies have been arranged for a
+transitioning member but the equipment or supplies have not
+been delivered, Anthem will allow for delivery for the member
+to keep the equipment or supplies for a minimum of 90 days
+following enrollment and until the new MCP is able to reassess.
+If the MCP does not complete a new assessment, the
+authorization remains in effect for the duration of the treatment
+authorization. After 90 days, the MCP may reassess the
+Member’s authorization at any time and require the Member to
+switch to a Network DME Provider.
+H. Non-Emergency Medical Transportation and Non-Medical Transportation:
+For NEMT and NMT, Anthem will allow members to keep the modality of
+transportation under the previous Prior Authorization with a network
+provider until a reassessment is performed.
+I. Member and Provider Outreach and Education
+Anthem will inform Members of their Continuity of Care protections and
+include information about these protections in Member information
+packets, handbooks, and on the Anthem’s website. This information will
+include how a Member, authorized representative, and Provider may
+initiate a Continuity of Care request with Anthem. Anthem will translate
+these documents into threshold languages and make them available in
+alternative formats, upon request. Anthem will provide training to call
+center and other staff who come into regular contact with Members about
+Continuity of Care protections.
+J. Reporting
+Anthem will continue to report on existing metrics related to any Continuity
+of Care provisions outlined in state law and regulations, or other state
+guidance documents.
+K. Terminating Providers:
+When an individual’s FFS provider, or Primary Medical Group
+(PMG)/Independent Physician Association (IPA) terminates its contract with
+Anthem or is terminated by Anthem, members are notified of the
+impending termination and of their right to request continued Access to
+Page 11 of 14
+The internal policies and procedures outlined herein are to be used for the Government Business Division
+For Internal Use Only. Company Confidential. Do Not Copy.
+CA_UMXX_029
+Government Business Division
+Policies and Procedures
+Section (Primary Department) SUBJECT (Document Title)
+Health Care Management Continuity of Care/Transition Assistance - CA
+Care. Development of a transition plan addressing continuity of care is
+required for those members
+• For hospital termination, Anthem notifies members 60 days in
+advance of termination only if that hospital is capitated and
+members are assigned to a specific hospital. For non-capitated
+hospital terminations, Anthem notifies members if the hospital
+actually terminates.
+L. Transition Care Plan
+• Only patients approved for continued Access to Care can
+complete their current treatment plan with the terminating
+provider. Anthem members who do not meet the eligibility
+requirements for continuing care with their present provider
+may seek assistance from Anthem in selecting a participating
+provider. Anthem will provide assistance in transitioning the
+patient to a participating provider. Continued Access to Care
+shall be provided for a period of time necessary to complete a
+course of treatment and to arrange for a safe transfer to another
+provider.
+• When continued Access to Care is approved, the UM/CM Nurse
+develops and documents a transition plan for the member. Plan
+development includes contact with the member and the treating
+provider, as needed, and the participating provider to whom the
+member’s care will be transferred, as appropriate.
+• The transition plan includes at least:
+1) The non-participating provider’s treatment plan for the
+member’s active course of treatment, for which
+continued Access to Care was requested.
+2) The specific treatment goal to be reached prior to
+transfer to the Anthem contracting provider and the
+estimated date the transfer can be safely accomplished.
+M. Covered California to Medi-Cal Transition
+For populations that undergo a mandatory transition from Covered
+California to Anthem Medi-Cal Managed care coverage due to the Covered
+California yearly coverage renewal determination or changes in a
+member’s eligibility circumstances that may occur at any time throughout
+the year:
+• Anthem will ask these members if there are upcoming health
+care appointments or treatments scheduled and assist them.
+Page 12 of 14
+The internal policies and procedures outlined herein are to be used for the Government Business Division
+For Internal Use Only. Company Confidential. Do Not Copy.
+CA_UMXX_029
+Government Business Division
+Policies and Procedures
+Section (Primary Department) SUBJECT (Document Title)
+Health Care Management Continuity of Care/Transition Assistance - CA
+• If members request continuity of care, Anthem will help initiate
+the process at that time.
+• Anthem will contact the new members by telephone, letter or
+other preferred method of communication, no later than 15
+calendar days after enrollment.
+• Anthem will make a good faith effort to learn from and obtain
+information from the member so that it is able to honor active
+prior treatment authorizations with a network provider and/or
+establish continuity of care.
+• Anthem will honor any active prior treatment authorizations for
+90 days for services that are covered under its contract. Anthem
+will arrange for services authorized under the active prior
+treatment authorization with a network provider, or if there is
+no network provider to provide service with an OON provider.
+After 90 days, the active authorization remains in effect for the
+duration of the treatment authorization or until completion of a
+new assessment is completed, whichever is shorter.
+REFERENCES:
+• Anthem Medicaid Policy #CA_PNXX_303 “Provider Termination”
+• CA_LTXX_001 Continuity of Care for Newly Enrolled LTSS Members
+• California Business and Professions Code Section 805(a) (6)
+• California DHCS Central Valley/Bay Area, Sacramento, Tulare County Medi-Cal Contracts,
+Exhibit A, Attachment 9 and Attachment 22
+• California DHCS Healthy Families Transition Amendment Exhibit A.20.1.B. A.20.1.C and
+A.20.2.B.
+• California Health & Safety Code 1373.95& 1373.96(d)(2)
+• Department of Health Care Services, All Plan Letter #22-032 “Continuity of care for Medi-
+Cal Beneficiaries who newly enroll in Medi-Cal Managed Care from Medi-Cal Fee-for-
+Service, and for Medi-Cal members who transition into a new Medi-Cal Managed Care
+Health Plan on or after January 1, 2023”
+http://www.dhcs.ca.gov/formsandpubs/Pages/AllPlanLetters.aspx.
+• LTSS Policy Continuity of Care for Long Term Care Transition
+• Member Evidence of Coverage 2023
+• National Committee for Quality Assurance (NCQA)
+• Provider Operations Manual, 2023
+• Suspend/Ineligible List https://filessysdev.medi-
+cal.ca.gov/pubsdoco/SandILanding.aspx#:~:text=In%20accordance%20with%20W%26I%20
+Code%2C%20section%2014043.61%2C%20subdivision,to%20identify%20suspended%2C%
+20excluded%20or%20otherwise%20ineligible%20providers.
+Page 13 of 14
+The internal policies and procedures outlined herein are to be used for the Government Business Division
+For Internal Use Only. Company Confidential. Do Not Copy.
+CA_UMXX_029

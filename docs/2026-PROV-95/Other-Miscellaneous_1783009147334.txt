@@ -1,0 +1,29 @@
+<DATE>
+<NAME>
+<ADDR>
+<CITY_NM>, <ST_CD> <ZIP_CD>
+<Enter HCP name> will remain in the Cigna Healthcare network
+Dear <MEMBER NAME>,
+We’re happy to let you know that we have reached an agreement and <Enter HCP name>
+will remain in your health plan network.
+Collaborating for your health
+We recently notified you that Cigna Healthcare was negotiating contract agreements with
+University of California (UC) Health to ensure you have continued access to care that is
+sustainably affordable. This letter is to inform you that Cigna and UC Health were successful in
+reaching an agreement.
+This means that there is nothing you need to do and you’ll continue to receive coverage for
+services provided by <Enter HCP name> at the in-network rate, subject to the terms of your plan.
+You can remain with your current Primary Care Physician at <Insert Medical Group Name> and
+it will not be necessary to change to a new physician group.
+Questions or concerns?
+We’re happy to help. Call us toll-free at the number on the back of your Cigna Healthcare ID
+card. Customer Service Advocates are available 24/7/365. If you have a hearing or speech
+impairment and use Telecommunications Relay Services (TRS) or a Text Telephone (TTY), dial
+711 to connect with a TRS operator. Translation services are available at no cost to you in 140
+languages.
+Para información en Español, por favor llame al numero telefónico que aparece en su tarjeta o
+al 1.800.244.6224 (Customer Service) y pida hablar con un representante que hable Español.
+Sincerely,
+Cigna Healthcare Customer Service
+All Cigna Healthcare products and services are provided exclusively by or through operating subsidiaries of The Cigna Group.
+Cat #965428 Hub 11/25© 2025 Cigna.

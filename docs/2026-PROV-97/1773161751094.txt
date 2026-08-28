@@ -1,0 +1,23 @@
+Narrow Network Narrative
+Terminating Provider Group: PHS Premier Health Services IPA Network (formerly
+Lakewood IPA)-RBO-10211
+(i) Name of the narrow network product: Southern CA Value Network
+(ii) Number of enrollees in the product who are assigned to the Terminating Provider
+Group: 100 enrollees
+(iii) Receiving Provider Group(s) for such enrollees:
+Affiliated Doctors of Orange County Medical Group-RBO 10007
+o
+Allied Pacific of California (formerly Allied Physicians of California)-RBO
+o
+10021
+Prospect Medical Group-RBO 10339
+o
+Prospect Professional Care Medical Group-RBO 10377
+o
+Regal Medical Group-RBO 10346
+o
+(iv) affirm whether the Plan will meet Knox-Keene Act’s geographic access standards or
+its Department - approved alternate access standards after reassigning such enrollees.
+Plan confirms that it will meet Knox-Keene Act’s geographic access standards or
+its Department - approved alternate access standards after reassigning such
+enrollees.

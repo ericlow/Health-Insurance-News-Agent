@@ -1,0 +1,90 @@
+
+Explanation of Delayed Filing: No document uploaded
+Any enrollee that will need to see his or her PCP at a Unanswered
+different location as a result of this proposed
+transition:
+Enrollees by Product
+Government Entities That
+Must Approve Enrollee
+Product Number of Enrollees Notice
+HMO (incl. POS) 2015 Not Applicable
+Total:2015
+Government Entities That Must Approve Enrollee Notice
+Provider Contract COC Provisions: No document uploaded
+Enrollees by County/Zip Code
+Method enrollees entered: County
+County Number of Enrollees
+Imperial 3
+Los Angeles 15
+Orange 12
+Riverside 38
+San Bernardino 2
+San Diego 1945
+Total:2015
+General Info
+Hospitals Utilized by Terminating Group
+Hospital Name Address
+UC SAN DIEGO HEALTH - EAST CAMPUS MEDICAL 6655 ALVARADO ROAD, SAN DIEGO, 92120
+CENTER
+UC SAN DIEGO HEALTH HILLCREST - HILLCREST 200 WEST ARBOR DRIVE, SAN DIEGO, 92103
+MEDICAL CENTER
+UCSD HEALTH LA JOLLA - JACOBS MEDICAL CENTER & 9300 CAMPUS POINT DRIVE, LA JOLLA, 92037
+SULPIZIO CARDIOVASCULAR CENTER
+Waiver Request
+Notice to enrollees is required at least 60 days prior to the contract termination. (Health and Saf. Code §
+1373.65(b); Title 20 CCR § 130067.1.3(e).) The Plan may apply for a waiver from the 60-day notice
+requirement if: (i) there is a sudden closure of a contracted provider; (ii) a notice timing conflict exists with
+another jurisdictional agency; or (iii) other good-cause circumstances exist.
+Is the Plan requesting a waiver from the 60-day No
+enrollee notice requirement?
+Cause of Late Enrollee Notice: No document uploaded
+Continuity of Care (COC)
+Will the Plan implement its Department-Approved Yes
+Continuity of Care policy?
+Explaination why the Plan has not reached a Continuity Unanswered
+of Care agreement with the Terminating Hospital and
+provide an update on the progress:
+COC Policy Explanation: No document uploaded
+Has the Plan reached a Continuity of Care agreement Yes
+with the Terminating Provider Group that specifies
+reimbursement rates for Completion of Covered
+Services under § 1373.96?
+Narrow Network
+Is the Terminating Provider Group part of a “narrow No
+network” product offered by the Plan?
+A “narrow network” product is one that offers a more limited choice of provider groups compared to the other products offered by the Plan.
+Narrow Network Narrative: No document uploaded
+Receiving Groups
+Provider Group Reassignment Chart: Provider reassignment chart_Mercy.pdf
+Provider reassignment chart_Regal.pdf
+Receiving provider groups are displayed in the order they were submitted:
+Receiving Provider Group Mercy Physicians Medical Group, Inc. (RBO)
+Number of Enrollees Received 2008
+Name of Contact Dawn Camou
+Phone Number 562-506-7855
+Email Address dawn.camou@astranahealth.com
+Provider Group Expressed Concerns No
+- Provider Group Concerns
+Corrective Action Plan in Effect No
+Plan sent or received a notice of contract termination from the Receiving Provider Group No
+- Contract termination date
+Receiving Provider Group has capacity to accept all of the additional enrollees Yes
+Any services available within the Terminating Provider Group that would not be available No
+- Services no longer available
+Hospitals Primarily Utilized
+Hospital Termination Date Evergreen Contract
+SCRIPPS MERCY HOSPITAL (SAN DIEGO) 09/09/9999 Yes
+SCRIPPS MERCY HOSPITAL - CHULA VISTA (CHULA VISTA) 09/09/9999 Yes
+Confirmation of Capacity Email Acceptance_Mercy.pdf
+Receiving Provider Group Regal Medical Group (RBO)
+Number of Enrollees Received 7
+Name of Contact Candice Chen
+Phone Number 818-357-5096
+Email Address ccchen@heritagemed.com
+Provider Group Expressed Concerns No
+- Provider Group Concerns
+Corrective Action Plan in Effect No
+Plan sent or received a notice of contract termination from the Receiving Provider Group No
+- Contract termination date
+Receiving Provider Group has capacity to accept all of the additional enrollees Yes
+Any services available within the Terminating Provider Group that would not be available No

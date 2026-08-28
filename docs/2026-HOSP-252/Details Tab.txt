@@ -1,0 +1,295 @@
+
+Address: 10 WOODLAND RD., ST. HELENA, CA 94574
+Enrollees Assigned\Unassigned: No
+Cause of Contract Termination: Hospital Initiated
+Contract Termination
+Other
+Contract termination cause narrative: Adventist Health St. Helena issued a termination notice
+with intent to renegotiate agreement.
+Enrollee impact of termination: No document uploaded
+Terminating Hospital Services
+Services pertaining to the terminating hospital.
+High-level specialty (such as Bariatric Surgery, Spine Surgery, etc.) : Yes, MRI PET Cardiac Cath Open Heart Surgery
+Radiation Therapy Hyperbaric Therapy ICU
+Tertiary or Quaternary Care Services: No
+Oncology Services: Yes, Medical oncology Chemotherapy and
+immunotherapy Radiation oncology Surgical oncology
+Advanced imaging (PET MRI) Affiliated clinical trials
+Burn Services: No
+Transplant Services: No
+Any in-patient or out-patient services that are available at the Terminating Hospital, but not available at the
+Alternate Hospitals:
+PPO enrollees who reside within a 15 mile radius of the Terminating Hospital
+Total # of PPO enrollees within 15 miles: 231
+All of the Alternate Hospitals are in-network facilities Yes
+for PPO enrollees:
+The Plan's PPO providers can admit or provide for Yes
+medically necessary services at the Alternate Hospitals:
+Services Comparison
+Services offered by the terminating hospital with that of the Alternate Hospitals comparison.
+Justification how enrollees will access the missing While the alternate hospitals do not offer all comparable
+service(s) post-termination: services, the Plan has established arrangements to
+ensure enrollees maintain access to these services
+post-termination. For services not available at the
+alternate facilities, enrollees will be referred to
+contracted hospitals within the network that provide
+these services. The Plan will coordinate care through
+case management and ensure continuity for members
+currently receiving treatment, including honoring prior
+authorizations and facilitating transfers when clinically
+appropriate. Additionally, enrollees will receive written
+notice of the change and instructions on how to access
+care, supported by our customer service team.
+Services
+Hospital Enrollees
+ADVENTIST HEALTH ST. HELENA (106281078) Y Y Y Y Y Y Y Y Y Y Y Y Y 231 terminating
+PROVIDENCE QUEEN OF THE VALLEY MEDICAL CENTER
+Y Y Y Y Y Y Y Y Y Y Y Y Y 0 alternate
+(106281047)
+SONOMA VALLEY HOSPITAL (106491076) Y 0 alternate
+noitacifitsuJ
+emiT/evirD
+demrifnoC
+yticapaC
+metsyS
+latipsoH
+emaS
+secivreS
+noitrobA
+latanoeN
+etucA
+cirtaideP
+etucA
+cirtaihcysP
+etucA
+secivreS
+nruB
+UCI
+yranoroC
+noitaziretehtaC
+traeH
+sisylaidomeH
+mooR
+yrevileD
+robaL
+UCI
+latanoeN
+yregrus
+orueN
+yregruS
+traeHnepO
+UCI
+cirtaideP nacS
+TEP
+yparehT
+noitaidaR
+SUTTER SANTA ROSA REGIONAL HOSPITAL (106494106) Y Y Y Y Y Y Y Y 0 alternate
+Alternate Hospital: PROVIDENCE QUEEN OF THE VALLEY MEDICAL CENTER (106281047)
+Drive Time: 28
+Drive Distance: 21
+Timely Access Justification Required: No
+Timely Access Justification: Not Applicable
+Capacity Confirmed to Serve Additional Enrollees: Not Applicable
+Capacity Justification: Not Applicable
+Same Hospital System as Terminating: No
+Same Hospital System Justification: Not Applicable
+Date Contract Terminates: 1/1/2027
+Termination Notice Days: 180
+Notice of Contract Termination: No
+Potential Increase for PPO/POS: No
+Evergreen: Yes
+Alternate Hospital: SONOMA VALLEY HOSPITAL (106491076)
+Drive Time: 50
+Drive Distance: 35
+Timely Access Justification Required: Yes
+The time/travel distance to Sonoma Valley Hospital: Reflects normal and customary travel patterns for
+hospital care in the County area; Falls within rural access thresholds recognized by California’s network
+Timely Access Justification:
+adequacy standards; and Is consistent with DMHC’s allowance for alternative access standards in rural
+counties, without the need for a separate, facility-specific waiver.
+Capacity Confirmed to Serve Additional Enrollees: Not Applicable
+Capacity Justification: Not Applicable
+Same Hospital System as Terminating: No
+Same Hospital System Justification: Not Applicable
+Date Contract Terminates: 9/1/2026
+Termination Notice Days: 180
+Notice of Contract Termination: No
+Potential Increase for PPO/POS: No
+Evergreen: Yes
+Alternate Hospital: SUTTER SANTA ROSA REGIONAL HOSPITAL (106494106)
+Drive Time: 37
+Drive Distance: 24
+Timely Access Justification Required: Yes
+The time/travel distance to Sutter Santa Rosa Regional Hospital: Reflects normal and customary travel
+patterns for hospital care in the County area; Falls within rural access thresholds recognized by California’s
+Timely Access Justification:
+network adequacy standards; and Is consistent with DMHC’s allowance for alternative access standards in
+rural counties, without the need for a separate, facility-specific waiver.
+Capacity Confirmed to Serve Additional Enrollees: Not Applicable
+Capacity Justification: Not Applicable
+Same Hospital System as Terminating: No
+Same Hospital System Justification: Not Applicable
+Date Contract Terminates: 1/1/2027
+Termination Notice Days: 180
+Notice of Contract Termination: No
+Potential Increase for PPO/POS: No
+Evergreen: Yes
+Number of Enrollees Received by Alternate Hospitals
+Receiving Hospital Number of Enrollees
+SONOMA VALLEY HOSPITAL 0
+SUTTER SANTA ROSA REGIONAL HOSPITAL 0
+PROVIDENCE QUEEN OF THE VALLEY MEDICAL CENTER 0
+Bed Days
+Plan Enrollees at Terminating Hospital for the most recently completed Calendar Year
+Total # of Bed Days Utilized: 0
+Total # of Admits: 0
+Plan PPO Enrollees at Terminating Hospital for the most recently completed Calendar Year
+Total # of Bed Days Utilized: 0
+Total # of Admits: 0
+Enrollee Timely Access
+Are there enrollees who have a residence or workplace within 15 miles or 30 minutes of a contracted hospital
+prior to termination, but would have a residence or workplace beyond 15 miles or 30 minutes of a contracted
+hospital post-termination? No
+Enrollees by Product
+Government Entities That
+Must Approve Enrollee
+Product Number of Enrollees Notice
+PPO 231 Not Applicable
+Total:231
+Government Entities That Must Approve Enrollee Notice
+Provider Contract COC Provisions: No document uploaded
+Enrollees by County/Zip Code
+Method enrollees entered: County
+County Number of Enrollees
+Napa 69
+Sonoma 162
+Total:231
+General Info
+Waiver Request
+Notice to enrollees is required at least 60 days prior to the contract termination. (Health and Saf. Code §
+1373.65(b); Title 20 CCR § 130067.1.3(e).) The Plan may apply for a waiver from the 60-day notice
+requirement if: (i) there is a sudden closure of a contracted provider; (ii) a notice timing conflict exists with
+another jurisdictional agency; or (iii) other good-cause circumstances exist.
+Is the Plan requesting a waiver from the 60-day Yes
+enrollee notice requirement?
+Cause of Late Enrollee Notice: DMHC Cause of Late Enrollee Notice_Adventist Health
+St. Helena.docx
+Continuity of Care (COC)
+Will the Plan implement its Department-Approved Yes
+Continuity of Care policy?
+COC Policy Explanation: No document uploaded
+Has the Plan reached a Continuity of Care agreement Yes
+with the Terminating Provider Group that specifies
+reimbursement rates for Completion of Covered
+Services under § 1373.96?
+Confirmation of Notices
+The Plan confirms that it will provide a notice, approved by the Department of Managed Health Care, of the
+contract termination to the following:
+- All enrollees who have utilized the Terminating Hospital at least once within the past 12 Yes
+months and those who have an authorized appointment/procedure/service at the
+Terminating Hospital post-termination:
+- All contracted providers and provider groups that may be affected by contract termination, Yes
+including, but not limited to, primary utilizers of the Terminating Hospital:
+- Any other enrollees or providers the Plan has identified to receive a notice: Yes
+Enrollee Access
+Provider groups are displayed in the order they were submitted:
+Provider Group DIRECTLY CONTRACTED NETWORK (DCN)
+Contacted Provider Group Unanswered
+Name of Contact Unanswered
+Phone Number Unanswered
+Email Address Unanswered
+Provider Group Expressed Concerns Unanswered
+- Provider Group Concerns Not Applicable
+Health System Unanswered
+Same Hospital System Justification Not Applicable
+Direct Contract Unanswered
+- Termination Date Unanswered
+- EverGreen Unanswered
+- Continue to refer enrollees to the Terminating Hospital Unanswered
+- Plan enrollees will not be redirected and will be allowed
+Unanswered
+continued access
+- Notices will not be sent to enrollees assigned to the specified
+Unanswered
+provider group
+Block Transfer filed for this group Unanswered
+- Filing Number Not Applicable
+- The Plan will submit a timely Block Transfer filing prior to the
+Not Applicable
+termination
+Routine Access to the Terminating Hospital Unanswered
+- Able to refer their enrollees for comparable services within
+Unanswered
+network
+Provides PCP/Hospitalist admitting privileges Unanswered
+- PCP/Hospitalist admitting privilege justification Not Applicable
+Arrange Care if problem admitting at the Alternate Hospital The Plan or it's contracted groups will arrange
+care at the alternate hospitals through use of
+hospitalist, and/or regular admitting patterns.
+Bed Days Utilized at
+# of Plan Enrollees Terminating Hospital
+Provider Group Info Assigned to Provider During the Most # of Non-ER Admits
+Group Recently Completed
+Calendar Year
+0 0 0
+# of Enrollees Assigned
+# of PCPs with Active % of PCPs with Active
+to PCPs with Active
+Admitting Privileges at Admitting Privileges at
+Admitting Privileges at
+the Alternate the Alternate
+the Alternate
+Hospital(s) Hospital(s)
+Hospital(s)
+0 0 0
+# of Enrollees assigned
+# of PCPs without % of PCPs without
+to PCPs without Active
+Active Admitting Active Admitting
+Admitting Privileges at
+Privileges at the Privileges at the
+the Alternate
+Alternate Hospital(s) Alternate Hospital(s)
+Hospital(s)
+0 0 0
+# of Specialists with % of Specialists with # of Specialists with
+Active Admitting Active Admitting Active Admitting
+Privileges at Privileges at the Privileges at Alternate
+Terminating Hospital(s) Terminating Hospital(s) Hospital)(s)
+0 0 0
+% of Specialists with
+Active Admitting
+Privileges at the
+Alternative Hospital
+0
+Selected specialties:
+Alternate hospitals:
+# of PCPs (and or Notice of
+Hospitalists) Who # of Specialists contract Potential cost
+Alternate Hospital(s) Provider Group Admit to Alternate Who Admit to Date Contract Termination termination increase for Evergreen
+Will Use Hospital Alternate Hospital Terminates/Renews notice days sent/received? PPO/POS? Contract?
+PROVIDENCE QUEEN OF THE VALLEY 0 0 01/01/2027 180 No No Yes
+MEDICAL CENTER
+Narrow Network
+Is the Terminating Provider Group part of a “narrow network” product offered by the Plan? No
+A “narrow network” product is one that offers a more limited choice of provider groups compared to the other products offered by the Plan.
+Documents
+Based on the information The Plan provided in its Block Transfer filing, The Plan must attach the documents
+labeled "Required" in the drop-down box below to complete the filing and submit for Dept. review. The Plan may
+provide additional information in the optional narrative if The Plan believes the information is helpful for the
+Dept's review. There is a 15MB limit on each file. File types you may submit: .doc, .xls, .ppt, .rtf, .txt, .pdf, .gif,
+.jpg
+Document Type Original Location Date Uploaded
+Cause of Late Enrollee Notice DMHC Cause of Late Enrollee 2/26/2026 2:46:34 PM
+Notice_Adventist Health St.
+Helena.docx
+Continuity of Care Agreement CoC Language.docx 2/26/2026 2:46:51 PM
+Explanation
+Copy of Contract Extension Extension of Termination Health Net 2/26/2026 2:47:10 PM
+01.20.26 (4.15.26).pdf
+Enrollee Notice HOSPITAL TERM WITH HN-Adventist 2/26/2026 2:47:34 PM
+Health St Helena.docx
+Enrollee Notice CA Commercial Tagline (NOLA).pdf 2/26/2026 2:48:05 PM
+Notice of Contract Termination Adventist Health_Health 2/26/2026 2:48:43 PM
+Net_Termination Notice with Intent to
+Renegotiate_07.01.2025.docx.pdf
