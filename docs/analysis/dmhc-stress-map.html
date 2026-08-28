@@ -1,0 +1,426 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>DMHC Contract Termination Stress Map</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<style>
+  body { font: 14px/1.5 -apple-system, system-ui, sans-serif; margin: 24px; color: #1a1a1a; max-width: 1100px; }
+  h1 { font-size: 22px; margin-bottom: 2px; }
+  .sub { color: #666; margin-top: 0; }
+  .chart { width: 100%; }
+  #timeline { height: 720px; }
+  #rank { height: 300px; }
+  .legend-note { color: #666; font-size: 12px; margin: 6px 0 20px; }
+  #filter-strip {
+    display: none;
+    background: #fdf8ee;
+    border: 1.5px solid #d4a820;
+    border-radius: 6px;
+    padding: 12px 18px;
+    margin: 4px 0 14px;
+    font-size: 13px;
+  }
+  #filter-strip h3 { margin: 0 0 8px; font-size: 14px; }
+  #filter-strip table { border-collapse: collapse; width: 100%; }
+  #filter-strip td { padding: 2px 10px 2px 0; vertical-align: top; }
+  #filter-strip td:first-child { color: #888; white-space: nowrap; font-size: 12px; }
+  #filter-strip .hint { color: #aaa; font-size: 11px; margin-top: 8px; }
+</style>
+
+<h1>DMHC Contract Termination Stress Map</h1>
+<p class="sub">Who is fighting the most contract terminations at once — and is it one coordinated push or many independent fires. Snapshot as of the "today" line (2026-08-28).</p>
+
+<h2 style="font-size:16px">Who's weak: open fights per payer, split by coordination</h2>
+<p class="legend-note">A tall bar = many simultaneous fights. <b>Coordinated</b> (one adversary, one notice date) is a very different story from <b>independent</b> (many unrelated fires). Anthem's fights are all independent — genuine broad pressure. <b>Click a bar to drill into that payer's fights below.</b></p>
+<div id="rank" class="chart"></div>
+
+<div id="filter-strip">
+  <h3 id="filter-title"></h3>
+  <table id="filter-cases"></table>
+  <p class="hint">Click the same bar again to reset &nbsp;·&nbsp; Click another payer to switch</p>
+</div>
+
+<h2 style="font-size:16px">Progression: when each fight opened, when it ends</h2>
+<p class="legend-note">Each bar spans the full fight. <b>Solid</b> = affirmative termination notice sent; <b>dashed/faded</b> = passive contract expiry. Hover the <b>markers</b> on each bar to see filing details. Red line = today.</p>
+<div id="timeline" class="chart"></div>
+
+<script>
+const TODAY = '2026-08-28';
+
+const cases = [
+  { id:'HOSP-89',  payer:'Anthem',          system:'(independent)', hospital:"O'Connor Hospital",
+    start:'2025-10-01', end:'2026-05-01', open:false, notice_type:'expiry', coordinated:false, enrollees:null,
+    events:[
+      {type:'filed',    date:'2025-10-27', doc:'earliest timestamp (contract amendment)',   detail:'Anthem filed block transfer — contract hard end date, no notice required'},
+      {type:'resolved', date:'2026-05-29', doc:'Approval_1780068875737 (1).txt',           detail:'DMHC approved. Extension to Oct 1, 2026'},
+    ]},
+  { id:'HOSP-90',  payer:'Anthem',          system:'(independent)', hospital:'St. Louise Regional',
+    start:'2026-03-16', end:'2026-07-01', open:false, notice_type:'expiry', coordinated:false, enrollees:null,
+    events:[
+      {type:'filed',    date:'2026-03-16', doc:'earliest timestamp',                        detail:'Anthem filed block transfer — contract hard end date'},
+      {type:'comment',  date:'2026-03-19', doc:'CommentLetter_1773950292533.txt',           detail:'DMHC comment letter issued'},
+      {type:'effective',date:'2026-07-01', doc:'Details Tab.txt',                           detail:'Contract termination effective'},
+    ]},
+  { id:'HOSP-256', payer:'Anthem',          system:'(independent)', hospital:'Henry Mayo Newhall',
+    start:'2026-03-02', end:'2026-06-01', open:false, notice_type:'expiry', coordinated:false, enrollees:null,
+    events:[
+      {type:'filed',    date:'2026-03-02', doc:'earliest timestamp',                        detail:'Anthem filed — no termination notice. "Contract does not require a termination notice; rather it has a hard end date"'},
+      {type:'comment',  date:'2026-03-03', doc:'CommentLetter_1772584804088 (2).txt',       detail:'DMHC comment letter — initial termination date Apr 1, 2026'},
+      {type:'effective',date:'2026-06-01', doc:'Communication w-Plan Tab.txt',              detail:'Final effective date (extended from Apr 1)'},
+    ]},
+  { id:'HOSP-277', payer:'Anthem',          system:'(independent)', hospital:"O'Connor (refile)",
+    start:'2026-03-15', end:'2026-07-01', open:false, notice_type:'expiry', coordinated:false, enrollees:null,
+    events:[
+      {type:'filed',    date:'2026-03-15', doc:'earliest timestamp',                        detail:'Complete refiling of HOSP-89. No notice — hard end date. Adds Washington Hospital-Fremont as alternate'},
+      {type:'comment',  date:'2026-04-17', doc:'Communication w-Plan Tab.txt',              detail:'DMHC comment letter'},
+      {type:'effective',date:'2026-07-01', doc:'Approval_1776438020431.txt',                detail:'Contract termination effective'},
+    ]},
+  { id:'HOSP-281', payer:'Anthem',          system:'(independent)', hospital:'Santa Clara Valley MC',
+    start:'2026-03-15', end:'2026-07-01', open:false, notice_type:'expiry', coordinated:false, enrollees:3348,
+    events:[
+      {type:'filed',    date:'2026-03-15', doc:'earliest timestamp',                        detail:'Largest Anthem case: 3,348 enrollees. No notice — hard end date per 2022 Medicaid amendment (initial term Dec 31, 2025)'},
+      {type:'comment',  date:'2026-03-19', doc:'CommentLetter_1773962110142.txt',           detail:'DMHC comment letter'},
+      {type:'comment',  date:'2026-04-08', doc:'AdditionalCommentLetter_1775674226073.txt', detail:'DMHC additional comment letter'},
+      {type:'resolved', date:'2026-04-30', doc:'ApprovalwithConditions_1777575701762.txt',  detail:'DMHC approval with conditions'},
+      {type:'effective',date:'2026-07-01', doc:'Details Tab.txt',                           detail:'Contract termination effective'},
+    ]},
+  { id:'HOSP-283', payer:'Anthem',          system:'(independent)', hospital:'Kern Medical Center',
+    start:'2026-03-19', end:'2026-04-25', open:false, notice_type:'expiry', coordinated:false, enrollees:null,
+    events:[
+      {type:'filed',    date:'2026-03-19', doc:'earliest timestamp (filed Mar 26 per comment)', detail:'Anthem filed — no termination notice. Hard end date'},
+      {type:'comment',  date:'2026-03-27', doc:'CommentLetter_1774635343161.txt',           detail:'DMHC comment — current termination date Apr 25, 2026'},
+      {type:'resolved', date:'2026-04-30', doc:'Approval_1777585094223.txt',                detail:'DMHC approved'},
+      {type:'effective',date:'2026-04-25', doc:'Details Tab.txt',                           detail:'Contract termination effective'},
+    ]},
+  { id:'HOSP-293', payer:'Anthem',          system:'(independent)', hospital:"Valley Children's (sparse)",
+    start:'2026-03-17', end:'2026-07-01', open:false, notice_type:'expiry', coordinated:false, enrollees:null,
+    events:[
+      {type:'filed',    date:'2026-03-17', doc:'earliest timestamp',                        detail:'Sparse early filing — 0 enrollees counted, most fields Unanswered. Superseded by HOSP-294 same day'},
+      {type:'comment',  date:'2026-03-18', doc:'CommentLetter_1773866039382.txt',           detail:'DMHC comment letter'},
+    ]},
+  { id:'HOSP-294', payer:'Anthem',          system:'(independent)', hospital:"Valley Children's",
+    start:'2026-03-17', end:'2026-07-01', open:false, notice_type:'expiry', coordinated:false, enrollees:null,
+    events:[
+      {type:'filed',    date:'2026-03-17', doc:'earliest timestamp (filed Mar 18 per comment)', detail:'Complete filing — 13,033 PPO enrollees within 15 miles. 6 alternates incl. Children\'s LA, Lucile Packard, UCSF Benioff Oakland'},
+      {type:'comment',  date:'2026-03-20', doc:'CommentLetter_1774035746103.txt',           detail:'DMHC comment letter'},
+      {type:'resolved', date:'2026-05-01', doc:'ApprovalwithConditions_1777673319805.txt',  detail:'DMHC approval with conditions'},
+      {type:'effective',date:'2026-07-01', doc:'Details Tab.txt',                           detail:'Contract termination effective'},
+    ]},
+
+  { id:'PROV-94',  payer:'Cigna',           system:'(independent)', hospital:'Empire/Optum Desert Cities',
+    start:'2026-03-04', end:'2026-06-30', open:false, notice_type:'expiry', coordinated:false, enrollees:95,
+    events:[
+      {type:'filed',    date:'2026-03-04', doc:'earliest timestamp (filed Mar 5 per comment)', detail:'95 HMO enrollees (Imperial, Riverside, San Bernardino, San Diego). "Plan has neither issued nor received any contract termination notices." Provider DBA\'d as Optum Care Network-Desert Cities on ID cards'},
+      {type:'comment',  date:'2026-03-10', doc:'CommentLetter_1773162068571.txt',           detail:'DMHC comment letter'},
+      {type:'effective',date:'2026-06-30', doc:'Details Tab.txt',                           detail:'Contract termination effective'},
+    ]},
+  { id:'PROV-95',  payer:'Cigna',           system:'UC Health',     hospital:'UCSD Medical Group',
+    start:'2025-12-15', end:'2026-07-01', open:false, notice_type:'termination', coordinated:true, enrollees:2015,
+    events:[
+      {type:'notice',   date:'2025-12-15', doc:'1772653265996.txt',                         detail:'UC San Diego Health → Cigna. 180-day termination/renegotiation notice via FedEx. Part of coordinated UC Health system action (same date as PROV-97, PROV-101)'},
+      {type:'filed',    date:'2026-03-04', doc:'earliest timestamp (filed Mar 5 per comment)', detail:'2,015 HMO enrollees'},
+      {type:'comment',  date:'2026-03-09', doc:'CommentLetter_1773094016345.txt',           detail:'DMHC comment letter'},
+      {type:'resolved', date:'2026-04-17', doc:'Approval_1776458647548 (1).txt',            detail:'DMHC approved'},
+      {type:'resolved', date:'2026-07-02', doc:'Communication w-Plan Tab.txt',              detail:'Agreement reached — contract renewed'},
+    ]},
+  { id:'PROV-97',  payer:'Cigna',           system:'UC Health',     hospital:'UCI Univ Physicians & Premier Health',
+    start:'2025-12-15', end:'2026-06-30', open:false, notice_type:'termination', coordinated:true, enrollees:514,
+    events:[
+      {type:'notice',   date:'2025-12-15', doc:'1773161808956.txt',                         detail:'Joint letter: UCI University Physicians & Surgeons AND Premier Health Plan Services → Cigna via FedEx. UC Office of the President retained outside counsel. Single notice covered two entities (cap agreements from 2019 and 2008)'},
+      {type:'filed',    date:'2026-03-10', doc:'earliest timestamp',                        detail:'514 HMO enrollees (LA + Orange counties). Narrow network product adds 100 more (Southern CA Value Network)'},
+      {type:'comment',  date:'2026-03-12', doc:'CommentLetter_1773355910106.txt',           detail:'DMHC comment letter'},
+      {type:'effective',date:'2026-06-30', doc:'1773161808956.txt',                         detail:'Contract termination effective'},
+    ]},
+  { id:'PROV-101', payer:'Cigna',           system:'UC Health',     hospital:'UC Davis Medical Group',
+    start:'2025-12-15', end:TODAY,        open:true,  notice_type:'termination', coordinated:true, enrollees:98,
+    events:[
+      {type:'notice',   date:'2025-12-15', doc:'1773328171711.txt',                         detail:'UC Davis Health → Cigna via FedEx + certified mail. 180-day notice, HMO capitated agreement (UCD Agreement No. 97-11640V). Part of coordinated UC Health action with PROV-95 and PROV-97'},
+      {type:'filed',    date:'2026-03-12', doc:'earliest timestamp',                        detail:'98 HMO enrollees (Sacramento, El Dorado, Placer counties)'},
+      {type:'comment',  date:'2026-03-xx', doc:'CommentLetter_1773865109187 (1).txt',       detail:'DMHC comment letters (two issued)'},
+    ]},
+  { id:'PROV-107', payer:'Cigna',           system:'(independent)', hospital:'Community Health Partners',
+    start:'2025-12-10', end:'2026-06-30', open:false, notice_type:'termination', coordinated:false, enrollees:17,
+    events:[
+      {type:'notice',   date:'2025-12-10', doc:'1774371095768.txt',                         detail:'Community Health Partners (Fresno) → Cigna. Section 4.2 renegotiation notice. "Agreement shall terminate effective June 30, 2026, if not renewed." Smallest case: 17 HMO enrollees, all Fresno County'},
+      {type:'filed',    date:'2026-03-24', doc:'earliest timestamp',                        detail:'17 HMO enrollees, Fresno County only'},
+      {type:'effective',date:'2026-06-30', doc:'1774371095768.txt',                         detail:'Contract termination effective'},
+    ]},
+
+  { id:'HOSP-235', payer:'UnitedHealthcare', system:'(independent)', hospital:'Palmdale Regional MC',
+    start:'2026-02-17', end:'2026-05-01', open:false, notice_type:'expiry', coordinated:false, enrollees:null,
+    events:[
+      {type:'filed',    date:'2026-02-17', doc:'earliest timestamp',                        detail:'UHC filed. Palmdale Regional is part of Universal Health Services contract. Coronary ICU, Plastic Surgery, Spine Surgery unavailable at alternates — LOA required'},
+      {type:'enrolled', date:'2026-02-06', doc:'1771367719043.txt',                         detail:'Enrollee notices mailed Feb 6, 2026'},
+      {type:'effective',date:'2026-05-01', doc:'1771367719043.txt',                         detail:'Contract termination effective'},
+    ]},
+  { id:'HOSP-237', payer:'UnitedHealthcare', system:'(independent)', hospital:'Temecula Valley Hospital',
+    start:'2026-02-18', end:'2026-05-01', open:false, notice_type:'expiry', coordinated:false, enrollees:null,
+    events:[
+      {type:'filed',    date:'2026-02-18', doc:'earliest timestamp',                        detail:'Filed day after HOSP-235 (Palmdale). Different hospital system, same plan. Temecula Valley is also part of Universal Health Services. Hemodialysis unavailable at alternates — LOA required'},
+      {type:'enrolled', date:'2026-02-06', doc:'1771437338291.txt',                         detail:'Enrollee notices mailed Feb 6, 2026'},
+      {type:'effective',date:'2026-05-01', doc:'1771437338291.txt',                         detail:'Contract termination effective'},
+    ]},
+  { id:'HOSP-259', payer:'UnitedHealthcare', system:'(independent)', hospital:'Corona Regional MC',
+    start:'2026-03-02', end:'2026-06-30', open:false, notice_type:'expiry', coordinated:false, enrollees:null,
+    events:[
+      {type:'filed',    date:'2026-03-02', doc:'earliest timestamp',                        detail:'UHC filed — Corona Regional Medical Center-Main'},
+      {type:'effective',date:'2026-06-30', doc:'Communication w-Plan Tab.txt',              detail:'Current termination date (extended; originally earlier)'},
+    ]},
+
+  { id:'HOSP-250', payer:'Health Net',      system:'Adventist Health', hospital:'AH Tehachapi Valley',
+    start:'2025-07-01', end:'2026-10-01', open:true, notice_type:'termination', coordinated:true, enrollees:null,
+    events:[
+      {type:'notice',   date:'2025-07-01', doc:'1772140269799.txt',                         detail:'Adventist Health → Health Net via certified mail. 180-day notice covering all CA ministries (same letter as HOSP-252). Original termination date: Jan 1, 2026. Filed DMHC 8 months later — late filing triggered 30-day notice waiver request'},
+      {type:'filed',    date:'2026-02-26', doc:'earliest timestamp',                        detail:'Late DMHC filing — 8 months after notice. Health Net requested waiver of 60-day enrollee notice requirement'},
+      {type:'effective',date:'2026-10-01', doc:'Details Tab.txt',                           detail:'Revised effective date (extended from Jan 1, 2026)'},
+    ]},
+  { id:'HOSP-252', payer:'Health Net',      system:'Adventist Health', hospital:'AH St. Helena',
+    start:'2025-07-01', end:'2026-09-01', open:true, notice_type:'termination', coordinated:true, enrollees:null,
+    events:[
+      {type:'notice',   date:'2025-07-01', doc:'1772146122964 (1).txt',                     detail:'Same Adventist Health system-wide letter as HOSP-250 — one notice, two DMHC filings. 180-day notice to Health Net covering all CA ministries'},
+      {type:'filed',    date:'2026-02-26', doc:'earliest timestamp',                        detail:'Filed same day as HOSP-250. Both Adventist hospitals filed simultaneously'},
+      {type:'effective',date:'2026-09-01', doc:'Details Tab.txt',                           detail:'Revised effective date (extended from Jan 1, 2026)'},
+    ]},
+  { id:'HOSP-436', payer:'Health Net',      system:'(independent)', hospital:'Valley Presbyterian (ophtha)',
+    start:'2026-07-01', end:'2026-12-31', open:true, notice_type:'termination', coordinated:false, enrollees:null,
+    events:[
+      {type:'filed',    date:'2026-07-01', doc:'earliest timestamp',                        detail:'Narrow scope: ophthalmology services only terminating. Hospital remains in-network for all other services. Filed same day services terminated'},
+      {type:'effective',date:'2026-07-01', doc:'1782948305422.txt',                         detail:'Ophthalmology services terminate — hospital otherwise in-network'},
+      {type:'effective',date:'2026-12-31', doc:'Details Tab.txt',                           detail:'Full contract termination date'},
+    ]},
+
+  { id:'HOSP-147', payer:'Blue Shield of CA', system:'Providence',   hospital:'Providence Redwood Mem.',
+    start:'2025-10-30', end:'2026-05-01', open:false, notice_type:'termination', coordinated:true, enrollees:null,
+    events:[
+      {type:'notice',   date:'2025-10-30', doc:'1765992798656.txt',                         detail:'Providence St. Joseph Health → Blue Shield via certified mail and email. Covers all CA ministries (same letter as HOSP-189). Target effective date: Apr 30, 2026. Signed: Nate Husmann, Chief Contracting Officer'},
+      {type:'filed',    date:'2025-12-17', doc:'earliest timestamp',                        detail:'Providence Redwood Memorial Hospital = Humboldt County. Mad River Community Hospital listed as alternate'},
+      {type:'effective',date:'2026-05-01', doc:'1767658056278.txt',                         detail:'Contract terminated — "Providence Redwood Memorial Hospital is no longer in our network"'},
+    ]},
+  { id:'HOSP-189', payer:'Blue Shield of CA', system:'Providence',   hospital:'Providence St. Joseph',
+    start:'2025-10-30', end:'2026-05-01', open:false, notice_type:'termination', coordinated:true, enrollees:null,
+    events:[
+      {type:'notice',   date:'2025-10-30', doc:'1768337480850 (1).txt',                     detail:'Same Providence system-wide letter as HOSP-147. Blue Shield filed two separate DMHC cases for each impacted hospital'},
+      {type:'filed',    date:'2026-01-13', doc:'earliest timestamp',                        detail:'Providence St. Joseph Hospital - Orange (Anaheim). Alternates: UC Irvine MC, Anaheim Global MC, Chapman Global MC, Foothill Regional MC'},
+      {type:'effective',date:'2026-05-01', doc:'1768507660609 (4).txt',                     detail:'Contract terminated — "Providence St. Joseph Hospital - Orange is no longer in our network"'},
+    ]},
+];
+
+const payerColor = {
+  'Anthem':'#c0392b', 'Cigna':'#2f7ed8', 'UnitedHealthcare':'#27ae60',
+  'Health Net':'#e8710a', 'Blue Shield of CA':'#8e44ad'
+};
+
+const eventStyle = {
+  notice:    {symbol:'circle',   size:12, color:'#f1c40f', label:'Notice sent'},
+  filed:     {symbol:'diamond',  size:12, color:'#ecf0f1', label:'DMHC filed'},
+  comment:   {symbol:'rect',     size:8,  color:'#bdc3c7', label:'DMHC comment'},
+  resolved:  {symbol:'triangle', size:12, color:'#2ecc71', label:'Resolved/approved'},
+  effective: {symbol:'pin',      size:14, color:'#e74c3c', label:'Contract terminated'},
+  enrolled:  {symbol:'circle',   size:8,  color:'#9b59b6', label:'Enrollee notices'},
+};
+
+const payers = ['Anthem','Cigna','UnitedHealthcare','Health Net','Blue Shield of CA'];
+
+/* ---------- Chart 1: ranked stacked bar ---------- */
+const rank = payers.map(p => {
+  const cs = cases.filter(c => c.payer===p);
+  return { payer:p, indep:cs.filter(c=>!c.coordinated).length, coord:cs.filter(c=>c.coordinated).length, total:cs.length };
+}).sort((a,b)=>b.total-a.total);
+
+const rankChart = echarts.init(document.getElementById('rank'));
+rankChart.setOption({
+  tooltip:{trigger:'axis',axisPointer:{type:'shadow'}},
+  legend:{data:['Independent fires','Coordinated (one adversary)'],top:0},
+  grid:{left:150,right:80,top:40,bottom:20},
+  xAxis:{type:'value',minInterval:1,name:'contract fights',nameLocation:'end',nameGap:8},
+  yAxis:{type:'category',data:rank.map(r=>r.payer).reverse(),axisLabel:{fontWeight:'bold'}},
+  series:[
+    {name:'Independent fires',type:'bar',stack:'t',color:'#c0392b',
+     data:rank.map(r=>r.indep).reverse(),label:{show:true,position:'inside',formatter:p=>p.value||''}},
+    {name:'Coordinated (one adversary)',type:'bar',stack:'t',color:'#95a5a6',
+     data:rank.map(r=>r.coord).reverse(),label:{show:true,position:'inside',formatter:p=>p.value||''}}
+  ]
+});
+
+/* ---------- Chart 2: Gantt + event markers ---------- */
+const d = s => new Date(s).getTime();
+const rows = [...cases].sort((a,b)=> payers.indexOf(a.payer)-payers.indexOf(b.payer) || d(a.start)-d(b.start));
+const cats = rows.map(c => c.payer.split(' ')[0] + ' · ' + c.hospital);
+
+let activePayer = null;
+
+const tooltipFn = p => {
+  const v = p.data;
+  const typeLabel = {
+    notice:'Notice sent', filed:'DMHC filed', comment:'DMHC comment',
+    resolved:'Resolved/approved', effective:'Contract terminated', enrolled:'Enrollee notices'
+  }[v._label] || v._label;
+  return `<b style="font-size:13px">${v._case}</b> &nbsp;<span style="color:#888">${typeLabel}</span>`
+    + `<br><b>${v._payer}</b> vs <b>${v._hospital}</b>`
+    + (v._system !== '(independent)' ? ` <span style="color:#888">(${v._system})</span>` : '')
+    + `<br><span style="color:#888">Date:</span> ${v._date}`
+    + `<br><span style="color:#888">Source:</span> <code style="font-size:11px">${v._doc}</code>`
+    + `<hr style="margin:6px 0;border:none;border-top:1px solid #eee">`
+    + `<span style="font-size:12px">${v._detail}</span>`
+    + (v._enrollees ? `<br><span style="color:#888">${v._enrollees.toLocaleString()} enrollees</span>` : '');
+};
+
+function buildEventSeries() {
+  const map = {};
+  rows.forEach((c, i) => {
+    const dim = activePayer && c.payer !== activePayer;
+    c.events.forEach(e => {
+      if (!map[e.type]) map[e.type] = [];
+      map[e.type].push({
+        value: [d(e.date), i],
+        itemStyle: {
+          color: dim ? '#555' : (eventStyle[e.type]?.color || '#fff'),
+          borderColor: dim ? '#444' : payerColor[c.payer],
+          borderWidth: 2,
+          opacity: dim ? 0.07 : 1,
+        },
+        _case: c.id, _payer: c.payer, _hospital: c.hospital, _system: c.system,
+        _enrollees: c.enrollees, _date: e.date, _doc: e.doc, _detail: e.detail, _label: e.type,
+      });
+    });
+  });
+  return Object.entries(map).map(([type, data]) => ({
+    id: 'evt_' + type,
+    name: eventStyle[type]?.label || type,
+    type: 'scatter',
+    symbol: eventStyle[type]?.symbol || 'circle',
+    symbolSize: eventStyle[type]?.size || 10,
+    data,
+    z: 10,
+    tooltip: { formatter: tooltipFn }
+  }));
+}
+
+const renderBar = (params, api) => {
+  const yi = api.value(0);
+  const start = api.coord([api.value(1), yi]);
+  const end   = api.coord([api.value(2), yi]);
+  const h = api.size([0,1])[1] * 0.45;
+  const r = {x:start[0], y:start[1]-h/2, width:Math.max(end[0]-start[0],3), height:h};
+  const clipped = echarts.graphic.clipRectByRect(r,
+    {x:params.coordSys.x,y:params.coordSys.y,width:params.coordSys.width,height:params.coordSys.height});
+  const c = rows[yi];
+  const dim = activePayer && c.payer !== activePayer;
+  const color = dim ? '#888' : payerColor[c.payer];
+  const baseOpacity = c.notice_type === 'termination' ? 0.85 : 0.3;
+  const opacity = dim ? 0.07 : baseOpacity;
+  return clipped && {
+    type:'rect', shape:clipped,
+    style: c.notice_type==='termination' && !dim
+      ? api.style({fill:color, opacity, stroke:'#fff', lineWidth:1.5})
+      : api.style({fill:color, opacity, stroke: dim ? '#444' : color, lineWidth:1.5, lineDash:[5,4]})
+  };
+};
+
+const timelineChart = echarts.init(document.getElementById('timeline'));
+timelineChart.setOption({
+  tooltip: { trigger:'item', enterable:true, confine:true, padding:12,
+    textStyle:{fontSize:12}, extraCssText:'max-width:360px;white-space:normal;line-height:1.5' },
+  legend: {
+    top: 0, right: 0,
+    data: Object.entries(eventStyle).map(([k,v])=>({name:v.label, icon:v.symbol})),
+    textStyle:{fontSize:11}
+  },
+  grid:{left:230, right:40, top:30, bottom:60},
+  xAxis:{type:'time'},
+  yAxis:{type:'category', data:cats, inverse:true, axisLabel:{fontSize:11}},
+  series:[
+    { id:'gantt', type:'custom', renderItem:renderBar, encode:{x:[1,2],y:0}, z:1,
+      tooltip:{show:false},
+      data: rows.map((c,i)=>[i, d(c.start), d(c.end)]),
+      markLine:{ symbol:'none', silent:true,
+        lineStyle:{color:'#c0392b',width:2},
+        label:{formatter:'today',color:'#c0392b',position:'insideEndTop'},
+        data:[{xAxis:d(TODAY)}] }
+    },
+    ...buildEventSeries()
+  ]
+});
+
+/* ---------- Refresh timeline after state change ---------- */
+function refreshTimeline() {
+  timelineChart.setOption({
+    series: [
+      { id:'gantt', data: rows.map((c,i)=>[i, d(c.start), d(c.end)]) }, // triggers renderBar re-run
+      ...buildEventSeries()
+    ]
+  });
+}
+
+/* ---------- Filter strip ---------- */
+function updateStrip() {
+  const strip = document.getElementById('filter-strip');
+  if (!activePayer) { strip.style.display = 'none'; return; }
+
+  const color = payerColor[activePayer];
+  const payerCases = cases.filter(c => c.payer === activePayer);
+  const indep = payerCases.filter(c => !c.coordinated).length;
+  const coord = payerCases.filter(c => c.coordinated).length;
+
+  document.getElementById('filter-title').innerHTML =
+    `<span style="color:${color}">▌</span> ${activePayer} — ${payerCases.length} contract fights`
+    + (indep ? ` &nbsp;<span style="color:#c0392b;font-weight:normal;font-size:12px">${indep} independent</span>` : '')
+    + (coord ? ` &nbsp;<span style="color:#95a5a6;font-weight:normal;font-size:12px">${coord} coordinated</span>` : '');
+
+  const rows_html = payerCases.map(c => {
+    const status = c.open ? '<span style="color:#e74c3c">● open</span>' : '<span style="color:#27ae60">✓ resolved</span>';
+    const type = c.coordinated
+      ? `<span style="color:#95a5a6">coordinated (${c.system})</span>`
+      : `<span style="color:#c0392b">independent</span>`;
+    const enrollees = c.enrollees ? ` · ${c.enrollees.toLocaleString()} enrollees` : '';
+    return `<tr><td>${c.id}</td><td>${c.hospital}</td><td>${type}</td><td>${status}${enrollees}</td></tr>`;
+  }).join('');
+  document.getElementById('filter-cases').innerHTML = rows_html;
+  strip.style.display = 'block';
+}
+
+/* ---------- Click interaction ---------- */
+let pulseTimer = null;
+
+rankChart.on('click', params => {
+  if (params.componentType !== 'series') return;
+  const clicked = params.name; // payer name from category axis
+
+  if (pulseTimer) { clearInterval(pulseTimer); pulseTimer = null; }
+
+  if (activePayer === clicked) {
+    // Second click on same payer → reset
+    activePayer = null;
+    updateStrip();
+    refreshTimeline();
+    return;
+  }
+
+  activePayer = clicked;
+  updateStrip();
+
+  // Pulse: flash 3 times (toggle dim/bright) then settle
+  let count = 0;
+  const saved = clicked;
+  pulseTimer = setInterval(() => {
+    activePayer = (count % 2 === 0) ? null : saved; // alternate show-all vs filter
+    refreshTimeline();
+    count++;
+    if (count >= 6) {
+      clearInterval(pulseTimer);
+      pulseTimer = null;
+      activePayer = saved;
+      refreshTimeline();
+    }
+  }, 180);
+});
+
+// Click on empty chart area → reset
+rankChart.getZr().on('click', e => {
+  if (!e.target && activePayer) {
+    if (pulseTimer) { clearInterval(pulseTimer); pulseTimer = null; }
+    activePayer = null;
+    updateStrip();
+    refreshTimeline();
+  }
+});
+</script>
