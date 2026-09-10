@@ -6,8 +6,6 @@ from bs4 import BeautifulSoup
 from datetime import datetime, timezone, timedelta
 from time import mktime
 
-from playwright.sync_api import sync_playwright
-
 from config import BECKERS_PAYER_FEED_URL
 from db.connection import get_connection, release_connection
 
@@ -70,6 +68,7 @@ def run_backfill(config_path: str = 'config.json', page_limit: int | None = None
     run_id = _open_run(conn, datetime.now(timezone.utc), backfill_source)
     try:
         new_count = 0
+        from playwright.sync_api import sync_playwright
         with sync_playwright() as p:
             browser = p.chromium.connect_over_cdp(CDP_URL)
             context = browser.contexts[0]
